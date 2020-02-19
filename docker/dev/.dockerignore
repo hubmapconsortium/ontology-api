@@ -1,0 +1,9 @@
+# Ignore Dockerfile
+Dockerfile
+
+# Ignore itself
+.dockerignore
+
+# Ignore the mounted neo4j.conf and graph db
+#neo4j.conf
+#hubmap.db

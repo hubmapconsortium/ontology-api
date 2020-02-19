@@ -1,5 +1,5 @@
 # Parent image
-FROM hubmap/neo4j-base-image:latest
+FROM hubmap/ontology-api:latest
 
 LABEL description="Neo4j dev version for HuBMAP Ontology" \
 	version="1.0"
@@ -9,7 +9,7 @@ WORKDIR /usr/src/app
 
 # Copy from host to image
 COPY . .
-COPY ./dev/neo4j.conf /usr/src/app/neo4j/conf/neo4j.conf
+COPY neo4j.conf /usr/src/app/neo4j/conf/neo4j.conf
 
 # Make the start script executable
 RUN chmod +x start.sh

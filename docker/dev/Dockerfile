@@ -15,6 +15,10 @@ COPY neo4j.conf /usr/src/app/neo4j/conf/neo4j.conf
 RUN chown 187:input /usr/src/app/neo4j/plugins/apoc-3.5.0.5-all.jar
 RUN chmod +x /usr/src/app/neo4j/plugins/apoc-3.5.0.5-all.jar
 
+# Change write privs on some Neo4j directories
+RUN chmod -R +w /usr/src/app/neo4j/logs
+RUN chmod -R +w /usr/src/app/neo4j/data
+
 # Make the start script executable
 RUN chmod +x start.sh
     

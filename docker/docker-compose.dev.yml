@@ -15,4 +15,4 @@ services:
       # Mount the neo4j configuration file to container
       - "./dev/neo4j.conf:/usr/src/app/neo4j/conf/neo4j.conf"
       # Mount the neo4j sample database to container
-      - "./dev/graph.db:/usr/src/app/neo4j/data/databases/graph.db"
+      - "./dev/ontology.db:/usr/src/app/neo4j/data/databases/ontology.db"

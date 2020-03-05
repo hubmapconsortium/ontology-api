@@ -12,6 +12,6 @@ cd docker
 ./neo4j-docker.sh dev start
 ````
 
-Note: you may need to execute ./neo4j-docker.sh dev start using the sudo command depending on your docker configuration.
+###### Note: you may need to execute ./neo4j-docker.sh dev start using the sudo command depending on your docker configuration.
 
 After deploying the code, the Neo4j endpoint should be accessible through http://localhost:7474.  This should present you with a Neo4j browser interface.

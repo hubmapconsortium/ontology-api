@@ -9,7 +9,6 @@ WORKDIR /usr/src/app
 
 # Copy from host to image
 COPY . .
-#COPY neo4j.conf /usr/src/app/neo4j/conf/neo4j.conf
 
 # Make the apoc .jar accessible and executable
 RUN chown 187:input /usr/src/app/neo4j/plugins/apoc-3.5.0.5-all.jar

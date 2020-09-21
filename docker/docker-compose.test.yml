@@ -3,7 +3,7 @@ version: "3.7"
 services:
 
   ontology-neo4j-test:
-    build: ./test
+    build: ./ontology-api-test
     # Build the image with name and tag
     image: ontology-neo4j-test:1.0
     hostname: ontology-neo4j-test
@@ -13,10 +13,19 @@ services:
     # Specifying a restart policy to avoid downtime
     restart: always
     ports:
-      - "7455:7474"
-      - "7658:7687"
-    volumes:
+      - "7410:7474"
+      - "7610:7687"
+    environment:
+      # uid=68728(hive) gid=23629(hive) groups=23629(hive),1011(docker)
+      - HOST_GID=${HOST_GID:-23629}
+      - HOST_UID=${HOST_UID:-68728}
+   volumes:
       # Mount the neo4j configuration file to container
       - "./test/neo4j.conf:/usr/src/app/neo4j/conf/neo4j.conf"
       # Mount the neo4j sample database to container
       - "./test/ontology.db:/usr/src/app/neo4j/data/databases/ontology.db"
+   networks:
+      - hubmap
+
+networks:
+  hubmap:

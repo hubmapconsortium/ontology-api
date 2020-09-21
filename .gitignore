@@ -1,7 +1,5 @@
 # Project Specific files #
 ##########################
-docker/dev/*.db/
-docker/test/*.db/
 import/
 
 # Compiled source #

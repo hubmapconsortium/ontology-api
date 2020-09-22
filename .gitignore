@@ -1,5 +1,7 @@
 # Project Specific files #
 ##########################
+ontology.db
+ontology.db.gz
 import/
 
 # Compiled source #

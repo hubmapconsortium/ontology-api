@@ -1,0 +1,33 @@
+version: "3.7"
+
+services:
+
+  hubmap-neo4j-ontology:
+    build: ./base-image
+    # Build the image with name and tag
+    image: hubmap-neo4j-ontology:1.0
+    hostname: hubmap-neo4j-ontology
+    container_name: hubmap-neo4j-ontology
+    # By default this `deploy` key only takes effect when deploying to a swarm with docker stack deploy, and is ignored by docker-compose up
+    # However, we can use the `--compatibility` flag within `docker-compose --compatibility up`
+    # The `--compatibility` flag will attempt to convert deploy keys in docker-compose v3 to their non-Swarm equivalent
+    deploy:
+      resources:
+        limits:
+          # Modify this based on the actual VM resource
+          memory: 4G
+    # Allow the JVM to read cgroup limits
+    # -XX:+UseContainerSupport is enabled by default on linux machines, 
+    # this feature was introduced in java10 then backported to Java-8u191, the base image comes with OpenJDK(build 1.8.0_232-b09)
+    # -XX:MaxRAMPercentage (double) is depending on the max memory limit assigned to the contaienr
+    # When the container has > 1G memory, set -XX:MaxRAMPercentage=75.0 is good (doesn't waste too many resources)
+    environment:
+      - _JAVA_OPTIONS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      # Mount the neo4j configuration file to container
+      - "./base-image/neo4j.conf:/usr/src/app/neo4j/conf/neo4j.conf"
+      # Mount the neo4j sample database to container
+      - "./base-image/neo4j:/usr/src/app/neo4j/data/databases/neo4j"

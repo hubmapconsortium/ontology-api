@@ -1,0 +1,69 @@
+# useful queries
+
+#1: get list of ontology uris and their xrefs
+
+SELECT source_table.ontology_uri, source_table.xref, MAX(source_table.score)
+FROM (
+
+(SELECT ontology_uri, xref,
+CASE substring_index(xref,':', 1)
+  WHEN 'umls' THEN 50
+  WHEN 'fma' THEN 40
+  WHEN 'ncithesaurus' THEN 30
+  WHEN 'ncit' THEN 30
+  WHEN 'mesh' THEN 20
+  ELSE 0
+  END score
+ FROM dbxrefs) source_table, 
+ (SELECT ontology_uri,
+CASE substring_index(xref,':', 1)
+  WHEN 'umls' THEN 50
+  WHEN 'fma' THEN 40
+  WHEN 'ncithesaurus' THEN 30
+  WHEN 'ncit' THEN 30
+  WHEN 'mesh' THEN 20
+  ELSE 0
+  END score
+  FROM dbxrefs
+  GROUP BY ontology_uri
+  HAVING MAX(score)) score_table)
+  WHERE source_table.score >= score_table.score
+
+#2: get a list of the ontology uris with 2 xrefs
+
+
+SELECT data_table.ontology_uri
+FROM (
+
+SELECT source_table.ontology_uri as ontology_uri, source_table.xref, source_table.score
+FROM (
+
+(SELECT ontology_uri, xref,
+CASE substring_index(xref,':', 1)
+  WHEN 'umls' THEN 50
+  WHEN 'fma' THEN 40
+  WHEN 'ncithesaurus' THEN 30
+  WHEN 'ncit' THEN 30
+  WHEN 'mesh' THEN 20
+  ELSE 0
+  END score
+ FROM dbxrefs) source_table,
+(SELECT ontology_uri,
+MAX(CASE substring_index(xref,':', 1)
+  WHEN 'umls' THEN 50
+  WHEN 'fma' THEN 40
+  WHEN 'ncithesaurus' THEN 30
+  WHEN 'ncit' THEN 30
+  WHEN 'mesh' THEN 20
+  ELSE 0
+  END) score
+  FROM dbxrefs
+  GROUP BY ontology_uri
+  HAVING score >= 30
+  ORDER BY ontology_uri) score_table)
+  WHERE source_table.score = score_table.score
+  and source_table.ontology_uri = score_table.ontology_uri
+) as data_table
+GROUP BY data_table.ontology_uri
+HAVING count(data_table.ontology_uri) > 1
+

@@ -1,14 +1,18 @@
 # Project Specific files #
 ##########################
-ontology.db
-ontology.db.gz
 import/
+app.cfg
+neo4j
+neo4j/
+neo4j.tar.gz
+start.sh
 
 # Compiled source #
 ###################
 *.class
 *.pyc
 BRL-WS/brl-ws/target/
+__pycache__
 
 # Packages #
 ############

@@ -7,11 +7,11 @@
 
 echo "Load HuBMAP Ontology into Neo4j"
 
-neo4j_home=/home/chb69/neo4j
-neo4j_bin=/home/chb69/neo4j/bin
-neo4j_import=/home/chb69/neo4j/import
-neo4j_data=/home/chb69/neo4j/data
-csv_home_directory=/home/chb69/git/ontology-api/import/umls_data
+neo4j_home=/var/lib/neo4j
+neo4j_bin=/usr/bin
+neo4j_import=/var/lib/neo4j/import
+neo4j_data=/var/lib/neo4j/data
+csv_home_directory=/home/chb69/umls_data
 ontology_api_directory=/home/chb69/git/ontology-api
 version_node_label="UMLS Data"
 
@@ -34,7 +34,7 @@ cp -r $csv_home_directory $neo4j_import
 
 echo "Importing Data"
 
-`$neo4j_home/bin/neo4j-admin import --nodes:Semantic "import/umls_data/TUIs.csv" --nodes:Concept "import/umls_data/CUIs.csv" --nodes:Code "import/umls_data/CODEs.csv" --nodes:Term "import/umls_data/SUIs.csv" --nodes:Definition "import/umls_data/DEFs.csv" --relationships:ISA_STY "import/umls_data/TUIrel.csv" --relationships:STY "import/umls_data/CUI-TUIs.csv" --relationships "import/umls_data/CUI-CUIs.csv" --relationships "import/umls_data/CUI-CODEs.csv" --relationships "import/umls_data/CODE-SUIs.csv" --relationships:PREF_TERM "import/umls_data/CUI-SUIs.csv" --relationships:DEF "import/umls_data/DEFrel.csv" --ignore-missing-nodes`
+`$neo4j_bin/neo4j-admin import --nodes:Semantic "$neo4j_import/umls_data/umls_data/TUIs.csv" --nodes:Concept "$neo4j_import/umls_data/umls_data/CUIs.csv" --nodes:Code "$neo4j_import/umls_data/umls_data/CODEs.csv" --nodes:Term "$neo4j_import/umls_data/umls_data/SUIs.csv" --nodes:Definition "$neo4j_import/umls_data/umls_data/DEFs.csv" --relationships:ISA_STY "$neo4j_import/umls_data/umls_data/TUIrel.csv" --relationships:STY "$neo4j_import/umls_data/umls_data/CUI-TUIs.csv" --relationships "$neo4j_import/umls_data/umls_data/CUI-CUIs.csv" --relationships "$neo4j_import/umls_data/umls_data/CUI-CODEs.csv" --relationships "$neo4j_import/umls_data/umls_data/CODE-SUIs.csv" --relationships:PREF_TERM "$neo4j_import/umls_data/umls_data/CUI-SUIs.csv" --relationships:DEF "$neo4j_import/umls_data/umls_data/DEFrel.csv" --ignore-missing-nodes`
 
 echo "Starting Neo4j"
 $neo4j_bin/neo4j start

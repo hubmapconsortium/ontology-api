@@ -11,7 +11,7 @@ USE knowledge_graph;
 ALTER DATABASE knowledge_graph CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin;
 
     
-CREATE TABLE codes (
+CREATE TABLE umls_codes (
     id INT NOT NULL AUTO_INCREMENT,
     codeid VARCHAR(2048) NOT NULL,
     sab VARCHAR(2048) NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE codes (
     PRIMARY KEY (id)
 );
 
-CREATE TABLE tui_rel (
+CREATE TABLE umls_tui_rel (
     id INT NOT NULL AUTO_INCREMENT,
     start_id VARCHAR(2048) NOT NULL,
     end_id VARCHAR(2048) NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE tui_rel (
     PRIMARY KEY (id)
 );
 
-CREATE TABLE def_rel (
+CREATE TABLE umls_def_rel (
     id INT NOT NULL AUTO_INCREMENT,
     start_id VARCHAR(2048) NOT NULL,
     end_id VARCHAR(2048) NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE def_rel (
     PRIMARY KEY (id)
 );
 
-CREATE TABLE cui_tuis (
+CREATE TABLE umls_cui_tuis (
     id INT NOT NULL AUTO_INCREMENT,
     start_id VARCHAR(2048) NOT NULL,
     end_id VARCHAR(2048) NOT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE cui_tuis (
     PRIMARY KEY (id)
 );
 
-CREATE TABLE cui_cuis (
+CREATE TABLE umls_cui_cuis (
     id INT NOT NULL AUTO_INCREMENT,
     start_id VARCHAR(2048) NOT NULL,
     end_id VARCHAR(2048) NOT NULL,
@@ -55,14 +55,14 @@ CREATE TABLE cui_cuis (
     PRIMARY KEY (id)
 );
 
-CREATE TABLE cui_codes (
+CREATE TABLE umls_cui_codes (
     id INT NOT NULL AUTO_INCREMENT,
     start_id VARCHAR(2048) NOT NULL,
     end_id VARCHAR(2048) NOT NULL,
     PRIMARY KEY (id)
 );
 
-CREATE TABLE code_suis (
+CREATE TABLE umls_code_suis (
     id INT NOT NULL AUTO_INCREMENT,
     start_id VARCHAR(2048) NOT NULL,
     end_id VARCHAR(2048) NOT NULL,
@@ -71,7 +71,7 @@ CREATE TABLE code_suis (
     PRIMARY KEY (id)
 );
 
-CREATE TABLE cui_suis (
+CREATE TABLE umls_cui_suis (
     id INT NOT NULL AUTO_INCREMENT,
     start_id VARCHAR(2048) NOT NULL,
     end_id VARCHAR(2048) NOT NULL,
@@ -80,20 +80,20 @@ CREATE TABLE cui_suis (
     PRIMARY KEY (id)
 );
 
-CREATE TABLE cuis (
+CREATE TABLE umls_cuis (
     id INT NOT NULL AUTO_INCREMENT,
     cui VARCHAR(2048) NOT NULL,
     PRIMARY KEY(id)
 );
 
-CREATE TABLE suis (
+CREATE TABLE umls_suis (
     id INT NOT NULL AUTO_INCREMENT,
     sui VARCHAR(2048) NOT NULL,
     name VARCHAR(5120) NOT NULL,
     PRIMARY KEY(id)
 );
 
-CREATE TABLE tuis (
+CREATE TABLE umls_tuis (
     id INT NOT NULL AUTO_INCREMENT,
     tui VARCHAR(2048) NOT NULL,
     name VARCHAR(5120) NOT NULL,
@@ -102,7 +102,7 @@ CREATE TABLE tuis (
     PRIMARY KEY(id)
 );
 
-CREATE TABLE defs (
+CREATE TABLE umls_defs (
     id INT NOT NULL AUTO_INCREMENT,
     atui VARCHAR(2048) NOT NULL,
     sab VARCHAR(2048) NOT NULL,
@@ -110,7 +110,7 @@ CREATE TABLE defs (
     PRIMARY KEY(id)
 );
 
-CREATE TABLE edge_list (
+CREATE TABLE pkl_edge_list (
     id INT NOT NULL AUTO_INCREMENT,
     subject VARCHAR(2048) NOT NULL,
     predicate VARCHAR(2048) NOT NULL,
@@ -119,7 +119,7 @@ CREATE TABLE edge_list (
     PRIMARY KEY(id)
 );
 
-CREATE TABLE node_metadata (
+CREATE TABLE pkl_node_metadata (
     id INT NOT NULL AUTO_INCREMENT,
     node_id VARCHAR(2048) NOT NULL,
     node_label VARCHAR(2048) NOT NULL,
@@ -128,14 +128,14 @@ CREATE TABLE node_metadata (
     PRIMARY KEY(id)
 );
 
-CREATE TABLE ontology_dbxref (
+CREATE TABLE pkl_ontology_dbxref (
     id INT NOT NULL AUTO_INCREMENT,
     ontology_uri VARCHAR(2048) NOT NULL,
     dbxrefs VARCHAR(5120) NOT NULL,
     PRIMARY KEY(id)
 );
 
-CREATE TABLE relations (
+CREATE TABLE pkl_relations (
     id INT NOT NULL AUTO_INCREMENT,
     relation_id VARCHAR(2048) NOT NULL,
     relation_label VARCHAR(2048) NOT NULL,

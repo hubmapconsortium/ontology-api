@@ -206,7 +206,7 @@ def load_ccf_nodes_and_edges(config):
 
 def load_pkl_edge_list(config):
     file_path = '/home/chb69/umls_data/PheKnowLator/PheKnowLatorResultsFromDropbox/PheKnowLator_Subclass_OWLNETS_edge_list_16OCT2020.txt'
-    table_name = 'edge_list'
+    table_name = 'pkl_edge_list'
     load_file(config, file_path, table_name)
 
     connection = None
@@ -221,10 +221,10 @@ def load_pkl_edge_list(config):
             charset='utf8mb4',collation='utf8mb4_bin')
         cursor = connection.cursor(dictionary=True)
 
-        sql = "UPDATE edge_list SET sab = 'UBERON' WHERE subject LIKE 'http://purl.obolibrary.org/obo/UBERON\_%' AND object LIKE 'http://purl.obolibrary.org/obo/UBERON\_%'"
+        sql = "UPDATE pkl_edge_list SET sab = 'UBERON' WHERE subject LIKE 'http://purl.obolibrary.org/obo/UBERON\_%' AND object LIKE 'http://purl.obolibrary.org/obo/UBERON\_%'"
         cursor.execute(sql)
         connection.commit()
-        sql = "UPDATE edge_list SET sab = 'CL' WHERE subject LIKE 'http://purl.obolibrary.org/obo/CL\_%' AND object LIKE 'http://purl.obolibrary.org/obo/CL\_%'"
+        sql = "UPDATE pkl_edge_list SET sab = 'CL' WHERE subject LIKE 'http://purl.obolibrary.org/obo/CL\_%' AND object LIKE 'http://purl.obolibrary.org/obo/CL\_%'"
         cursor.execute(sql)
         connection.commit()
         print ("Done loading the edge_list data.")
@@ -249,7 +249,7 @@ def load_pkl_node_metadata(config):
     In this case, we want to import the ASCII data portion of the record into mysql while excluding the other parts. 
     '''
     file_path = '/home/chb69/umls_data/PheKnowLator/PheKnowLatorResultsFromDropbox/PheKnowLator_Subclass_OWLNETS_NodeMetadata_16OCT2020.txt'
-    table_name = 'node_metadata'
+    table_name = 'pkl_node_metadata'
     
     connection = None
     sql = ''
@@ -318,10 +318,10 @@ def load_pkl_node_metadata(config):
         print ("Done loading the {table_name} table.".format(table_name=table_name))
 
         # Set the SAB value for the data in the node_metadata table
-        sql = "UPDATE node_metadata SET sab = 'UBERON' WHERE node_id LIKE 'http://purl.obolibrary.org/obo/UBERON\_%'"
+        sql = "UPDATE pkl_node_metadata SET sab = 'UBERON' WHERE node_id LIKE 'http://purl.obolibrary.org/obo/UBERON\_%'"
         cursor.execute(sql)
         connection.commit()
-        sql = "UPDATE node_metadata SET sab = 'CL' WHERE node_id LIKE 'http://purl.obolibrary.org/obo/CL\_%'"
+        sql = "UPDATE pkl_node_metadata SET sab = 'CL' WHERE node_id LIKE 'http://purl.obolibrary.org/obo/CL\_%'"
         cursor.execute(sql)
         connection.commit()
         print ("Done loading the node_metadata data.")
@@ -340,72 +340,72 @@ def load_pkl_node_metadata(config):
     
 def load_pkl_ontology_dbxref(config):
     file_path = '/home/chb69/umls_data/PheKnowLator/PheKnowLatorResultsFromDropbox/PheKnowLator_Subclass_OWLNETS_Ontology_DbXRef_16OCT2020.txt'
-    table_name = 'ontology_dbxref'
+    table_name = 'pkl_ontology_dbxref'
     load_file(config, file_path, table_name)
     
 def load_pkl_relations(config):
     file_path = '/home/chb69/umls_data/PheKnowLator/PheKnowLatorResultsFromDropbox/PheKnowLator_Subclass_OWLNETS_relations_16OCT2020.txt'
-    table_name = 'relations'
+    table_name = 'pkl_relations'
     load_file(config, file_path, table_name)
 
 def load_umls_codes(config):
     file_path = '/home/chb69/umls_data/umls_data/CODEs.csv'
-    table_name = 'codes'
+    table_name = 'umls_codes'
     load_file(config, file_path, table_name)
 
 def load_umls_defs(config):
     file_path = '/home/chb69/umls_data/umls_data/DEFs.csv'
-    table_name = 'defs'
+    table_name = 'umls_defs'
     load_file(config, file_path, table_name)
 
 def load_umls_suis(config):
     file_path = '/home/chb69/umls_data/umls_data/SUIs.csv'
-    table_name = 'suis'
+    table_name = 'umls_suis'
     load_file(config, file_path, table_name)
 
 def load_umls_cuis(config):
     file_path = '/home/chb69/umls_data/umls_data/CUIs.csv'
-    table_name = 'cuis'
+    table_name = 'umls_cuis'
     load_file(config, file_path, table_name)
 
 def load_umls_tuis(config):
     file_path = '/home/chb69/umls_data/umls_data/TUIs.csv'
-    table_name = 'tuis'
+    table_name = 'umls_tuis'
     load_file(config, file_path, table_name)
 
 def load_umls_code_suis(config):
     file_path = '/home/chb69/umls_data/umls_data/CODE-SUIs.csv'
-    table_name = 'code_suis'
+    table_name = 'umls_code_suis'
     load_file(config, file_path, table_name)
 
 def load_umls_cui_codes(config):
     file_path = '/home/chb69/umls_data/umls_data/CUI-CODEs.csv'
-    table_name = 'cui_codes'
+    table_name = 'umls_cui_codes'
     load_file(config, file_path, table_name)
 
 def load_umls_cui_cuis(config):
     file_path = '/home/chb69/umls_data/umls_data/CUI-CUIs.csv'
-    table_name = 'cui_cuis'
+    table_name = 'umls_cui_cuis'
     load_file(config, file_path, table_name)
 
 def load_umls_cui_suis(config):
     file_path = '/home/chb69/umls_data/umls_data/CUI-SUIs.csv'
-    table_name = 'cui_suis'
+    table_name = 'umls_cui_suis'
     load_file(config, file_path, table_name)
 
 def load_umls_cui_tuis(config):
     file_path = '/home/chb69/umls_data/umls_data/CUI-TUIs.csv'
-    table_name = 'cui_tuis'
+    table_name = 'umls_cui_tuis'
     load_file(config, file_path, table_name)
                                 
 def load_umls_def_rel(config):
     file_path = '/home/chb69/umls_data/umls_data/DEFrel.csv'
-    table_name = 'def_rel'
+    table_name = 'umls_def_rel'
     load_file(config, file_path, table_name)
                                 
 def load_umls_tui_rel(config):
     file_path = '/home/chb69/umls_data/umls_data/TUIrel.csv'
-    table_name = 'tui_rel'
+    table_name = 'umls_tui_rel'
     load_file(config, file_path, table_name)
   
 def build_xref_table(config):
@@ -435,7 +435,7 @@ def build_xref_table(config):
                 PRIMARY KEY(id)
                 );"""
         cursor.execute(create_table_sql)
-        cursor.execute("SELECT ontology_uri, dbxrefs FROM ontology_dbxref WHERE ontology_uri LIKE 'http://purl.obolibrary.org/obo/CL_%' OR ontology_uri LIKE 'http://purl.obolibrary.org/obo/UBERON_%'")
+        cursor.execute("SELECT ontology_uri, dbxrefs FROM pkl_ontology_dbxref WHERE ontology_uri LIKE 'http://purl.obolibrary.org/obo/CL_%' OR ontology_uri LIKE 'http://purl.obolibrary.org/obo/UBERON_%'")
         print("Loading data into table {table_name}".format(table_name="dbxrefs"), end='', flush=True)
         result = cursor.fetchall()
         record_count = 0
@@ -639,7 +639,7 @@ def build_ontology_uri_to_umls_map_table(config):
         
         sql = """INSERT INTO ontology_uri_map (ontology_uri, codeid, cui, type, sab) 
         SELECT DISTINCT ontology_uri, CONCAT('FMA ',upper(substring(xref,instr(xref, ':')+1))) as codeid, rel.start_id as cui, 'PT' as type, 'FMA' as sab
-        FROM dbxrefs, cui_codes as rel
+        FROM dbxrefs, umls_cui_codes as rel
         WHERE substring_index(xref,':', 1) = 'fma'
         AND CONCAT('FMA ',upper(substring(xref,instr(xref, ':')+1))) = rel.end_id"""
         # This query loads all the ontology_uri's that map directly to an FMA code according to the dbxrefs table
@@ -649,7 +649,7 @@ def build_ontology_uri_to_umls_map_table(config):
         
         sql = """INSERT INTO ontology_uri_map (ontology_uri, codeid, cui, type, sab)
         SELECT DISTINCT ontology_uri, CONCAT('NCI ',upper(substring(xref,instr(xref, ':')+1))) as codeid, rel.start_id as cui, 'PT' as type, 'NCI' as sab
-        FROM dbxrefs, cui_codes as rel
+        FROM dbxrefs, umls_cui_codes as rel
         WHERE substring_index(xref,':', 1) = 'ncit'
         AND CONCAT('NCI ',upper(substring(xref,instr(xref, ':')+1))) = rel.end_id"""
         # This query loads all the ontology_uri's that map directly to an NCI Thesaurus code according to the dbxrefs table
@@ -659,7 +659,7 @@ def build_ontology_uri_to_umls_map_table(config):
         
         sql = """INSERT INTO ontology_uri_map (ontology_uri, codeid, cui, type, sab)
         SELECT DISTINCT ontology_uri, CONCAT('MSH ',upper(substring(xref,instr(xref, ':')+1))) as codeid, rel.start_id as cui, 'PT' as type, 'MSH' as sab
-        FROM dbxrefs, cui_codes as rel
+        FROM dbxrefs, umls_cui_codes as rel
         WHERE substring_index(xref,':', 1) = 'mesh'
         AND CONCAT('MSH ',upper(substring(xref,instr(xref, ':')+1))) = rel.end_id
         AND instr(xref, 'mesh:d') > 0
@@ -671,7 +671,7 @@ def build_ontology_uri_to_umls_map_table(config):
         
         sql = """INSERT INTO ontology_uri_map (ontology_uri, codeid, cui, type, sab)
         SELECT DISTINCT ontology_uri, CONCAT('SNOMEDCT_US ',upper(substring(xref,instr(xref, 'details/')+8))) as codeid, rel.start_id as cui, 'PT' as type, 'SNOMEDCT_US' as sab
-        FROM dbxrefs, cui_codes as rel
+        FROM dbxrefs, umls_cui_codes as rel
         WHERE substring_index(xref,'details/', 1) = 'http://www.snomedbrowser.com/codes/'
         AND CONCAT('SNOMEDCT_US ',upper(substring(xref,instr(xref, 'details/')+8))) = rel.end_id"""
         # This query loads all the ontology_uri's that map directly to a SNOMED code according to the dbxrefs table
@@ -723,15 +723,15 @@ def insert_new_cui_cui_relations(config):
             database=config['MYSQL_DATABASE_NAME'],
             charset='utf8mb4',collation='utf8mb4_bin')
         cursor = connection.cursor(dictionary=True)
-        sql = """DELETE FROM cui_cuis WHERE sab = 'UBERON'"""
+        sql = """DELETE FROM umls_cui_cuis WHERE sab = 'UBERON'"""
         cursor.execute(sql)
         connection.commit()
-        print("Deleted UBERON map from table cui_cuis")
+        print("Deleted UBERON map from table umls_cui_cuis")
 
 
-        sql = """INSERT INTO cui_cuis (start_id, type, end_id, sab)
+        sql = """INSERT INTO umls_cui_cuis (start_id, type, end_id, sab)
         SELECT DISTINCT subject_table.cui as start_id, if(rel.relation_label='subclass of', 'isa',lower(replace(rel.relation_label,' ','_'))) as type, object_table.cui as end_id, 'UBERON' as sab
-        FROM edge_list el, relations rel, ontology_uri_map subject_table, ontology_uri_map object_table
+        FROM pkl_edge_list el, pkl_relations rel, ontology_uri_map subject_table, ontology_uri_map object_table
         WHERE rel.relation_id = el.predicate
         AND subject_table.ontology_uri = el.subject
         AND object_table.ontology_uri = el.object
@@ -746,17 +746,17 @@ def insert_new_cui_cui_relations(config):
         """
         cursor.execute(sql)
         connection.commit()
-        print("Loaded UBERON map into table cui_cuis")
+        print("Loaded UBERON map into table umls_cui_cuis")
 
-        sql = """DELETE FROM cui_cuis WHERE sab = 'CL'"""
+        sql = """DELETE FROM umls_cui_cuis WHERE sab = 'CL'"""
         cursor.execute(sql)
         connection.commit()
-        print("Deleted CL map from table cui_cuis")
+        print("Deleted CL map from table umls_cui_cuis")
 
         # NOTE: I added sab to the edge_list table, so we can filter this query more easily on sab = 'CL'
-        sql = """INSERT INTO cui_cuis (start_id, type, end_id, sab)
+        sql = """INSERT INTO umls_cui_cuis (start_id, type, end_id, sab)
         SELECT DISTINCT subject_table.cui as start_id, if(rel.relation_label='subclass of', 'isa',lower(replace(rel.relation_label,' ','_'))) as type, object_table.cui as end_id, 'CL' as sab
-        FROM edge_list el, relations rel, ontology_uri_map subject_table, ontology_uri_map object_table
+        FROM pkl_edge_list el, pkl_relations rel, ontology_uri_map subject_table, ontology_uri_map object_table
         WHERE rel.relation_id = el.predicate
         AND subject_table.ontology_uri = el.subject
         AND object_table.ontology_uri = el.object
@@ -767,14 +767,14 @@ def insert_new_cui_cui_relations(config):
         connection.commit()
         print("Loaded CL map into table cui_cuis")
 
-        sql = """DELETE FROM cui_cuis WHERE sab = 'CCF'"""
+        sql = """DELETE FROM umls_cui_cuis WHERE sab = 'CCF'"""
         """cursor.execute(sql)
         connection.commit()
-        print("Deleted CCF map from table cui_cuis")"""
+        print("Deleted CCF map from table umls_cui_cuis")"""
 
-        sql = """INSERT INTO cui_cuis (start_id, type, end_id, sab)
+        sql = """INSERT INTO umls_cui_cuis (start_id, type, end_id, sab)
         SELECT DISTINCT subject_table.cui as start_id, if(rel.relation_label='subclass of', 'isa',lower(replace(rel.relation_label,' ','_'))) as type, object_table.cui as end_id, 'CCF' as sab
-        FROM edge_list el, relations rel, ontology_uri_map subject_table, ontology_uri_map object_table
+        FROM pkl_edge_list el, pkl_relations rel, ontology_uri_map subject_table, ontology_uri_map object_table
         WHERE rel.relation_id = el.predicate
         AND subject_table.ontology_uri = el.subject
         AND object_table.ontology_uri = el.object
@@ -813,7 +813,7 @@ def connect_existing_terms(config):
         
 
         sql = """SELECT oum.cui AS cui, oum.codeid AS codeid,  su.sui as sui, nm.sab as sab
-        FROM node_metadata nm, ontology_uri_map oum, suis_updated su
+        FROM pkl_node_metadata nm, ontology_uri_map oum, suis_updated su
         where nm.node_id = oum.ontology_uri
         AND nm.node_label = su.name
         AND oum.codeid IS NOT NULL
@@ -896,7 +896,7 @@ def insert_new_terms(config):
         connection.commit()
 
         print ("Copying cui_suis INTO cui_suis_updated")
-        sql = """INSERT INTO cui_suis_updated SELECT * FROM cui_suis"""
+        sql = """INSERT INTO cui_suis_updated SELECT * FROM umls_cui_suis"""
         cursor.execute(sql)
         connection.commit()
         
@@ -908,7 +908,7 @@ def insert_new_terms(config):
         connection.commit()
 
         print ("Copying suis INTO suis_updated")
-        sql = """INSERT INTO suis_updated SELECT * FROM suis"""
+        sql = """INSERT INTO suis_updated SELECT * FROM umls_suis"""
         cursor.execute(sql)
         connection.commit()
 
@@ -933,7 +933,7 @@ def insert_new_terms(config):
         connection.commit()
 
         print ("Copying code_suis INTO code_suis_updated")
-        sql = """INSERT INTO code_suis_updated SELECT * FROM code_suis"""
+        sql = """INSERT INTO code_suis_updated SELECT * FROM umls_code_suis"""
         cursor.execute(sql)
         connection.commit()
 
@@ -952,7 +952,7 @@ def insert_new_terms(config):
         
         sql = """SELECT DISTINCT ontology_uri, cui, codeid, label, sab, sui FROM (
         SELECT oum.ontology_uri as ontology_uri, oum.cui AS cui, oum.codeid AS codeid,  nm.node_label AS label, nm.sab as sab, su.sui AS sui
-                FROM node_metadata nm
+                FROM pkl_node_metadata nm
                 INNER JOIN ontology_uri_map oum
                 ON nm.node_id = oum.ontology_uri
                 LEFT OUTER JOIN suis_updated su
@@ -961,7 +961,7 @@ def insert_new_terms(config):
                 AND (oum.codeid is null OR oum.codeid NOT IN (select start_id FROM code_suis_updated))
         UNION ALL
         SELECT oum.ontology_uri as ontology_uri, oum.cui AS cui, replace(substring_index(oum.ontology_uri, '/',-1), '_', ' ') AS codeid,  nm.node_label AS label, nm.sab as sab, su.sui AS sui
-                FROM node_metadata nm
+                FROM pkl_node_metadata nm
                 INNER JOIN ontology_uri_map oum
                 ON nm.node_id = oum.ontology_uri
                 LEFT OUTER JOIN suis_updated su
@@ -986,9 +986,6 @@ def insert_new_terms(config):
                 code = ontology_uri[ontology_uri.index('_')+1:]
                 codeid = row['sab'] + ' ' + code 
             
-            if codeid == 'UBERON 0000048' or codeid == 'UBERON 0000046':
-                print("here")   
-
             sui = row['sui']
             if sui == None:                   
                 sui = 'HS' + str(record_count).zfill(6)
@@ -1058,7 +1055,7 @@ def insert_new_cuis(config):
         connection.commit()
 
         print ("Copying cuis INTO cuis_updated")
-        sql = """INSERT INTO cuis_updated SELECT * FROM cuis"""
+        sql = """INSERT INTO cuis_updated SELECT * FROM umls_cuis"""
         cursor.execute(sql)
         connection.commit()
         
@@ -1068,17 +1065,17 @@ def insert_new_cuis(config):
         connection.commit()
 
         print ("Copying cuis INTO cui_codes_updated")
-        sql = """INSERT INTO cui_codes_updated SELECT * FROM cui_codes"""
+        sql = """INSERT INTO cui_codes_updated SELECT * FROM umls_cui_codes"""
         cursor.execute(sql)
         connection.commit()
 
         print ("Deleting UBERON, CCF, and CL codes from codes")
-        sql = """DELETE FROM codes WHERE sab IN ('UBERON','CL','CCF')"""
+        sql = """DELETE FROM umls_codes WHERE sab IN ('UBERON','CL','CCF')"""
         cursor.execute(sql)
         connection.commit()
 
 
-        sql = """select node_id as ontology_uri, sab as sab from node_metadata nm
+        sql = """select node_id as ontology_uri, sab as sab from pkl_node_metadata nm
         where nm.node_id NOT IN (select ontology_uri from ontology_uri_map)
         and (node_id like 'http://purl.obolibrary.org/obo/CL\_%' or node_id like 'http://purl.obolibrary.org/obo/UBERON\_%')"""
         """Find all the records in node_metadata that were not mapped to an UMLS terms."""
@@ -1119,7 +1116,7 @@ def insert_new_cuis(config):
             cursor.execute(sql)
             connection.commit()
 
-            sql = """INSERT INTO codes (codeid, sab,code) VALUES ('{codeid}','{sab}','{code}')""".format(codeid=codeid,sab=current_sab,code=code)
+            sql = """INSERT INTO umls_codes (codeid, sab,code) VALUES ('{codeid}','{sab}','{code}')""".format(codeid=codeid,sab=current_sab,code=code)
             cursor.execute(sql)
             connection.commit()
             sql = """INSERT INTO cui_codes_updated (start_id, end_id) VALUES ('{cui}','{codeid}')""".format(cui=cui,codeid=codeid)
@@ -1162,7 +1159,7 @@ def insert_new_codes(config):
         WHERE codeid is not null
         AND sab NOT IN ('UBERON','CL','CCF')
         UNION ALL
-        SELECT nm.node_id, oum.cui as cui, nm.sab as sab FROM node_metadata nm, ontology_uri_map oum
+        SELECT nm.node_id, oum.cui as cui, nm.sab as sab FROM pkl_node_metadata nm, ontology_uri_map oum
         WHERE nm.sab = 'CCF'
         AND oum.ontology_uri = nm.node_id) source_table"""
         cursor.execute(sql)
@@ -1191,7 +1188,7 @@ def insert_new_codes(config):
                 print("ERROR: this code '{codeid}' contains more than one space.  Stopping processing".format(codeid=codeid))
                 sys.exit()
 
-            sql = """INSERT INTO codes (codeid, sab,code) VALUES ('{codeid}','{sab}','{code}')""".format(codeid=codeid,sab=current_sab,code=code)
+            sql = """INSERT INTO umls_codes (codeid, sab,code) VALUES ('{codeid}','{sab}','{code}')""".format(codeid=codeid,sab=current_sab,code=code)
             cursor.execute(sql)
             connection.commit()
             sql = """INSERT INTO cui_codes_updated (start_id, end_id) VALUES ('{cui}','{codeid}')""".format(cui=cui,codeid=codeid)
@@ -1238,17 +1235,17 @@ def insert_new_defs(config):
         
 
         print ("Copying defs INTO defs_updated")
-        sql = """INSERT INTO defs_updated SELECT * FROM defs"""
+        sql = """INSERT INTO defs_updated SELECT * FROM umls_defs"""
         cursor.execute(sql)
         connection.commit()
         
         print ("Copying def_rel INTO def_rel_updated")
-        sql = """INSERT INTO def_rel_updated SELECT * FROM def_rel"""
+        sql = """INSERT INTO def_rel_updated SELECT * FROM umls_def_rel"""
         cursor.execute(sql)
         connection.commit()
 
         sql = """SELECT cui, node_definition, IF(INSTR(oum.ontology_uri,'UBERON')>0,'UBERON','CL') as sab 
-        FROM node_metadata nm, ontology_uri_map oum 
+        FROM pkl_node_metadata nm, ontology_uri_map oum 
         WHERE nm.node_id = oum.ontology_uri
         AND node_definition <> 'None'
         AND node_definition <> '.'"""
@@ -1326,16 +1323,16 @@ def export_files(config):
         cursor = connection.cursor(dictionary=True)
         
         
-        export_table_info = [{'table_name': 'codes', 'file_name':'CODEs.csv','sql_columns':['codeid','sab','code'],'file_columns':['CodeID:ID','SAB','CODE']},
-                             {'table_name': 'tui_rel', 'file_name':'TUIrel.csv','sql_columns':['start_id','end_id'],'file_columns':[':START_ID',':END_ID']},
-                             {'table_name': 'cui_tuis', 'file_name':'CUI-TUIs.csv','sql_columns':['start_id','end_id'],'file_columns':[':START_ID',':END_ID']},
-                             {'table_name': 'cui_cuis', 'file_name':'CUI-CUIs.csv','sql_columns':['start_id','end_id','type','sab'],'file_columns':[':START_ID',':END_ID',':TYPE','SAB']},
+        export_table_info = [{'table_name': 'umls_codes', 'file_name':'CODEs.csv','sql_columns':['codeid','sab','code'],'file_columns':['CodeID:ID','SAB','CODE']},
+                             {'table_name': 'umls_tui_rel', 'file_name':'TUIrel.csv','sql_columns':['start_id','end_id'],'file_columns':[':START_ID',':END_ID']},
+                             {'table_name': 'umls_cui_tuis', 'file_name':'CUI-TUIs.csv','sql_columns':['start_id','end_id'],'file_columns':[':START_ID',':END_ID']},
+                             {'table_name': 'umls_cui_cuis', 'file_name':'CUI-CUIs.csv','sql_columns':['start_id','end_id','type','sab'],'file_columns':[':START_ID',':END_ID',':TYPE','SAB']},
                              {'table_name': 'cui_codes_updated', 'file_name':'CUI-CODEs.csv','sql_columns':['start_id','end_id'],'file_columns':[':START_ID',':END_ID']},
                              {'table_name': 'code_suis_updated', 'file_name':'CODE-SUIs.csv','sql_columns':['start_id','end_id','type','cui'],'file_columns':[':START_ID',':END_ID',':TYPE','CUI']},
                              {'table_name': 'cui_suis_updated', 'file_name':'CUI-SUIs.csv','sql_columns':['start_id','end_id'],'file_columns':[':START_ID',':END_ID']},
                              {'table_name': 'cuis_updated', 'file_name':'CUIs.csv','sql_columns':['cui'],'file_columns':['CUI:ID']},
                              {'table_name': 'suis_updated', 'file_name':'SUIs.csv','sql_columns':['sui','name'],'file_columns':['SUI:ID','name']},
-                             {'table_name': 'tuis', 'file_name':'TUIs.csv','sql_columns':['tui','name','stn','def'],'file_columns':['TUI:ID','name','STN','DEF']},
+                             {'table_name': 'umls_tuis', 'file_name':'TUIs.csv','sql_columns':['tui','name','stn','def'],'file_columns':['TUI:ID','name','STN','DEF']},
                              {'table_name': 'defs_updated', 'file_name':'DEFs.csv','sql_columns':['atui','sab','def'],'file_columns':['ATUI:ID','SAB','DEF']},
                              {'table_name': 'def_rel_updated', 'file_name':'DEFrel.csv','sql_columns':['start_id','end_id'],'file_columns':[':START_ID',':END_ID']}]
 

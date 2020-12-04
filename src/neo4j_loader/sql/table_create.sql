@@ -128,6 +128,24 @@ CREATE TABLE pkl_node_metadata (
     PRIMARY KEY(id)
 );
 
+CREATE TABLE ccf_edge_list (
+    id INT NOT NULL AUTO_INCREMENT,
+    subject VARCHAR(2048) NOT NULL,
+    predicate VARCHAR(2048) NOT NULL,
+    object VARCHAR(2048) NOT NULL,
+    sab VARCHAR(50),
+    PRIMARY KEY(id)
+);
+
+CREATE TABLE ccf_node_metadata (
+    id INT NOT NULL AUTO_INCREMENT,
+    node_id VARCHAR(2048) NOT NULL,
+    node_label VARCHAR(2048) NOT NULL,
+    node_definition VARCHAR(2048) NOT NULL,
+    sab VARCHAR(50),
+    PRIMARY KEY(id)
+);
+
 CREATE TABLE pkl_ontology_dbxref (
     id INT NOT NULL AUTO_INCREMENT,
     ontology_uri VARCHAR(2048) NOT NULL,
@@ -139,6 +157,14 @@ CREATE TABLE pkl_relations (
     id INT NOT NULL AUTO_INCREMENT,
     relation_id VARCHAR(2048) NOT NULL,
     relation_label VARCHAR(2048) NOT NULL,
+    inverse_relation_label VARCHAR(2048),
+    PRIMARY KEY(id)
+);
+
+CREATE TABLE pkl_inverse_relation (
+    id INT NOT NULL AUTO_INCREMENT,
+    relation VARCHAR(2048) NOT NULL,
+    inverse_relation VARCHAR(2048) NOT NULL,
     PRIMARY KEY(id)
 );
 

@@ -146,17 +146,17 @@ def load_ccf_nodes_and_edges(config):
             charset='utf8mb4',collation='utf8mb4_bin')
         cursor = connection.cursor(dictionary=True)
 
-        print("Removing CCF data from edge_list")
-        sql = "DELETE FROM edge_list WHERE sab = 'CCF'"
+        print("Removing CCF data from ccf_edge_list")
+        sql = "DELETE FROM ccf_edge_list WHERE sab = 'CCF'"
         cursor.execute(sql)
         connection.commit()
 
-        print("Removing CCF data from node_metadata")
-        sql = "DELETE FROM node_metadata WHERE sab = 'CCF'"
+        print("Removing CCF data from ccf_node_metadata")
+        sql = "DELETE FROM ccf_node_metadata WHERE sab = 'CCF'"
         cursor.execute(sql)
         connection.commit()
 
-        print("Loading CCF data into edge_list and node_metadata", end='', flush=True)
+        print("Loading CCF data into ccf_edge_list and ccf_node_metadata", end='', flush=True)
 
         with open(file_path) as triple_data:  
             for triple in triple_data:
@@ -174,12 +174,17 @@ def load_ccf_nodes_and_edges(config):
                     object = object[:-3].replace('"','')
 
                 if 'UBERON' in subject and 'UBERON' in object and 'ccf_part_of' in predicate:
-                    sql = "INSERT INTO edge_list (subject,predicate,object,sab) VALUES ('{subject}','{predicate}','{object}','{sab}')".format(subject=subject,predicate='http://purl.obolibrary.org/obo/BFO_0000050',object=object,sab='CCF')
+                    sql = "INSERT INTO ccf_edge_list (subject,predicate,object,sab) VALUES ('{subject}','{predicate}','{object}','{sab}')".format(subject=subject,predicate='http://purl.obolibrary.org/obo/BFO_0000050',object=object,sab='CCF')
                     cursor.execute(sql)
                     record_count = record_count + 1
 
+                if 'UBERON' in subject and 'oboInOwl#hasExactSynonym' in predicate:
+                    sql = "INSERT INTO ccf_edge_list (subject,predicate,object,sab) VALUES ('{subject}','{predicate}',\"{object}\",'{sab}')".format(subject=subject,predicate=predicate,object=object,sab='CCF')
+                    cursor.execute(sql)
+                    record_count = record_count + 1
+                
                 if 'UBERON' in subject and 'rdf-schema#label' in predicate:
-                    sql = "INSERT INTO node_metadata (node_id,node_label,node_definition,sab) VALUES ('{subject}',\"{object}\",'None','{sab}')".format(subject=subject,object=object,sab='CCF')
+                    sql = "INSERT INTO ccf_node_metadata (node_id,node_label,node_definition,sab) VALUES ('{subject}',\"{object}\",'None','{sab}')".format(subject=subject,object=object,sab='CCF')
                     cursor.execute(sql)
                     record_count = record_count + 1
 
@@ -222,9 +227,12 @@ def load_pkl_edge_list(config):
         cursor = connection.cursor(dictionary=True)
 
         sql = "UPDATE pkl_edge_list SET sab = 'UBERON' WHERE subject LIKE 'http://purl.obolibrary.org/obo/UBERON\_%' AND object LIKE 'http://purl.obolibrary.org/obo/UBERON\_%'"
+        # add the SAB for UBERON relationships
         cursor.execute(sql)
         connection.commit()
+        
         sql = "UPDATE pkl_edge_list SET sab = 'CL' WHERE subject LIKE 'http://purl.obolibrary.org/obo/CL\_%' AND object LIKE 'http://purl.obolibrary.org/obo/CL\_%'"
+        # add the SAB for Cell Ontology relationships
         cursor.execute(sql)
         connection.commit()
         print ("Done loading the edge_list data.")
@@ -344,9 +352,69 @@ def load_pkl_ontology_dbxref(config):
     load_file(config, file_path, table_name)
     
 def load_pkl_relations(config):
+    file_path = '/home/chb69/umls_data/PheKnowLator/PheKnowLatorResultsFromDropbox/INVERSE_RELATIONS.txt'
+    table_name = 'pkl_inverse_relations'
+    load_file(config, file_path, table_name)
+
     file_path = '/home/chb69/umls_data/PheKnowLator/PheKnowLatorResultsFromDropbox/PheKnowLator_Subclass_OWLNETS_relations_16OCT2020.txt'
     table_name = 'pkl_relations'
     load_file(config, file_path, table_name)
+
+    file_path = '/home/chb69/git/ontology-api/src/neo4j_loader/additional_RO_relations.txt'
+    table_name = 'pkl_relations'
+    load_file(config, file_path, table_name)
+    
+    connection = None
+    sql = ''
+    record_count = 0
+    try:
+        connection = mysql.connector.connect(
+            host=config['MYSQL_HOSTNAME'],
+            user=config['MYSQL_USERNAME'],
+            password=config['MYSQL_PASSWORD'],
+            database=config['MYSQL_DATABASE_NAME'],
+            charset='utf8mb4',collation='utf8mb4_bin')
+        cursor = connection.cursor(dictionary=True)
+
+        sql = """UPDATE pkl_relations AS pr
+        INNER JOIN pkl_inverse_relations AS pir
+        ON substring_index(pr.relation_id, '/',-1) = pir.relation
+        INNER JOIN pkl_relations pr2
+        ON substring_index(pr2.relation_id, '/',-1) = pir.inverse_relation
+        SET pr.inverse_relation_label = pr2.relation_label"""
+        
+        # update the inverse_relation_label using data from pkl_inverse_relations table
+        """There is some business logic to explain here.  This code creates a label for the inverse_relation_label column
+        based off the original relation_label.  We only create an inverse_relation_label entry if there is not an existing
+        inverse relation listed in the pkl_inverse_relations table.  
+        """
+        cursor.execute(sql)
+        connection.commit()
+
+        sql = """UPDATE pkl_relations
+        SET inverse_relation_label = CONCAT('inverse ', relation_label) 
+        WHERE substring_index(relation_id, '/',-1) NOT IN (SELECT relation FROM pkl_inverse_relations)"""
+        
+        # update the inverse_relation_label using data from pkl_inverse_relations table
+        """There is some business logic to explain here.  This code creates a label for the inverse_relation_label column
+        based off the original relation_label.  We only create an inverse_relation_label entry if there is not an existing
+        inverse relation listed in the pkl_inverse_relations table.  
+        """
+        cursor.execute(sql)
+        connection.commit()
+    except mysql.connector.Error as err:
+        print("Error in SQL: " + sql )
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+        connection.rollback()
+    finally:
+        if connection != None:
+            connection.close()        
+
 
 def load_umls_codes(config):
     file_path = '/home/chb69/umls_data/umls_data/CODEs.csv'
@@ -579,7 +647,7 @@ def extract(config):
     load_pkl_relations(config)
     load_pkl_ontology_dbxref(config)
     load_pkl_edge_list(config)
-    # load_ccf_nodes_and_edges(config)
+    load_ccf_nodes_and_edges(config)
     load_umls_codes(config)
     load_umls_defs(config)
     load_umls_suis(config)
@@ -615,6 +683,54 @@ def build_ontology_uri_to_umls_map_table(config):
             database=config['MYSQL_DATABASE_NAME'],
             charset='utf8mb4',collation='utf8mb4_bin')
         cursor = connection.cursor(dictionary=True)
+        
+        drop_table_sql = "DROP TABLE IF EXISTS temp_ambiguous_codes"
+        cursor.execute(drop_table_sql)
+        create_table_sql = """CREATE TABLE temp_ambiguous_codes (
+                id INT NOT NULL AUTO_INCREMENT,
+                ontology_uri VARCHAR(2048) NOT NULL,
+                codeid VARCHAR(2048),
+                PRIMARY KEY(id)
+                );"""
+        cursor.execute(create_table_sql)
+        print("Created table temp_ambiguous_codes")
+        sql = """INSERT INTO temp_ambiguous_codes (ontology_uri, codeid) 
+        SELECT DISTINCT ontology_uri, CONCAT('FMA ',upper(substring(xref,instr(xref, ':')+1))) as codeid
+        FROM dbxrefs, umls_cui_codes as rel
+        WHERE substring_index(xref,':', 1) = 'fma'
+        AND CONCAT('FMA ',upper(substring(xref,instr(xref, ':')+1))) = rel.end_id
+        GROUP BY ontology_uri, CONCAT('FMA ',upper(substring(xref,instr(xref, ':')+1)))
+        HAVING COUNT(DISTINCT rel.start_id) > 1
+        UNION
+        SELECT DISTINCT ontology_uri, CONCAT('NCI ',upper(substring(xref,instr(xref, ':')+1))) as codeid
+        FROM dbxrefs, umls_cui_codes as rel
+        WHERE substring_index(xref,':', 1) = 'ncit'
+        AND CONCAT('NCI ',upper(substring(xref,instr(xref, ':')+1))) = rel.end_id
+        GROUP BY ontology_uri, CONCAT('NCI ',upper(substring(xref,instr(xref, ':')+1)))
+        HAVING COUNT(DISTINCT rel.start_id) > 1
+        UNION
+        SELECT DISTINCT ontology_uri, CONCAT('MSH ',upper(substring(xref,instr(xref, ':')+1))) as codeid
+        FROM dbxrefs, umls_cui_codes as rel
+        WHERE substring_index(xref,':', 1) = 'mesh'
+        AND CONCAT('MSH ',upper(substring(xref,instr(xref, ':')+1))) = rel.end_id
+        AND instr(xref, 'mesh:d') > 0
+        AND instr(xref, 'mesh:d24') = 0
+        GROUP BY ontology_uri, CONCAT('MSH ',upper(substring(xref,instr(xref, ':')+1)))
+        HAVING COUNT(DISTINCT rel.start_id) > 1
+        UNION
+        SELECT DISTINCT ontology_uri, CONCAT('SNOMEDCT_US ',upper(substring(xref,instr(xref, 'details/')+8))) as codeid
+        FROM dbxrefs, umls_cui_codes as rel
+        WHERE substring_index(xref,'details/', 1) = 'http://www.snomedbrowser.com/codes/'
+        AND CONCAT('SNOMEDCT_US ',upper(substring(xref,instr(xref, 'details/')+8))) = rel.end_id
+        GROUP BY ontology_uri, CONCAT('SNOMEDCT_US ',upper(substring(xref,instr(xref, 'details/')+8)))
+        HAVING COUNT(DISTINCT rel.start_id) > 1"""
+        # This query loads all the ontology_uri's that map directly to a UMLS CUI according to the dbxrefs table
+        # these records will have their codeid column set to NULL
+        cursor.execute(sql)
+        connection.commit()
+        print("Loaded codes into table temp_ambiguous_codes")
+        
+                
         drop_table_sql = "DROP TABLE IF EXISTS ontology_uri_map"
         cursor.execute(drop_table_sql)
         create_table_sql = """CREATE TABLE ontology_uri_map (
@@ -641,7 +757,8 @@ def build_ontology_uri_to_umls_map_table(config):
         SELECT DISTINCT ontology_uri, CONCAT('FMA ',upper(substring(xref,instr(xref, ':')+1))) as codeid, rel.start_id as cui, 'PT' as type, 'FMA' as sab
         FROM dbxrefs, umls_cui_codes as rel
         WHERE substring_index(xref,':', 1) = 'fma'
-        AND CONCAT('FMA ',upper(substring(xref,instr(xref, ':')+1))) = rel.end_id"""
+        AND CONCAT('FMA ',upper(substring(xref,instr(xref, ':')+1))) = rel.end_id
+        AND (ontology_uri, CONCAT('FMA ',upper(substring(xref,instr(xref, ':')+1)))) NOT IN (SELECT ontology_uri,codeid FROM temp_ambiguous_codes)"""
         # This query loads all the ontology_uri's that map directly to an FMA code according to the dbxrefs table
         cursor.execute(sql)
         connection.commit()
@@ -651,7 +768,8 @@ def build_ontology_uri_to_umls_map_table(config):
         SELECT DISTINCT ontology_uri, CONCAT('NCI ',upper(substring(xref,instr(xref, ':')+1))) as codeid, rel.start_id as cui, 'PT' as type, 'NCI' as sab
         FROM dbxrefs, umls_cui_codes as rel
         WHERE substring_index(xref,':', 1) = 'ncit'
-        AND CONCAT('NCI ',upper(substring(xref,instr(xref, ':')+1))) = rel.end_id"""
+        AND CONCAT('NCI ',upper(substring(xref,instr(xref, ':')+1))) = rel.end_id
+        AND (ontology_uri, CONCAT('NCI ',upper(substring(xref,instr(xref, ':')+1)))) NOT IN (SELECT ontology_uri,codeid FROM temp_ambiguous_codes)"""
         # This query loads all the ontology_uri's that map directly to an NCI Thesaurus code according to the dbxrefs table
         cursor.execute(sql)
         connection.commit()
@@ -663,7 +781,8 @@ def build_ontology_uri_to_umls_map_table(config):
         WHERE substring_index(xref,':', 1) = 'mesh'
         AND CONCAT('MSH ',upper(substring(xref,instr(xref, ':')+1))) = rel.end_id
         AND instr(xref, 'mesh:d') > 0
-        AND instr(xref, 'mesh:d24') = 0"""
+        AND instr(xref, 'mesh:d24') = 0
+        AND (ontology_uri, CONCAT('MSH ',upper(substring(xref,instr(xref, ':')+1)))) NOT IN (SELECT ontology_uri,codeid FROM temp_ambiguous_codes)"""
         # This query loads all the ontology_uri's that map directly to a MeSH code according to the dbxrefs table
         cursor.execute(sql)
         connection.commit()
@@ -673,7 +792,9 @@ def build_ontology_uri_to_umls_map_table(config):
         SELECT DISTINCT ontology_uri, CONCAT('SNOMEDCT_US ',upper(substring(xref,instr(xref, 'details/')+8))) as codeid, rel.start_id as cui, 'PT' as type, 'SNOMEDCT_US' as sab
         FROM dbxrefs, umls_cui_codes as rel
         WHERE substring_index(xref,'details/', 1) = 'http://www.snomedbrowser.com/codes/'
-        AND CONCAT('SNOMEDCT_US ',upper(substring(xref,instr(xref, 'details/')+8))) = rel.end_id"""
+        AND CONCAT('SNOMEDCT_US ',upper(substring(xref,instr(xref, 'details/')+8))) = rel.end_id
+        AND (ontology_uri, CONCAT('SNOMEDCT_US ',upper(substring(xref,instr(xref, 'details/')+8)))) NOT IN (SELECT ontology_uri,codeid FROM temp_ambiguous_codes)"""
+
         # This query loads all the ontology_uri's that map directly to a SNOMED code according to the dbxrefs table
         cursor.execute(sql)
         connection.commit()
@@ -728,9 +849,18 @@ def insert_new_cui_cui_relations(config):
         connection.commit()
         print("Deleted UBERON map from table umls_cui_cuis")
 
+        sql = """DELETE FROM umls_cui_cuis WHERE sab = 'CL'"""
+        cursor.execute(sql)
+        connection.commit()
+        print("Deleted CL map from table umls_cui_cuis")
 
-        sql = """INSERT INTO umls_cui_cuis (start_id, type, end_id, sab)
-        SELECT DISTINCT subject_table.cui as start_id, if(rel.relation_label='subclass of', 'isa',lower(replace(rel.relation_label,' ','_'))) as type, object_table.cui as end_id, 'UBERON' as sab
+        sql = """DELETE FROM umls_cui_cuis WHERE sab = 'CCF'"""
+        cursor.execute(sql)
+        connection.commit()
+        print("Deleted CCF map from table umls_cui_cuis")
+
+        sql = """INSERT INTO umls_cui_cuis (start_id, type, end_id, sab) 
+        SELECT DISTINCT subject_table.cui as start_id, lower(replace(rel.relation_label,' ','_')) as type, object_table.cui as end_id, 'UBERON' as sab
         FROM pkl_edge_list el, pkl_relations rel, ontology_uri_map subject_table, ontology_uri_map object_table
         WHERE rel.relation_id = el.predicate
         AND subject_table.ontology_uri = el.subject
@@ -748,14 +878,27 @@ def insert_new_cui_cui_relations(config):
         connection.commit()
         print("Loaded UBERON map into table umls_cui_cuis")
 
-        sql = """DELETE FROM umls_cui_cuis WHERE sab = 'CL'"""
+        sql = """INSERT INTO umls_cui_cuis (start_id, type, end_id, sab) 
+        SELECT DISTINCT object_table.cui as start_id, lower(replace(rel.inverse_relation_label,' ','_')) as type, subject_table.cui as end_id, 'UBERON' as sab
+        FROM pkl_edge_list el, pkl_relations rel, ontology_uri_map subject_table, ontology_uri_map object_table
+        WHERE rel.relation_id = el.predicate
+        AND subject_table.ontology_uri = el.subject
+        AND object_table.ontology_uri = el.object
+        AND subject_table.cui != object_table.cui
+        AND rel.inverse_relation_label IS NOT NULL
+        AND el.sab = 'UBERON'"""
+        """
+        This query is basically the same as the initial UBERON query above, but there are two important differences:
+        - the relationship used is the inverse_relation_label from the pkl_relations table.
+        - the subject and object are swapped since we are creating the inverse relationship  
+        """
         cursor.execute(sql)
         connection.commit()
-        print("Deleted CL map from table umls_cui_cuis")
-
+        print("Loaded UBERON inverse relation map into table umls_cui_cuis")
+        
         # NOTE: I added sab to the edge_list table, so we can filter this query more easily on sab = 'CL'
         sql = """INSERT INTO umls_cui_cuis (start_id, type, end_id, sab)
-        SELECT DISTINCT subject_table.cui as start_id, if(rel.relation_label='subclass of', 'isa',lower(replace(rel.relation_label,' ','_'))) as type, object_table.cui as end_id, 'CL' as sab
+        SELECT DISTINCT subject_table.cui as start_id, lower(replace(rel.relation_label,' ','_')) as type, object_table.cui as end_id, 'CL' as sab
         FROM pkl_edge_list el, pkl_relations rel, ontology_uri_map subject_table, ontology_uri_map object_table
         WHERE rel.relation_id = el.predicate
         AND subject_table.ontology_uri = el.subject
@@ -767,24 +910,37 @@ def insert_new_cui_cui_relations(config):
         connection.commit()
         print("Loaded CL map into table cui_cuis")
 
-        sql = """DELETE FROM umls_cui_cuis WHERE sab = 'CCF'"""
-        """cursor.execute(sql)
-        connection.commit()
-        print("Deleted CCF map from table umls_cui_cuis")"""
-
         sql = """INSERT INTO umls_cui_cuis (start_id, type, end_id, sab)
-        SELECT DISTINCT subject_table.cui as start_id, if(rel.relation_label='subclass of', 'isa',lower(replace(rel.relation_label,' ','_'))) as type, object_table.cui as end_id, 'CCF' as sab
+        SELECT DISTINCT object_table.cui as start_id, lower(replace(rel.inverse_relation_label,' ','_')) as type, subject_table.cui as end_id, 'UBERON' as sab
         FROM pkl_edge_list el, pkl_relations rel, ontology_uri_map subject_table, ontology_uri_map object_table
         WHERE rel.relation_id = el.predicate
         AND subject_table.ontology_uri = el.subject
         AND object_table.ontology_uri = el.object
         AND subject_table.cui != object_table.cui
-        AND el.sab = 'CCF'"""
-        
+        AND rel.inverse_relation_label IS NOT NULL
+        AND el.sab = 'CL'"""
+        # This query is basically the same as the UBERON query above except it finds CL to CL relationships
         """
+        This query is basically the same as the initial CL query above, but there are two important differences:
+        - the relationship used is the inverse_relation_label from the pkl_relations table.
+        - the subject and object are swapped since we are creating the inverse relationship  
+        """        
         cursor.execute(sql)
         connection.commit()
-        print("Loaded CCF map into table cui_cuis")"""
+        print("Loaded CL inverse relation map into table cui_cuis")
+
+        sql = """INSERT INTO umls_cui_cuis (start_id, type, end_id, sab)
+        SELECT DISTINCT subject_table.cui as start_id, lower(replace(rel.relation_label,' ','_')) as type, object_table.cui as end_id, 'CCF' as sab
+        FROM ccf_edge_list el, pkl_relations rel, ontology_uri_map subject_table, ontology_uri_map object_table
+        WHERE rel.relation_id = el.predicate
+        AND subject_table.ontology_uri = el.subject
+        AND object_table.ontology_uri = el.object
+        AND subject_table.cui != object_table.cui
+        AND el.sab = 'CCF'"""
+        cursor.execute(sql)
+        connection.commit()
+        print("Loaded CCF map into table cui_cuis")
+        
     except mysql.connector.Error as err:
         print("Error in SQL: " + sql )
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
@@ -870,6 +1026,15 @@ def insert_new_terms(config):
     '''
     connection = None
     sql = ''
+    
+    """ keep an in-memory list of the new SUIs generated
+    The SQL includes a list of existing SUIs when it is initially executed.
+    During execution, new SUIs are created but they are missing from the ones
+    retrieved by the SQL.  Therefore, the new SUIs are not found and will
+    create duplicate SUIs with the same labels.  This in-memory list provides
+    lookup services to avoid recreating the labels."""
+
+    dict_new_suis = {}
     try:
         connection = mysql.connector.connect(
             host=config['MYSQL_HOSTNAME'],
@@ -950,8 +1115,8 @@ def insert_new_terms(config):
         cursor.execute(sql)
         connection.commit()
         
-        sql = """SELECT DISTINCT ontology_uri, cui, codeid, label, sab, sui FROM (
-        SELECT oum.ontology_uri as ontology_uri, oum.cui AS cui, oum.codeid AS codeid,  nm.node_label AS label, nm.sab as sab, su.sui AS sui
+        sql = """SELECT DISTINCT ontology_uri, cui, codeid, label, sab, sui, term_type FROM (
+        SELECT oum.ontology_uri as ontology_uri, oum.cui AS cui, oum.codeid AS codeid,  nm.node_label AS label, nm.sab as sab, su.sui AS sui, 'PT' AS term_type
                 FROM pkl_node_metadata nm
                 INNER JOIN ontology_uri_map oum
                 ON nm.node_id = oum.ontology_uri
@@ -960,13 +1125,30 @@ def insert_new_terms(config):
                 WHERE nm.sab IN ('UBERON', 'CL')
                 AND (oum.codeid is null OR oum.codeid NOT IN (select start_id FROM code_suis_updated))
         UNION ALL
-        SELECT oum.ontology_uri as ontology_uri, oum.cui AS cui, replace(substring_index(oum.ontology_uri, '/',-1), '_', ' ') AS codeid,  nm.node_label AS label, nm.sab as sab, su.sui AS sui
+        SELECT oum.ontology_uri as ontology_uri, oum.cui AS cui, replace(substring_index(oum.ontology_uri, '/',-1), '_', ' ') AS codeid,  nm.node_label AS label, nm.sab as sab, su.sui AS sui, 'PT' AS term_type
                 FROM pkl_node_metadata nm
                 INNER JOIN ontology_uri_map oum
                 ON nm.node_id = oum.ontology_uri
                 LEFT OUTER JOIN suis_updated su
                 ON nm.node_label = su.name
-                WHERE replace(substring_index(oum.ontology_uri, '/',-1), '_', ' ') NOT IN (select start_id FROM code_suis_updated) ) source_table
+                WHERE replace(substring_index(oum.ontology_uri, '/',-1), '_', ' ') NOT IN (select start_id FROM code_suis_updated)
+        UNION ALL
+         SELECT oum.ontology_uri as ontology_uri, oum.cui AS cui,CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) AS codeid,  nm.object AS label, nm.sab as sab, su.sui AS sui, 'SY' AS term_type
+                FROM ccf_edge_list nm
+                INNER JOIN ontology_uri_map oum
+                ON nm.subject = oum.ontology_uri
+                LEFT OUTER JOIN suis_updated su
+                ON nm.object = su.name
+                WHERE CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) NOT IN (select start_id FROM code_suis_updated) 
+                AND INSTR(nm.predicate, 'hasExactSynonym') > 0 
+        UNION ALL
+        SELECT oum.ontology_uri as ontology_uri, oum.cui AS cui,CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) AS codeid,  nm.node_label AS label, nm.sab as sab, su.sui AS sui, 'PT' AS term_type
+                FROM ccf_node_metadata nm
+                INNER JOIN ontology_uri_map oum
+                ON nm.node_id = oum.ontology_uri
+                LEFT OUTER JOIN suis_updated su
+                ON nm.node_label = su.name
+                WHERE CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) NOT IN (select start_id FROM code_suis_updated) ) source_table
         """
         """This query joins the ontology_uri_map data to the label from the node_metadata table.  The query only returns
         records where the codeid is NULL or the codeid is missing from the code_suis_updated table.  These represent
@@ -979,6 +1161,7 @@ def insert_new_terms(config):
             cui = row['cui']
             codeid = row['codeid']
             label = row['label']
+            term_type = row['term_type']
 
             if codeid == None:
                 # if the codeid is None, construct it from the ontology_uri
@@ -987,15 +1170,22 @@ def insert_new_terms(config):
                 codeid = row['sab'] + ' ' + code 
             
             sui = row['sui']
-            if sui == None:                   
-                sui = 'HS' + str(record_count).zfill(6)
-                # mint a new SUI prefixed with 'HS'                
-                sql = """INSERT INTO suis_updated (sui, name) VALUES ('{sui}',"{name}")""".format(sui=sui,name=label)
-                cursor.execute(sql)
-                sql = """INSERT INTO new_sui_map (codeid, sui, name) VALUES ('{codeid}','{sui}',"{name}")""".format(codeid=codeid,sui=sui,name=label)
-                cursor.execute(sql)
+            if sui == None:
+                if label in dict_new_suis.keys():
+                    # if the label already exists, then use the existing SUI
+                    sui = dict_new_suis[label]   
+                else: 
+                    # if the label does not exist, then mint a new SUI               
+                    sui = 'HS' + str(record_count).zfill(6)
+                    # mint a new SUI prefixed with 'HS'                
+                    sql = """INSERT INTO suis_updated (sui, name) VALUES ('{sui}',"{name}")""".format(sui=sui,name=label)
+                    cursor.execute(sql)
+                    sql = """INSERT INTO new_sui_map (codeid, sui, name) VALUES ('{codeid}','{sui}',"{name}")""".format(codeid=codeid,sui=sui,name=label)
+                    cursor.execute(sql)
+                    # add the new SUI to the in memory list
+                    dict_new_suis[label] = sui
 
-            sql = """INSERT INTO code_suis_updated (start_id, end_id, type, cui) VALUES ('{codeid}','{sui}','PT','{cui}')""".format(codeid=codeid,sui=sui,cui=cui)
+            sql = """INSERT INTO code_suis_updated (start_id, end_id, type, cui) VALUES ('{codeid}','{sui}','{term_type}','{cui}')""".format(codeid=codeid,sui=sui,cui=cui,term_type=term_type)
             cursor.execute(sql)
 
             if 'HC' in cui:
@@ -1103,8 +1293,6 @@ def insert_new_cuis(config):
                 sys.exit()
                 
             codeid = current_sab + ' ' + code 
-            if codeid == 'CCF 0002078':
-                print("here")
             if str(codeid).count(' ') > 1:
                 print("ERROR: this code '{codeid}' contains more than one space.  Stopping processing".format(codeid=codeid))
                 sys.exit()
@@ -1122,6 +1310,81 @@ def insert_new_cuis(config):
             sql = """INSERT INTO cui_codes_updated (start_id, end_id) VALUES ('{cui}','{codeid}')""".format(cui=cui,codeid=codeid)
             cursor.execute(sql)
             connection.commit()
+
+    except mysql.connector.Error as err:
+        print("Error in SQL: " + sql )
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+        connection.rollback()
+    finally:
+        if connection != None:
+            connection.close()        
+
+def remove_ambiguous_cui_codes(config):
+    '''    
+    When joining the new codes into the overall graph, we need to remove situations where
+    single codes (ex: MSH D006325) connect to multiple CUIs.  These relationships are vetted
+    by UMLS data curators.  However, our automated approach does not allow us to understand 
+    these relationships so we should just drop them.    
+      
+    param dict config: The configuration data for this application.
+    '''
+
+    connection = None
+    sql = ''
+    try:
+        connection = mysql.connector.connect(
+            host=config['MYSQL_HOSTNAME'],
+            user=config['MYSQL_USERNAME'],
+            password=config['MYSQL_PASSWORD'],
+            database=config['MYSQL_DATABASE_NAME'],
+            charset='utf8mb4',collation='utf8mb4_bin')
+        cursor = connection.cursor(dictionary=True)
+    
+        drop_table_sql = "DROP TABLE IF EXISTS temp_ambiguous_codes"
+        cursor.execute(drop_table_sql)
+        connection.commit()
+                
+        sql = """CREATE TABLE temp_ambiguous_codes 
+        SELECT end_id FROM 
+        cui_codes_updated 
+        WHERE (end_id LIKE 'UBERON%' OR end_id LIKE 'CL%' OR end_id LIKE 'CCF%')
+        GROUP BY end_id
+        HAVING COUNT(DISTINCT start_id) > 1"""                
+        cursor.execute(sql)
+        connection.commit()
+        print("Built temp_ambiguous_codes to get ready for deletion")
+
+        # remove cui_codes_updated
+        sql = """DELETE cui_codes_updated 
+        FROM cui_codes_updated
+        INNER JOIN temp_ambiguous_codes tac
+        ON tac.end_id = cui_codes_updated.end_id"""
+        cursor.execute(sql)
+        connection.commit()
+        print("Deleted ambiguous CUI-CODEs.csv entries")
+        
+        # remove code_suis_updated
+        sql = """DELETE code_suis_updated
+        FROM code_suis_updated 
+        INNER JOIN temp_ambiguous_codes tac
+        ON tac.end_id = code_suis_updated.start_id"""
+        cursor.execute(sql)
+        connection.commit()
+        print("Deleted ambiguous CODE-SUIs.csv entries")
+
+        # remove umls_codes
+        sql = """DELETE umls_codes
+        FROM umls_codes 
+        INNER JOIN temp_ambiguous_codes tac
+        ON tac.end_id = umls_codes.codeid"""
+        cursor.execute(sql)
+        connection.commit()
+        print("Deleted ambiguous CODEs.csv entries")
 
     except mysql.connector.Error as err:
         print("Error in SQL: " + sql )
@@ -1159,7 +1422,7 @@ def insert_new_codes(config):
         WHERE codeid is not null
         AND sab NOT IN ('UBERON','CL','CCF')
         UNION ALL
-        SELECT nm.node_id, oum.cui as cui, nm.sab as sab FROM pkl_node_metadata nm, ontology_uri_map oum
+        SELECT nm.node_id, oum.cui as cui, nm.sab as sab FROM ccf_node_metadata nm, ontology_uri_map oum
         WHERE nm.sab = 'CCF'
         AND oum.ontology_uri = nm.node_id) source_table"""
         cursor.execute(sql)
@@ -1174,16 +1437,11 @@ def insert_new_codes(config):
                 current_sab = 'CL'
             code = ontology_uri[ontology_uri.index('_')+1:]
             codeid = current_sab + ' ' + code 
-            """if row['sab'] == 'CCF':
+            if row['sab'] == 'CCF':
                 current_sab = row['sab']
                 code = ontology_uri[ontology_uri.rindex('/')+1:]
                 codeid = current_sab + ' ' + code
-                if codeid == 'CCF 0002078':
-                    print("here")
-            else:
-                code = ontology_uri[ontology_uri.index('_')+1:]
-                codeid = current_sab + ' ' + code 
-            """
+
             if str(codeid).count(' ') > 1:
                 print("ERROR: this code '{codeid}' contains more than one space.  Stopping processing".format(codeid=codeid))
                 sys.exit()
@@ -1301,6 +1559,7 @@ def transform(config):
     insert_new_terms(config)
     #connect_existing_terms(config)
     insert_new_defs(config)
+    #remove_ambiguous_cui_codes(config)
     insert_new_cui_cui_relations(config)
     print('') # do this to disable the 'end' flag in prior print statements
     print("Done with transform process")
@@ -1399,4 +1658,5 @@ if __name__ == '__main__':
     #extract(config)
     #transform(config)
     load(config)
+
 

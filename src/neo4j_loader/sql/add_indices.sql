@@ -10,6 +10,16 @@ ALTER TABLE umls_defs ADD INDEX umls_defs_sab_idx (sab(20));
 ALTER TABLE umls_suis ADD INDEX umls_suis_sui_idx (sui(100));
 ALTER TABLE umls_suis ADD INDEX umls_suis_name_idx (name(500));
 
+ALTER TABLE ccf_edge_list ADD INDEX ccf_edge_list_subject_idx (subject(50));
+ALTER TABLE ccf_edge_list ADD INDEX ccf_edge_list_predicate_idx (predicate(100));
+ALTER TABLE ccf_edge_list ADD INDEX ccf_edge_list_object_idx (object(100));
+ALTER TABLE ccf_edge_list ADD INDEX ccf_edge_list_sab_idx (sab(50));
+
+ALTER TABLE ccf_node_metadata ADD INDEX ccf_node_metadata_node_id_idx (node_id(50));
+ALTER TABLE ccf_node_metadata ADD INDEX ccf_node_metadata_node_label_idx (node_label(500));
+ALTER TABLE ccf_node_metadata ADD INDEX ccf_node_metadata_node_definition_idx (node_definition(500));
+ALTER TABLE ccf_node_metadata ADD INDEX ccf_node_metadata_sab_idx (sab(50));
+
 ALTER TABLE pkl_edge_list ADD INDEX pkl_edge_list_subject_idx (subject(50));
 ALTER TABLE pkl_edge_list ADD INDEX pkl_edge_list_predicate_idx (predicate(100));
 ALTER TABLE pkl_edge_list ADD INDEX pkl_edge_list_object_idx (object(100));

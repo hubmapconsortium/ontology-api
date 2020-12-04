@@ -11,11 +11,8 @@ from neo4j import GraphDatabase, TransactionError, CypherError
 
 class TestLoadCsvData(unittest.TestCase):
 
-    """cypher queries for testing.  This is returns codes with missing terms:
-    here are some results: 3727 for MATCH (a:Code{SAB:‘UBERON’}) where size((a)--(:Term)) = 0 RETURN count(distinct a)
-    
-    10075 for MATCH (a:Code{SAB:‘UBERON’}) where size((a)--(:Term)) = 0 RETURN count(distinct a)
-    
+    """cypher queries for testing.
+
     another good test: compare record counts in SQL versus counts in neo4j (ex: codes table count vs code node counts) 
     maybe compare with file line counts
     
@@ -90,6 +87,94 @@ class TestLoadCsvData(unittest.TestCase):
             finally:
                 driver.close()
 
+    def testPresenceNOCODE(self):
+        driver = self.get_driver()
+        with driver.session() as session:
+            try:
+                stmt = """MATCH (co:Code) WHERE co.CODE = 'NOCODE' RETURN COUNT(co) AS data_count"""
+                for record in session.run(stmt):
+                    self.assertGreater(int(record['data_count']), 0)
+
+            except ConnectionError as ce:
+                print('A connection error occurred: ', str(ce.args[0]))
+                raise ce
+            except ValueError as ve:
+                print('A value error occurred: ', ve.value)
+                raise ve
+            except CypherError as cse:
+                print('A Cypher error was encountered: ', cse.message)
+                raise cse
+            except:
+                print('A general error occurred: ')
+            finally:
+                driver.close()
+
+    def testAllNewCodeHasTerm(self):
+        driver = self.get_driver()
+        with driver.session() as session:
+            try:
+                stmt = """MATCH (a:Code) where a.SAB IN ['CL','UBERON'] AND size((a)--(:Term)) = 0 RETURN count(distinct a) AS data_count"""
+                for record in session.run(stmt):
+                    self.assertEqual(int(record['data_count']), 0)
+
+            except ConnectionError as ce:
+                print('A connection error occurred: ', str(ce.args[0]))
+                raise ce
+            except ValueError as ve:
+                print('A value error occurred: ', ve.value)
+                raise ve
+            except CypherError as cse:
+                print('A Cypher error was encountered: ', cse.message)
+                raise cse
+            except:
+                print('A general error occurred: ')
+            finally:
+                driver.close()
+
+    def testNoISARelations(self):
+        driver = self.get_driver()
+        with driver.session() as session:
+            try:
+                stmt = """MATCH (c1:Concept)-[r:isa]-(c2:Concept) where r.SAB IN ['CL','UBERON'] RETURN COUNT(r) AS data_count"""
+                for record in session.run(stmt):
+                    self.assertEqual(int(record['data_count']), 0)
+
+            except ConnectionError as ce:
+                print('A connection error occurred: ', str(ce.args[0]))
+                raise ce
+            except ValueError as ve:
+                print('A value error occurred: ', ve.value)
+                raise ve
+            except CypherError as cse:
+                print('A Cypher error was encountered: ', cse.message)
+                raise cse
+            except:
+                print('A general error occurred: ')
+            finally:
+                driver.close()
+
+    def testAllSemanticConnections(self):
+        driver = self.get_driver()
+        with driver.session() as session:
+            try:
+                stmt = """MATCH (a:Code)<—-(b:Concept) WHERE a.SAB IN ['CL','UBERON','CCF'] AND
+                    SIZE((b)-->(:Semantic)) = 0 RETURN COUNT(DISTINCT b) as data_count"""
+                for record in session.run(stmt):
+                    self.assertEqual(int(record['data_count']), 0)
+
+            except ConnectionError as ce:
+                print('A connection error occurred: ', str(ce.args[0]))
+                raise ce
+            except ValueError as ve:
+                print('A value error occurred: ', ve.value)
+                raise ve
+            except CypherError as cse:
+                print('A Cypher error was encountered: ', cse.message)
+                raise cse
+            except:
+                print('A general error occurred: ')
+            finally:
+                driver.close()
 
 
 if __name__ == "__main__":

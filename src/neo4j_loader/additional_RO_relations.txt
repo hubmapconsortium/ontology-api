@@ -1,0 +1,14 @@
+relation_id	relation_label
+http://purl.obolibrary.org/obo/RO_0002350	member of
+http://purl.obolibrary.org/obo/RO_0002206	expressed in
+http://purl.obolibrary.org/obo/RO_0002234	has output
+http://purl.obolibrary.org/obo/RO_0002257	developmentally induces
+http://purl.obolibrary.org/obo/RO_0001001	derives into
+http://purl.obolibrary.org/obo/RO_0002255	developmentally contributes to
+http://purl.obolibrary.org/obo/RO_0002000	2D boundary of
+http://purl.obolibrary.org/obo/RO_0002090	immediately precedes
+http://purl.obolibrary.org/obo/RO_0002569	has branching part
+http://purl.obolibrary.org/obo/RO_0000080	quality of
+http://purl.obolibrary.org/obo/RO_0001018	contained in
+http://purl.obolibrary.org/obo/RO_0002103	synapsed by
+http://purl.obolibrary.org/obo/RO_0002210	directly develops into

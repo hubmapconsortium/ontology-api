@@ -210,7 +210,7 @@ def load_ccf_nodes_and_edges(config):
 
 
 def load_pkl_edge_list(config):
-    file_path = '/home/chb69/umls_data/PheKnowLator/PheKnowLatorResultsFromDropbox/PheKnowLator_Subclass_OWLNETS_edge_list_16OCT2020.txt'
+    file_path = os.path.join(config['PHEKNOWLATER_SOURCE_DIR'], 'PheKnowLator_Subclass_OWLNETS_edge_list_16OCT2020.txt')
     table_name = 'pkl_edge_list'
     load_file(config, file_path, table_name)
 
@@ -256,7 +256,7 @@ def load_pkl_node_metadata(config):
     http://purl.obolibrary.org/obo/UBERON_0002203   vasculature of eye|眼部血管系统 Vasculature that is part of the eye region.|是眼部区域一部分的血管系统。  
     In this case, we want to import the ASCII data portion of the record into mysql while excluding the other parts. 
     '''
-    file_path = '/home/chb69/umls_data/PheKnowLator/PheKnowLatorResultsFromDropbox/PheKnowLator_Subclass_OWLNETS_NodeMetadata_16OCT2020.txt'
+    file_path = os.path.join(config['PHEKNOWLATER_SOURCE_DIR'], 'PheKnowLator_Subclass_OWLNETS_NodeMetadata_16OCT2020.txt')
     table_name = 'pkl_node_metadata'
     
     connection = None
@@ -347,20 +347,20 @@ def load_pkl_node_metadata(config):
             connection.close()        
     
 def load_pkl_ontology_dbxref(config):
-    file_path = '/home/chb69/umls_data/PheKnowLator/PheKnowLatorResultsFromDropbox/PheKnowLator_Subclass_OWLNETS_Ontology_DbXRef_16OCT2020.txt'
+    file_path = os.path.join(config['PHEKNOWLATER_SOURCE_DIR'], 'PheKnowLator_Subclass_OWLNETS_Ontology_DbXRef_16OCT2020.txt')
     table_name = 'pkl_ontology_dbxref'
     load_file(config, file_path, table_name)
     
 def load_pkl_relations(config):
-    file_path = '/home/chb69/umls_data/PheKnowLator/PheKnowLatorResultsFromDropbox/INVERSE_RELATIONS.txt'
+    file_path = os.path.join(config['PHEKNOWLATER_SOURCE_DIR'], 'INVERSE_RELATIONS.txt')
     table_name = 'pkl_inverse_relations'
     load_file(config, file_path, table_name)
 
-    file_path = '/home/chb69/umls_data/PheKnowLator/PheKnowLatorResultsFromDropbox/PheKnowLator_Subclass_OWLNETS_relations_16OCT2020.txt'
+    file_path = os.path.join(config['PHEKNOWLATER_SOURCE_DIR'], 'PheKnowLator_Subclass_OWLNETS_relations_16OCT2020.txt')
     table_name = 'pkl_relations'
     load_file(config, file_path, table_name)
 
-    file_path = '/home/chb69/git/ontology-api/src/neo4j_loader/additional_RO_relations.txt'
+    file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'additional_RO_relations.txt')
     table_name = 'pkl_relations'
     load_file(config, file_path, table_name)
     
@@ -415,64 +415,63 @@ def load_pkl_relations(config):
         if connection != None:
             connection.close()        
 
-
 def load_umls_codes(config):
-    file_path = '/home/chb69/umls_data/umls_data/CODEs.csv'
+    file_path = os.path.join(config['UMLS_SOURCE_DIR'],'CODEs.csv')
     table_name = 'umls_codes'
     load_file(config, file_path, table_name)
 
 def load_umls_defs(config):
-    file_path = '/home/chb69/umls_data/umls_data/DEFs.csv'
+    file_path = os.path.join(config['UMLS_SOURCE_DIR'],'DEFs.csv')
     table_name = 'umls_defs'
     load_file(config, file_path, table_name)
 
 def load_umls_suis(config):
-    file_path = '/home/chb69/umls_data/umls_data/SUIs.csv'
+    file_path = os.path.join(config['UMLS_SOURCE_DIR'],'SUIs.csv')
     table_name = 'umls_suis'
     load_file(config, file_path, table_name)
 
 def load_umls_cuis(config):
-    file_path = '/home/chb69/umls_data/umls_data/CUIs.csv'
+    file_path = os.path.join(config['UMLS_SOURCE_DIR'],'CUIs.csv')
     table_name = 'umls_cuis'
     load_file(config, file_path, table_name)
 
 def load_umls_tuis(config):
-    file_path = '/home/chb69/umls_data/umls_data/TUIs.csv'
+    file_path = os.path.join(config['UMLS_SOURCE_DIR'],'TUIs.csv')
     table_name = 'umls_tuis'
     load_file(config, file_path, table_name)
 
 def load_umls_code_suis(config):
-    file_path = '/home/chb69/umls_data/umls_data/CODE-SUIs.csv'
+    file_path = os.path.join(config['UMLS_SOURCE_DIR'],'CODE-SUIs.csv')
     table_name = 'umls_code_suis'
     load_file(config, file_path, table_name)
 
 def load_umls_cui_codes(config):
-    file_path = '/home/chb69/umls_data/umls_data/CUI-CODEs.csv'
+    file_path = os.path.join(config['UMLS_SOURCE_DIR'],'CUI-CODEs.csv')
     table_name = 'umls_cui_codes'
     load_file(config, file_path, table_name)
 
 def load_umls_cui_cuis(config):
-    file_path = '/home/chb69/umls_data/umls_data/CUI-CUIs.csv'
+    file_path = os.path.join(config['UMLS_SOURCE_DIR'],'CUI-CUIs.csv')
     table_name = 'umls_cui_cuis'
     load_file(config, file_path, table_name)
 
 def load_umls_cui_suis(config):
-    file_path = '/home/chb69/umls_data/umls_data/CUI-SUIs.csv'
+    file_path = os.path.join(config['UMLS_SOURCE_DIR'],'CUI-SUIs.csv')
     table_name = 'umls_cui_suis'
     load_file(config, file_path, table_name)
 
 def load_umls_cui_tuis(config):
-    file_path = '/home/chb69/umls_data/umls_data/CUI-TUIs.csv'
+    file_path = os.path.join(config['UMLS_SOURCE_DIR'],'CUI-TUIs.csv')
     table_name = 'umls_cui_tuis'
     load_file(config, file_path, table_name)
                                 
 def load_umls_def_rel(config):
-    file_path = '/home/chb69/umls_data/umls_data/DEFrel.csv'
+    file_path = os.path.join(config['UMLS_SOURCE_DIR'],'DEFrel.csv')
     table_name = 'umls_def_rel'
     load_file(config, file_path, table_name)
                                 
 def load_umls_tui_rel(config):
-    file_path = '/home/chb69/umls_data/umls_data/TUIrel.csv'
+    file_path = os.path.join(config['UMLS_SOURCE_DIR'],'TUIrel.csv')
     table_name = 'umls_tui_rel'
     load_file(config, file_path, table_name)
   
@@ -1601,7 +1600,7 @@ def export_files(config):
             sql_columns = export_info['sql_columns']
             file_columns = export_info['file_columns']
             
-            file_path = config['OUTPUT_DIR'] + '/' + file_name
+            file_path = os.path.join(config['OUTPUT_DIR'],file_name)
             
             sql = """SELECT DISTINCT {col_list} FROM {table_name}""".format(table_name=table_name,col_list=",".join(sql_columns))
             cursor.execute(sql)
@@ -1656,7 +1655,7 @@ if __name__ == '__main__':
     file_name = 'app.cfg'
     config = load_config(file_path, file_name)
     #extract(config)
-    #transform(config)
+    transform(config)
     load(config)
 
 

@@ -161,7 +161,7 @@ CREATE TABLE pkl_relations (
     PRIMARY KEY(id)
 );
 
-CREATE TABLE pkl_inverse_relation (
+CREATE TABLE pkl_inverse_relations (
     id INT NOT NULL AUTO_INCREMENT,
     relation VARCHAR(2048) NOT NULL,
     inverse_relation VARCHAR(2048) NOT NULL,

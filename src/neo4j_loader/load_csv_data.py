@@ -939,7 +939,20 @@ def insert_new_cui_cui_relations(config):
         cursor.execute(sql)
         connection.commit()
         print("Loaded CCF map into table cui_cuis")
-        
+
+        sql = """INSERT INTO umls_cui_cuis (start_id, type, end_id, sab)
+        SELECT DISTINCT object_table.cui as start_id, lower(replace(rel.inverse_relation_label,' ','_')) as type, subject_table.cui as end_id, 'UBERON' as sab
+        FROM ccf_edge_list el, pkl_relations rel, ontology_uri_map subject_table, ontology_uri_map object_table
+        WHERE rel.relation_id = el.predicate
+        AND subject_table.ontology_uri = el.subject
+        AND object_table.ontology_uri = el.object
+        AND subject_table.cui != object_table.cui
+        AND rel.inverse_relation_label IS NOT NULL
+        AND el.sab = 'CCF'"""
+        cursor.execute(sql)
+        connection.commit()
+        print("Loaded CCF inverse relation map into table cui_cuis")
+       
     except mysql.connector.Error as err:
         print("Error in SQL: " + sql )
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:

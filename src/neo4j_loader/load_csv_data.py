@@ -10,6 +10,7 @@ import types
 import mysql.connector
 from mysql.connector import errorcode
 import csv
+import argparse
 
 
 """
@@ -1640,11 +1641,25 @@ def isascii(s):
     return len(s) == len(s.encode())
             
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('commands', type=str, nargs='+',default='extract transform load')
+    command_list = []
+    try:
+        args = parser.parse_args()
+        command_list =  args.commands
+    except:
+        command_list = ['extract','transform','load']
+
     file_path = '/home/chb69/git/ontology-api/src/neo4j_loader'
     file_name = 'app.cfg'
     config = load_config(file_path, file_name)
-    #extract(config)
-    transform(config)
-    #load(config)
+    
+    if 'extract' in command_list:
+        extract(config)
+    if 'transform' in command_list:
+        transform(config)
+    if 'load' in command_list:
+        load(config)
+
 
 

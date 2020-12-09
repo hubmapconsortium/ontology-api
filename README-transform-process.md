@@ -42,12 +42,14 @@ These various methods load the .CSV file straight into a table using the **load_
 The **Transform Code** uses the data found in the mysql tables to add the PheKnowLator and CCF data into the UMLS graph structure.  The **Transform Code** initializes to a "clean state" prior to each run. Therefore, the **Transform Code** can be run repeatedly after the **Extract Code** is run.  To understand the **Transform Code** you need to understand the UMLS graph structure.
 ###### The CUI Diagram
 ![CUI Diagram](cui_graph.png)
+
 The CUI diagram illustrates the connections between a **CUI** (green), its **Codes** (blue), and the **Terms** (yellow) associated with the **Codes**.  
 * CUI- an abstract concept that crosses one or more vocabularies.  The CUI "anchors" the different codes and terms for the same concept found in different vocabularies or ontologies.  
 * Code- these nodes contain the vocabulary/ontology's code for a given concept (ex: UBERON 1234, FMA 1234, etc).  
 * Term- a Term contains the string representation for a given code (ex: Brain, Proximal end of femur, etc.).  Terms can have several types of connections to a Code like PT (preferred term) and SY (synonym)
 
 ![Additional Nodes Diagram](additional_nodes.png)
+
 In additon to the nodes above, there are two additional nodes **Definition** (red) and **Semantic Type** (pink)
 * Definition- this node contains a text defintition for a **CUI**.  The definitions are loaded from the files.
 * Semantic Type- this node groups several **CUIs** into broad categories like Cell, Anatomical Structure, etc.  The **Semantic Type** is added after the files are loaded.
@@ -60,6 +62,7 @@ The **build_ontology_uri_to_umls_map_table** is the central method for the entir
 ONTOLOGY_URI|CUI|CODEID|TYPE|SAB
 ------------|---|------|----|---
 http://purl.obolibrary.org/obo/UBERON_0003692|C0001208|FMA 25898|PT|FMA
+
 This table provides mappings from PheKnowLator ontology_uri to UMLS data.  In the above example, the ontology_uri maps to the FMA code 25898.  The **umls_cui_codes** table provides the mapping from the FMA 25898 **Code** to **CUI** C0001208.  If no map is found in this table for a given ontology_uri, a new **CUI** is minted using the 'HC' prefix (ex: HC003491).
 
 *Future State Notes for* **build_ontology_uri_to_umls_map_table**
@@ -81,6 +84,7 @@ The CCF ontology is a bit of an outlier.  It does not introduce any new **CUIs**
 ###### insert_new_terms
 The **insert_new_terms** method loads labels from ontologies/vocabularies into the Knowledge Graph.  **Important note**: on the Neo4j side these labels are called **Term** nodes whereas in UMLS they are called **SUIs**.  This information is useful when reading the code.  A diagram is also useful to understand this code:
 ![CUI Diagram](cui_graph.png)
+
 In this diagram, the **Code** nodes (blue) connect to one or more **Term** nodes (yellow).  (Remember, a **Term** node is called a **SUI** in UMLS.) By default, the connection between **Code** and **Term** is the 'PT' relation (PT means 'preferred term').  However, the CCF ontology supplies synonomous **Terms**.  These synonymous **Terms** are connected using the 'SY' relation (SY means 'synonym').
 The **insert_new_terms** method performs the following:
 1) Retrieve all labels from the various ontologies/vocabularies

@@ -13,7 +13,8 @@ import csv
 
 
 """
-        this list includes the prefixes for several informatics resources found in the mapping data: 
+        this list includes the prefixes for several informatics resources found in the PheKnowLator mapping data.
+        This might be useful in the future: 
         bto: is BRENDA Tissue ontology (human brain related)
         fbbt: Flybase
         caro: Common Anatomy Reference Ontology
@@ -50,13 +51,13 @@ import csv
 config = {}
 
 def load_config(root_path, filename):
-    """This method was heavily borrowed from the flask config.py file's from_pyfile method.
+    '''This method was heavily borrowed from the flask config.py file's from_pyfile method.
     It reads a file containing python constants and loads it into a dictionary.
 
     :param root_path: the path leading to the config file
     :param filename: the filename of the config relative to the
                      root path.
-    """
+    '''
     filename = os.path.join(root_path, filename)
     d = types.ModuleType("config")
     d.__file__ = filename
@@ -663,15 +664,17 @@ def extract(config):
     create_indices(config)
     print("Done with extract process")
 
-def build_ontology_uri_to_umls_map_table(config):
+def build_ambiguous_codes_table(config):
     '''
-    Construct a table called ontology_uri_map (ontology_uri, cui, codeid, type, sab).  This table is a mapping
-    between the PheKnowLator data and the UMLS data.  The table is built from dbxrefs (PheKnowLator) and cui_codes (ULMS)
-    tables.  The ontology_uri is the primary key within the PheKnowLator data.  The cui and codeid are the main keys
-    within the UMLS data.  Each record in ontology_uri_map allows one to move between both systems.
+    Construct a table called temp_ambiguous_codes (ontology_uri, codeid).  This table contains a subset of
+    the codes that map to more than one CUI.  These codes are "ambiguous" because we cannot use them in our automated
+    processing.  Our code cannot decide which of the CUIs should be assigned the preferred term from the data we are loading.
+    Also, these connections tend to conflate items (ex: left hand, right hand, and hand are all the same). 
+    
+    We will use this table to "filter out" some of the data during the ETL process.
     
     param dict config: The configuration data for this application. 
-    '''
+    '''   
     connection = None
     sql = ''
     try:
@@ -682,7 +685,7 @@ def build_ontology_uri_to_umls_map_table(config):
             database=config['MYSQL_DATABASE_NAME'],
             charset='utf8mb4',collation='utf8mb4_bin')
         cursor = connection.cursor(dictionary=True)
-        
+
         drop_table_sql = "DROP TABLE IF EXISTS temp_ambiguous_codes"
         cursor.execute(drop_table_sql)
         create_table_sql = """CREATE TABLE temp_ambiguous_codes (
@@ -723,11 +726,48 @@ def build_ontology_uri_to_umls_map_table(config):
         AND CONCAT('SNOMEDCT_US ',upper(substring(xref,instr(xref, 'details/')+8))) = rel.end_id
         GROUP BY ontology_uri, CONCAT('SNOMEDCT_US ',upper(substring(xref,instr(xref, 'details/')+8)))
         HAVING COUNT(DISTINCT rel.start_id) > 1"""
-        # This query loads all the ontology_uri's that map directly to a UMLS CUI according to the dbxrefs table
-        # these records will have their codeid column set to NULL
+        """This query builds the temp_ambiguous_codes table from FMA, NCI, MeSH, and SNOMED.  It inserts codes with
+        more than 1 CUI into the temp_ambiguous_codes table.
+        """
+
         cursor.execute(sql)
         connection.commit()
         print("Loaded codes into table temp_ambiguous_codes")
+    except mysql.connector.Error as err:
+        print("Error in SQL: " + sql )
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+        connection.rollback()
+    finally:
+        if connection != None:
+            connection.close()        
+        
+    
+    
+def build_ontology_uri_to_umls_map_table(config):
+    '''
+    Construct a table called ontology_uri_map (ontology_uri, cui, codeid, type, sab).  This table is a mapping
+    between the PheKnowLator data and the UMLS data.  The table is built from dbxrefs (PheKnowLator) and cui_codes (ULMS)
+    tables.  The ontology_uri is the primary key within the PheKnowLator data.  The cui and codeid are the main keys
+    within the UMLS data.  Each record in ontology_uri_map allows one to move between both systems.
+    
+    param dict config: The configuration data for this application. 
+    '''
+    connection = None
+    sql = ''
+    try:
+        connection = mysql.connector.connect(
+            host=config['MYSQL_HOSTNAME'],
+            user=config['MYSQL_USERNAME'],
+            password=config['MYSQL_PASSWORD'],
+            database=config['MYSQL_DATABASE_NAME'],
+            charset='utf8mb4',collation='utf8mb4_bin')
+        cursor = connection.cursor(dictionary=True)
+        
         
                 
         drop_table_sql = "DROP TABLE IF EXISTS ontology_uri_map"
@@ -829,7 +869,8 @@ def build_ontology_uri_to_umls_map_table(config):
 def insert_new_cui_cui_relations(config):
     '''
     Extract all relationships between two UMLS CUIs found in the PheKnowLator data.  This method only 
-    inserts data into the cui_cuis table.
+    inserts data into the cui_cuis table.  It does not create new CUIs.  It adds both the "regular" relations
+    plus their inverse relations.
     
     param dict config: The configuration data for this application. 
     '''
@@ -966,67 +1007,6 @@ def insert_new_cui_cui_relations(config):
         if connection != None:
             connection.close()        
 
-def connect_existing_terms(config):
-    #NOTE: THIS METHOD DEPENDS ON THE insert_new_terms METHOD TO BE RUN FIRST.  
-    connection = None
-    sql = ''
-    try:
-        connection = mysql.connector.connect(
-            host=config['MYSQL_HOSTNAME'],
-            user=config['MYSQL_USERNAME'],
-            password=config['MYSQL_PASSWORD'],
-            database=config['MYSQL_DATABASE_NAME'],
-            charset='utf8mb4',collation='utf8mb4_bin')
-        cursor = connection.cursor(dictionary=True)
-        
-
-        sql = """SELECT oum.cui AS cui, oum.codeid AS codeid,  su.sui as sui, nm.sab as sab
-        FROM pkl_node_metadata nm, ontology_uri_map oum, suis_updated su
-        where nm.node_id = oum.ontology_uri
-        AND nm.node_label = su.name
-        AND oum.codeid IS NOT NULL
-        AND (oum.codeid, su.sui) not in (SELECT start_id, end_id FROM code_suis_updated)"""
-        
-        cursor.execute(sql)
-        result = cursor.fetchall()
-        print ("Loading existing data into tables suis_updated and code_suis_updated", end='', flush=True)
-        record_count = 1 # start SUI numbering at one 
-        for row in result:
-            cui = row['cui']
-            codeid = row['codeid']
-            sui = row['sui']
-            record_count = record_count + 1
-
-            if str(codeid).count(' ') > 1:
-                print("ERROR: this code '{codeid}' contains more than one space.  Stopping processing".format(codeid=codeid))
-                sys.exit()
-            
-            sql = """INSERT INTO code_suis_updated (start_id, end_id, type, cui) VALUES ('{codeid}','{sui}','PT','{cui}')""".format(codeid=codeid,sui=sui,cui=cui)
-            cursor.execute(sql)
-            sql = """INSERT INTO cui_suis_updated (start_id, end_id, type) VALUES ('{cui}','{sui}','PREF_TERM')""".format(cui=cui,sui=sui)
-            cursor.execute(sql)
-
-            #commit every 10,000 records
-            if record_count % 10000 == 0:
-                print('.', end='', flush=True)
-                connection.commit()
-            
-        connection.commit()
-        
-
-    except mysql.connector.Error as err:
-        print("Error in SQL: " + sql )
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            print("Something is wrong with your user name or password")
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            print("Database does not exist")
-        else:
-            print(err)
-        connection.rollback()
-    finally:
-        if connection != None:
-            connection.close()        
-
 def insert_new_terms(config):
     '''
     The method creates new labels (Term nodes) in the graph for each PheKnowLator item added to the graph.
@@ -1039,14 +1019,14 @@ def insert_new_terms(config):
     connection = None
     sql = ''
     
+    dict_new_suis = {}
     """ keep an in-memory list of the new SUIs generated
     The SQL includes a list of existing SUIs when it is initially executed.
     During execution, new SUIs are created but they are missing from the ones
-    retrieved by the SQL.  Therefore, the new SUIs are not found and will
+    retrieved by the SQL (i.e. a "dirty read").  Therefore, the new SUIs are not found and will
     create duplicate SUIs with the same labels.  This in-memory list provides
     lookup services to avoid recreating the labels."""
-
-    dict_new_suis = {}
+    
     try:
         connection = mysql.connector.connect(
             host=config['MYSQL_HOSTNAME'],
@@ -1194,13 +1174,15 @@ def insert_new_terms(config):
                     cursor.execute(sql)
                     sql = """INSERT INTO new_sui_map (codeid, sui, name) VALUES ('{codeid}','{sui}',"{name}")""".format(codeid=codeid,sui=sui,name=label)
                     cursor.execute(sql)
-                    # add the new SUI to the in memory list
+                    
                     dict_new_suis[label] = sui
+                    # add the new SUI to the in memory list
 
             sql = """INSERT INTO code_suis_updated (start_id, end_id, type, cui) VALUES ('{codeid}','{sui}','{term_type}','{cui}')""".format(codeid=codeid,sui=sui,cui=cui,term_type=term_type)
             cursor.execute(sql)
 
             if 'HC' in cui:
+                #insert a new HCUI into the cui_suis_updated table since it does not exist in the table yet.
                 sql = """INSERT INTO cui_suis_updated (start_id, end_id, type) VALUES ('{cui}','{sui}','PREF_TERM')""".format(cui=cui,sui=sui)
                 cursor.execute(sql)
 
@@ -1280,7 +1262,10 @@ def insert_new_cuis(config):
         sql = """select node_id as ontology_uri, sab as sab from pkl_node_metadata nm
         where nm.node_id NOT IN (select ontology_uri from ontology_uri_map)
         and (node_id like 'http://purl.obolibrary.org/obo/CL\_%' or node_id like 'http://purl.obolibrary.org/obo/UBERON\_%')"""
-        """Find all the records in node_metadata that were not mapped to an UMLS terms."""
+        
+        """Find all the records in node_metadata that were not mapped to an UMLS terms.  The 'where nm.node_id NOT IN (select ontology_uri from ontology_uri_map)'
+        finds all records in the ontology_uri_map.  The 'and (node_id like 'http://purl.obolibrary.org/obo/CL\_%' or node_id like 'http://purl.obolibrary.org/obo/UBERON\_%')'
+        limits it to CL and UBERON data in the pkl_node_metadata table."""
         cursor.execute(sql)
         result = cursor.fetchall()
         print ("Creating new HCUI's and codes")
@@ -1288,38 +1273,53 @@ def insert_new_cuis(config):
         for row in result:
             ontology_uri = row['ontology_uri']
             cui = 'HC' + str(record_count).zfill(6)
+            # mint a new CUI using the HC prefix
+            
             record_count = record_count + 1
 
             current_sab = 'UBERON'
+            # default the SAB to UBERON
 
             if row['sab'] is not None:
+                # use the SAB from the query if set
                 current_sab = row['sab']
             elif 'CL_' in ontology_uri:
+                # change the SAB to CL if it is the ontology_uri
                 current_sab = 'CL'
             
             
             code = ontology_uri[ontology_uri.index('_')+1:]
+            # extract the code portion of the ontology_uri
+            # for example, http://purl.obolibrary.org/obo/UBERON_0002038
+            # becomes code = '0002038'
+            
             if current_sab == 'CCF':
                 code = ontology_uri[ontology_uri.rindex('/')+1:]
                 print("ERROR: encountered CCF data.  Stopping processing".format(codeid=codeid))
                 sys.exit()
                 
-            codeid = current_sab + ' ' + code 
+            codeid = current_sab + ' ' + code
+            # build the codeid as SAB code for example: 'FMA 45567' 
             if str(codeid).count(' ') > 1:
+                # codeid should only contain 1 space.  More than one space indicates there was a processing error
                 print("ERROR: this code '{codeid}' contains more than one space.  Stopping processing".format(codeid=codeid))
                 sys.exit()
 
             
             sql = """INSERT INTO ontology_uri_map (ontology_uri,codeid,cui,sab) VALUES ('{ontology_uri}','{codeid}','{cui}','{sab}')""".format(codeid=codeid,cui=cui,ontology_uri=ontology_uri,sab=current_sab)
+            # add the new HCUI to the ontology_uri_map
             cursor.execute(sql)
             sql = """INSERT INTO cuis_updated (cui) VALUES ('{cui}')""".format(cui=cui)
+            # add the new HCUI to the cuis_updated table
             cursor.execute(sql)
             connection.commit()
 
             sql = """INSERT INTO umls_codes (codeid, sab,code) VALUES ('{codeid}','{sab}','{code}')""".format(codeid=codeid,sab=current_sab,code=code)
+            # add the new Code information to umls_codes
             cursor.execute(sql)
             connection.commit()
             sql = """INSERT INTO cui_codes_updated (start_id, end_id) VALUES ('{cui}','{codeid}')""".format(cui=cui,codeid=codeid)
+            # connect the new HCUI to its new Code
             cursor.execute(sql)
             connection.commit()
 
@@ -1335,85 +1335,16 @@ def insert_new_cuis(config):
     finally:
         if connection != None:
             connection.close()        
-
-def remove_ambiguous_cui_codes(config):
-    '''    
-    When joining the new codes into the overall graph, we need to remove situations where
-    single codes (ex: MSH D006325) connect to multiple CUIs.  These relationships are vetted
-    by UMLS data curators.  However, our automated approach does not allow us to understand 
-    these relationships so we should just drop them.    
-      
-    param dict config: The configuration data for this application.
-    '''
-
-    connection = None
-    sql = ''
-    try:
-        connection = mysql.connector.connect(
-            host=config['MYSQL_HOSTNAME'],
-            user=config['MYSQL_USERNAME'],
-            password=config['MYSQL_PASSWORD'],
-            database=config['MYSQL_DATABASE_NAME'],
-            charset='utf8mb4',collation='utf8mb4_bin')
-        cursor = connection.cursor(dictionary=True)
-    
-        drop_table_sql = "DROP TABLE IF EXISTS temp_ambiguous_codes"
-        cursor.execute(drop_table_sql)
-        connection.commit()
-                
-        sql = """CREATE TABLE temp_ambiguous_codes 
-        SELECT end_id FROM 
-        cui_codes_updated 
-        WHERE (end_id LIKE 'UBERON%' OR end_id LIKE 'CL%' OR end_id LIKE 'CCF%')
-        GROUP BY end_id
-        HAVING COUNT(DISTINCT start_id) > 1"""                
-        cursor.execute(sql)
-        connection.commit()
-        print("Built temp_ambiguous_codes to get ready for deletion")
-
-        # remove cui_codes_updated
-        sql = """DELETE cui_codes_updated 
-        FROM cui_codes_updated
-        INNER JOIN temp_ambiguous_codes tac
-        ON tac.end_id = cui_codes_updated.end_id"""
-        cursor.execute(sql)
-        connection.commit()
-        print("Deleted ambiguous CUI-CODEs.csv entries")
-        
-        # remove code_suis_updated
-        sql = """DELETE code_suis_updated
-        FROM code_suis_updated 
-        INNER JOIN temp_ambiguous_codes tac
-        ON tac.end_id = code_suis_updated.start_id"""
-        cursor.execute(sql)
-        connection.commit()
-        print("Deleted ambiguous CODE-SUIs.csv entries")
-
-        # remove umls_codes
-        sql = """DELETE umls_codes
-        FROM umls_codes 
-        INNER JOIN temp_ambiguous_codes tac
-        ON tac.end_id = umls_codes.codeid"""
-        cursor.execute(sql)
-        connection.commit()
-        print("Deleted ambiguous CODEs.csv entries")
-
-    except mysql.connector.Error as err:
-        print("Error in SQL: " + sql )
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            print("Something is wrong with your user name or password")
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            print("Database does not exist")
-        else:
-            print(err)
-        connection.rollback()
-    finally:
-        if connection != None:
-            connection.close()        
+       
 
 def insert_new_codes(config):
     '''    
+    Each UBERON, CL, and CCF entry should represent a new code in the graph.  For example,
+    http://purl.obolibrary.org/obo/UBERON_0002038 becomes:
+    CODE: 0002038 CodeID: UBERON 0002038 SAB: UBERON
     
+    Note: By the time this code executes, the insert_new_cuis method should have already inserted
+    the codes associated with the UBERON and CL ontologies.  So this code does not need to insert them.
       
     param dict config: The configuration data for this application.
     '''
@@ -1437,6 +1368,11 @@ def insert_new_codes(config):
         SELECT nm.node_id, oum.cui as cui, nm.sab as sab FROM ccf_node_metadata nm, ontology_uri_map oum
         WHERE nm.sab = 'CCF'
         AND oum.ontology_uri = nm.node_id) source_table"""
+        '''This query has 2 parts:
+        1) select all the data connected to UMLS vocabularies (i.e. NOT UBERON, CL, or CCF)
+        2) select the CCF data that has not been added yet
+        '''
+        
         cursor.execute(sql)
         result = cursor.fetchall()
         print ("Creating new codes")
@@ -1479,6 +1415,11 @@ def insert_new_codes(config):
             connection.close()        
     
 def insert_new_defs(config):
+    '''
+    Add the defintions from the PHeKnowLator data for the UBERON and CL nodes.
+
+    param dict config: The configuration data for this application.
+    '''
     connection = None
     sql = ''
     try:
@@ -1564,24 +1505,42 @@ def insert_new_defs(config):
             connection.close()        
 
 def transform(config):
-    # re-order this.  Move CUI-CUI and HUI generation to end
+    '''
+    This coordinates the transform methods.  
+    
+    param dict config: The configuration data for this application.
+    '''
+    
+    build_ambiguous_codes_table(config)
     build_ontology_uri_to_umls_map_table(config)
     insert_new_cuis(config)
     insert_new_codes(config)
     insert_new_terms(config)
-    #connect_existing_terms(config)
     insert_new_defs(config)
-    #remove_ambiguous_cui_codes(config)
     insert_new_cui_cui_relations(config)
     print('') # do this to disable the 'end' flag in prior print statements
     print("Done with transform process")
     
 def load(config):
+    '''
+    This method initiates the .CSV file export process.
+    
+    param dict config: The configuration data for this application.
+    '''
     export_files(config)
     print('') # do this to disable the 'end' flag in prior print statements
     print("Done with load process")
 
 def export_files(config):
+    '''
+    This method walks through the subset of mysql tables and generates a sets of .CSV files.  These
+    .CSV files adhere to the Neo4j 'CSV file header format' found here:
+    https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/
+    This method matches the mysql table with a file_name and manages any column header adjustments
+    that need to be made.
+    
+    param dict config: The configuration data for this application.
+    '''
     connection = None
     sql = ''
     try:
@@ -1606,16 +1565,31 @@ def export_files(config):
                              {'table_name': 'umls_tuis', 'file_name':'TUIs.csv','sql_columns':['tui','name','stn','def'],'file_columns':['TUI:ID','name','STN','DEF']},
                              {'table_name': 'defs_updated', 'file_name':'DEFs.csv','sql_columns':['atui','sab','def'],'file_columns':['ATUI:ID','SAB','DEF']},
                              {'table_name': 'def_rel_updated', 'file_name':'DEFrel.csv','sql_columns':['start_id','end_id'],'file_columns':[':START_ID',':END_ID']}]
+        '''
+        This method walks through the subset of mysql tables found in the export_table_info variable.  Each entry
+        in export_table_info contains:
+                                table_name: the mysql table name to export
+                                file_name: the name of the .CSV file to be generated
+                                sql_columns: a list of the columns to be includes in the SELECT statement
+                                file_columns: a list of the column headers to use when writing the data to the .CSV files
+                                    The sql_columns and file_columns should map 1:1.  For example in the table_name umls_codes and file_name CODEs.csv entry:
+                                        codeid SQL column becomes -> CodeID:ID in the .CSV file
+                                        sab SQL column becomes -> SAB in the .CSV file
+                                        code SQL column becomes -> CODE in the .CSV file
+        '''
 
         for export_info in export_table_info:
+            # walk through all the entries in the export_table_info list
             table_name = export_info['table_name']
             file_name = export_info['file_name']
             sql_columns = export_info['sql_columns']
             file_columns = export_info['file_columns']
             
             file_path = os.path.join(config['OUTPUT_DIR'],file_name)
+            # set the output file path
             
             sql = """SELECT DISTINCT {col_list} FROM {table_name}""".format(table_name=table_name,col_list=",".join(sql_columns))
+            # build the SELECT statement from the sql_columns variable.  Also, apply a SQL 'DISTINCT' keyword to avoid duplicates 
             cursor.execute(sql)
             result = cursor.fetchall()
             print("")
@@ -1625,6 +1599,8 @@ def export_files(config):
             record_count = 0
             writer = csv.writer(f,quoting=csv.QUOTE_ALL)
             writer.writerow(file_columns)
+            # write the file_columns as the headers for the .CSV file
+            
             data_rows = []
             for result_row in result:
                 data_list = []
@@ -1669,6 +1645,6 @@ if __name__ == '__main__':
     config = load_config(file_path, file_name)
     #extract(config)
     transform(config)
-    load(config)
+    #load(config)
 
 

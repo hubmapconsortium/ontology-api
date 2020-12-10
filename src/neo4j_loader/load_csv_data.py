@@ -134,7 +134,7 @@ def load_ccf_nodes_and_edges(config):
     The SAB in the edge_list allows us to track the source of the edge
     The SAB in node_metadata allows us to create a duplicate code (ex: an UBERON code from UBERON and one from CCF)
     """
-    file_path = '/home/chb69/umls_data/ccf/ccf.nt'
+    file_path = os.path.join(config['CCF_SOURCE_DIR'],'ccf.nt')
 
     connection = None
     sql = ''

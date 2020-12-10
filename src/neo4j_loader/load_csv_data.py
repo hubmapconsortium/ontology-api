@@ -983,7 +983,7 @@ def insert_new_cui_cui_relations(config):
         print("Loaded CCF map into table cui_cuis")
 
         sql = """INSERT INTO umls_cui_cuis (start_id, type, end_id, sab)
-        SELECT DISTINCT object_table.cui as start_id, lower(replace(rel.inverse_relation_label,' ','_')) as type, subject_table.cui as end_id, 'UBERON' as sab
+        SELECT DISTINCT object_table.cui as start_id, lower(replace(rel.inverse_relation_label,' ','_')) as type, subject_table.cui as end_id, 'CCF' as sab
         FROM ccf_edge_list el, pkl_relations rel, ontology_uri_map subject_table, ontology_uri_map object_table
         WHERE rel.relation_id = el.predicate
         AND subject_table.ontology_uri = el.subject

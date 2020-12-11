@@ -6,44 +6,44 @@
 
 **install python3:** sudo yum install python3
 
-**install mysql:**
-sudo rpm -Uvh https://repo.mysql.com/mysql80-community-release-el7-3.noarch.rpm
-sudo sed -i 's/enabled=1/enabled=0/' /etc/yum.repos.d/mysql-community.repo
-sudo yum --enablerepo=mysql80-community install mysql-community-server
-**reset the default root password fro mysql:**
-sudo service mysqld start
-**find the default mysql password in the mysql log file:** sudo grep 'A temporary password' /var/log/mysqld.log
-**reset the mysql root password:** 
-login to mysql for first time follow prompts and set the root password to a new value (referred to as MYSQL_ROOT_PASSWORD in the rest of this document):
-sudo mysql_secure_installation
+**install mysql:**  
+sudo rpm -Uvh https://repo.mysql.com/mysql80-community-release-el7-3.noarch.rpm  
+sudo sed -i 's/enabled=1/enabled=0/' /etc/yum.repos.d/mysql-community.repo  
+sudo yum --enablerepo=mysql80-community install mysql-community-server  
+**reset the default root password for mysql:**  
+sudo service mysqld start  
+**find the default mysql password in the mysql log file:**   sudo grep 'A temporary password' /var/log/mysqld.log  
+**reset the mysql root password:**  
+login to mysql for first time follow prompts and set the root password to a new value (referred to as MYSQL_ROOT_PASSWORD in the rest of this document):  
+sudo mysql_secure_installation  
 
 
-**clone git repo:** git clone https://github.com/hubmapconsortium/ontology-api.git
-move the ontology-api files to /opt/ontology-api
+**clone git repo:** git clone https://github.com/hubmapconsortium/ontology-api.git  
+move the ontology-api files to /opt/ontology-api  
 
-**install Java 11 (for neo4j):** downloaded Java 11 SE from Oracle's website (jdk-11.0.9_linux-x64_bin.rpm):
-sudo rpm -ivh jdk-11.0.9_linux-x64_bin.rpm
+**install Java 11 (for neo4j):** downloaded Java 11 SE from Oracle's website (jdk-11.0.9_linux-x64_bin.rpm):  
+sudo rpm -ivh jdk-11.0.9_linux-x64_bin.rpm  
 
-**install neo4j**
-sudo rpm --import https://debian.neo4j.com/neotechnology.gpg.key
-sudo touch /etc/yum.repos.d/neo4j.repo
-sudo vi /etc/yum.repos.d/neo4j.repo
+**install neo4j**  
+sudo rpm --import https://debian.neo4j.com/neotechnology.gpg.key  
+sudo touch /etc/yum.repos.d/neo4j.repo  
+sudo vi /etc/yum.repos.d/neo4j.repo  
 
-add this section to **neo4j.repo**:
-[neo4j]
-name=Neo4j RPM Repository
-baseurl=https://yum.neo4j.com/stable
-enabled=1
-gpgcheck=1
+add this section to **neo4j.repo**:  
+[neo4j]  
+name=Neo4j RPM Repository  
+baseurl=https://yum.neo4j.com/stable  
+enabled=1  
+gpgcheck=1  
 
 sudo yum install neo4j-4.1.4
 
 **install unzip (for RDFConverter):** sudo yum install unzip 
 
-**install RDFConverter (for CCF file):**
-download the 0.4 zip file from https://sourceforge.net/projects/rdfconvert/
-move rdfconvert-0.4-bin.zip to /opt
-unzip rdfconvert-0.4-bin.zip: sudo unzip rdfconvert-0.4-bin.zip 
+**install RDFConverter (for CCF file):**  
+download the 0.4 zip file from https://sourceforge.net/projects/rdfconvert/  
+move rdfconvert-0.4-bin.zip to /opt  
+unzip rdfconvert-0.4-bin.zip: sudo unzip rdfconvert-0.4-bin.zip  
 
 ## Setup Source Files
 
@@ -55,7 +55,7 @@ under /opt/ontology_files make the following directories:
 * ccf_source_files
 * export
 
-copy app.cfg.example to a new file called app.cfg: cp app.cfg.example app.cfg
+copy app.cfg.example to a new file called app.cfg: cp app.cfg.example app.cfg  
 edit app.cfg:
 
 ```
@@ -84,11 +84,12 @@ MYSQL_DATABASE_NAME = 'knowledge_graph'
   * **convert the ccf.owl to N-Triples (execute in /opt/rdfconvert-0.4/bin):** sudo ./rdfconvert.sh -i 'RDF/XML' -o 'N-Triples' /opt/ontology_files/ccf_source_files/ccf.owl /opt/ontology_files/ccf_source_files/ccf.nt
  
 ## Run Code
-**install python dependencies**
-cd to /opt/ontology-api/src/neo4j_loader
-install dependencies: sudo pip3 install -r requirements.txt
-**run Extract step**
-pipe the output to a text file and run in background (it takes 2-3 hours to run): 
-sudo python3 load_csv_data.py extract > extract_run.log &
+**install python dependencies**  
+cd to /opt/ontology-api/src/neo4j_loader  
+install dependencies: sudo pip3 install -r requirements.txt  
+**run Extract step**  
+pipe the output to a text file and run in background (it takes 2-3 hours to run):  
+sudo python3 load_csv_data.py extract > extract_run.log &  
+
 
 

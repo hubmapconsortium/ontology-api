@@ -1650,7 +1650,8 @@ if __name__ == '__main__':
     except:
         command_list = ['extract','transform','load']
 
-    file_path = '/home/chb69/git/ontology-api/src/neo4j_loader'
+    file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)))
+    #file_path = '/home/chb69/git/ontology-api/src/neo4j_loader'
     file_name = 'app.cfg'
     config = load_config(file_path, file_name)
     

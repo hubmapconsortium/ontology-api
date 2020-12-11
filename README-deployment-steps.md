@@ -83,5 +83,12 @@ MYSQL_DATABASE_NAME = 'knowledge_graph'
 * **CCF Source Files:** The CCF source files are available from HuBMAP personnel.  These files will most likely have an .OWL extension (same as RDF/XML).  This allows the file to be converted from RDF/XML to N-triples using RDFConverter.
   * **convert the ccf.owl to N-Triples (execute in /opt/rdfconvert-0.4/bin):** sudo ./rdfconvert.sh -i 'RDF/XML' -o 'N-Triples' /opt/ontology_files/ccf_source_files/ccf.owl /opt/ontology_files/ccf_source_files/ccf.nt
  
+## Run Code
+**install python dependencies**
+cd to /opt/ontology-api/src/neo4j_loader
+install dependencies: sudo pip3 install -r requirements.txt
+**run Extract step**
+pipe the output to a text file and run in background (it takes 2-3 hours to run): 
+sudo python3 load_csv_data.py extract > extract_run.log &
 
 

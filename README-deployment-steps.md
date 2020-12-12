@@ -84,12 +84,21 @@ MYSQL_DATABASE_NAME = 'knowledge_graph'
   * **convert the ccf.owl to N-Triples (execute in /opt/rdfconvert-0.4/bin):** sudo ./rdfconvert.sh -i 'RDF/XML' -o 'N-Triples' /opt/ontology_files/ccf_source_files/ccf.owl /opt/ontology_files/ccf_source_files/ccf.nt
  
 ## Run Code
-**install python dependencies**  
+**install python dependencies (just run once)**  
 cd to /opt/ontology-api/src/neo4j_loader  
 install dependencies: sudo pip3 install -r requirements.txt  
-**run Extract step**  
-pipe the output to a text file and run in background (it takes 2-3 hours to run):  
+**run extract step**  
+pipe the output to a text file and run in background (it takes 5 hours to run):  
 sudo python3 load_csv_data.py extract > extract_run.log &  
+**run transform step**  
+pipe the output to a text file and run in background (it takes 15 minutes to run):  
+sudo python3 load_csv_data.py transform > transform_run.log &  
+**run load step**  
+pipe the output to a text file and run in background (it takes 5 minutes to run):  
+sudo python3 load_csv_data.py load > load_run.log &  
+**optional step**  
+The code allows you to run multiple commands are the same time.  So you can run this code to perform the entire process:  
+sudo python3 load_csv_data.py extract transform load > full_process.log &  
 
 
 

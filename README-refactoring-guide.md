@@ -7,12 +7,12 @@ This document explains how the current ETL Process for loading the Knowledge Bas
 There are 5 file structures used by the refactored code.  These files follow a format initially developed by the PheKnowLator project.  **PLEASE NOTE: These files cannot contain any extra information.  The load process assumes there is no further filtering required to process this data.  Some errors may occur if extra entities or relations are found within the data.** The files and formats are presented below:  
 * **node metadata**- This file contains a list of the "main entities" within the data.  These will include: genes, anatomic locations, proteins, diseases, etc.  There should only be one entry for each entity in this file.  This file includes the follwing columns:
   * **ontology_uri**- this column contains a unique identifier for the entity (typically an ontology URI).  This identifier is found in other files like the dbxref and edge list file.
-  * **code**- this column contains a code for the **ontology_uri** (ex: 12345, OU812).  This will be used for both the **code** and **codeid** properties in the neo4j graph.
+  * **codeid**- this column contains an SAB prefix plus a code for the **ontology_uri** (ex: FMA 12345, MSH OU812).  This column will be parsed to set the **code** properties in the neo4j graph.  **IMPORTANT: For *ontology_uris* matching existing codes, this column must match the existing code (ex: FMA 12345, MSH OU812).**
   * **node_label**- the 'preferred term' for the entity.  
   * **node_definition**- a definition for the entity.
-* **dbxref**- This file contains a list of cross-references for each **ontology_uri**.  The cross-references are a pipe-delimited list.  Most of the individual cross-references adhere to a `<prefix>:<identifier>` format.   
+* **dbxref**- This file contains a list of cross-references for each **ontology_uri**.  The cross-references are a pipe-delimited list.  The individual cross-references adhere to a `<prefix> <identifier>` format.   
   * **ontology_uri**- the same unique identifier as found int the **node metadata** file.
-  * **dbxrefs**- a pipe-delimited list of cross references (ex: `wikipedia:olfactory_receptor_neuron|fma:67860|bto:0004185`)
+  * **dbxrefs**- a pipe-delimited list of cross references (ex: `FMA 67860|BTO 0004185`).  **IMPORTANT: this column must match the existing codes.**
 * **edge list**- This file contains relations between two **ontology_uri** identifiers.  A single **ontology_uri** can be found multiple times in this file.  The file format follows the N-triples from RDF: `subject   predicate   object .` where each line expresses a single statement.  Each statement can be read like a short English sentence.  For example, `UBERON_xyz has_part    UBERON_abc` reads "UBERON_xyz has a part UBERON_abc".
   * **subject**- The first identifier of the statement. It is the thing "owning" the predicate.  The same unique identifier as found int the **node metadata** file.
   * **predicate**- The relationship between the subject and object (ex: has_part, regulates, etc.).  The predicate is a URI found in the **relations** file.

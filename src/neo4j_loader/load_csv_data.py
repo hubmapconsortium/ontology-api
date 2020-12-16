@@ -747,6 +747,65 @@ def build_ambiguous_codes_table(config):
         if connection != None:
             connection.close()        
         
+
+def temp_build_ccf_code_cui_table(config):
+   
+    connection = None
+    sql = ''
+    try:
+        connection = mysql.connector.connect(
+            host=config['MYSQL_HOSTNAME'],
+            user=config['MYSQL_USERNAME'],
+            password=config['MYSQL_PASSWORD'],
+            database=config['MYSQL_DATABASE_NAME'],
+            charset='utf8mb4',collation='utf8mb4_bin')
+        cursor = connection.cursor(dictionary=True)
+
+        drop_table_sql = "DROP TABLE IF EXISTS temp_ccf_cui_codes"
+        cursor.execute(drop_table_sql)
+        create_table_sql = """CREATE TABLE temp_ccf_cui_codes (
+                id INT NOT NULL AUTO_INCREMENT,
+                codeid VARCHAR(2048) NOT NULL,
+                cui VARCHAR(2048),
+                PRIMARY KEY(id)
+                );"""
+        cursor.execute(create_table_sql)
+        print("Created table temp_ccf_cui_codes")
+        sql = "ALTER TABLE temp_ccf_cui_codes ADD INDEX temp_ccf_cui_codes_codeid(codeid(50))"
+        cursor.execute(sql)
+        sql = "ALTER TABLE temp_ccf_cui_codes ADD INDEX temp_ccf_cui_codes_cui_idx(cui(50))"
+        cursor.execute(sql)
+        cursor = connection.cursor()
+        record_count = 0
+        file_path = '/home/chb69/umls_data/ccf/CCF-CUI.csv'
+        with open(file_path) as csvfile:
+            myCSVReader = None
+            if file_path.endswith('.txt'):
+                # this code determines whether we are loading a CSV or tab-delimited file
+                myCSVReader = csv.DictReader(csvfile, delimiter='\t')
+            else:
+                myCSVReader = csv.DictReader(csvfile)
+            field_names = myCSVReader.fieldnames
+            #a.name,b.CodeID,c.CUI,d.name
+            print("Loading data from {file_name} into table {table_name}".format(file_name=file_path, table_name='temp_ccf_cui_codes'), end='', flush=True)
+            for row in myCSVReader:
+                sql = "INSERT INTO temp_ccf_cui_codes (codeid, cui) VALUES ('{codeid}','{cui}')".format(codeid=row['b.CodeID'],cui=row['c.CUI'])
+                cursor.execute(sql)
+            
+        connection.commit()
+        print ("Done loading the {table_name} table.".format(table_name="temp_ccf_cui_codes"))
+    except mysql.connector.Error as err:
+        print("Error in SQL: " + sql )
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+        connection.rollback()
+    finally:
+        if connection != None:
+            connection.close()        
     
     
 def build_ontology_uri_to_umls_map_table(config):
@@ -1143,6 +1202,79 @@ def insert_new_terms(config):
                 ON nm.node_label = su.name
                 WHERE CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) NOT IN (select start_id FROM code_suis_updated) ) source_table
         """
+        
+        """NOTE THIS IS A HACK TO FIX AN ISSUE WITH THE WAY THE CCF DATA IS CREATED!!!!!!"""
+        sql = """SELECT DISTINCT ontology_uri, cui, codeid, label, sab, sui, term_type FROM (
+        SELECT oum.ontology_uri as ontology_uri, oum.cui AS cui, oum.codeid AS codeid,  nm.node_label AS label, nm.sab as sab, su.sui AS sui, 'PT' AS term_type
+                FROM pkl_node_metadata nm
+                INNER JOIN ontology_uri_map oum
+                ON nm.node_id = oum.ontology_uri
+                LEFT OUTER JOIN suis_updated su
+                ON nm.node_label = su.name
+                WHERE nm.sab IN ('UBERON', 'CL')
+                AND (oum.codeid is null OR oum.codeid NOT IN (select start_id FROM code_suis_updated))
+        UNION
+        SELECT oum.ontology_uri as ontology_uri, oum.cui AS cui, replace(substring_index(oum.ontology_uri, '/',-1), '_', ' ') AS codeid,  nm.node_label AS label, nm.sab as sab, su.sui AS sui, 'PT' AS term_type
+                FROM pkl_node_metadata nm
+                INNER JOIN ontology_uri_map oum
+                ON nm.node_id = oum.ontology_uri
+                LEFT OUTER JOIN suis_updated su
+                ON nm.node_label = su.name
+                WHERE replace(substring_index(oum.ontology_uri, '/',-1), '_', ' ') NOT IN (select start_id FROM code_suis_updated)
+       UNION
+       SELECT oum.ontology_uri as ontology_uri, tccc.cui AS cui,CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) AS codeid,  nm.object AS label, nm.sab as sab, su.sui AS sui, 'SY' AS term_type
+                FROM ccf_edge_list nm
+                INNER JOIN ontology_uri_map oum
+                ON nm.subject = oum.ontology_uri
+                INNER JOIN temp_ccf_cui_codes tccc
+                ON CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) = tccc.codeid
+                AND LENGTH(tccc.cui) > 0
+                LEFT OUTER JOIN suis_updated su
+                ON nm.object = su.name
+                WHERE CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) NOT IN (select start_id FROM code_suis_updated) 
+                AND INSTR(nm.predicate, 'hasExactSynonym') > 0 
+          UNION 
+           SELECT oum.ontology_uri as ontology_uri, ccu.start_id AS cui,CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) AS codeid,  nm.object AS label, nm.sab as sab, su.sui AS sui, 'SY' AS term_type
+                FROM ccf_edge_list nm
+                INNER JOIN ontology_uri_map oum
+                ON nm.subject = oum.ontology_uri
+                INNER JOIN temp_ccf_cui_codes tccc
+                ON CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) = tccc.codeid
+                AND LENGTH(tccc.cui) = 0
+                INNER JOIN cui_codes_updated ccu
+                ON CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) = ccu.end_id
+                AND LENGTH(tccc.cui) = 0
+                LEFT OUTER JOIN suis_updated su
+                ON nm.object = su.name
+                WHERE CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) NOT IN (select start_id FROM code_suis_updated) 
+                AND INSTR(nm.predicate, 'hasExactSynonym') > 0 
+
+        UNION 
+        SELECT oum.ontology_uri as ontology_uri,tccc.cui AS cui,CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) AS codeid,  nm.node_label AS label, nm.sab as sab, su.sui AS sui, 'PT' AS term_type
+                FROM ccf_node_metadata nm
+                INNER JOIN ontology_uri_map oum
+                ON nm.node_id = oum.ontology_uri
+                INNER JOIN temp_ccf_cui_codes tccc
+                ON CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) = tccc.codeid
+                AND LENGTH(tccc.cui) > 0
+                LEFT OUTER JOIN suis_updated su
+                ON nm.node_label = su.name
+                WHERE CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) NOT IN (select start_id FROM code_suis_updated)
+        UNION
+        SELECT oum.ontology_uri as ontology_uri, ccu.start_id AS cui,CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) AS codeid,  nm.node_label AS label, nm.sab as sab, su.sui AS sui, 'PT' AS term_type
+                FROM ccf_node_metadata nm
+                INNER JOIN ontology_uri_map oum
+                ON nm.node_id = oum.ontology_uri
+                INNER JOIN temp_ccf_cui_codes tccc
+                ON CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) = tccc.codeid
+                AND LENGTH(tccc.cui) = 0
+                INNER JOIN cui_codes_updated ccu
+                ON CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) = ccu.end_id
+                AND LENGTH(tccc.cui) = 0
+                LEFT OUTER JOIN suis_updated su
+                ON nm.node_label = su.name
+                WHERE CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) NOT IN (select start_id FROM code_suis_updated) ) source_table"""
+        
         """This query joins the ontology_uri_map data to the label from the node_metadata table.  The query only returns
         records where the codeid is NULL or the codeid is missing from the code_suis_updated table.  These represent
         records that need a new SUI minted."""
@@ -1182,7 +1314,7 @@ def insert_new_terms(config):
             sql = """INSERT INTO code_suis_updated (start_id, end_id, type, cui) VALUES ('{codeid}','{sui}','{term_type}','{cui}')""".format(codeid=codeid,sui=sui,cui=cui,term_type=term_type)
             cursor.execute(sql)
 
-            if 'HC' in cui:
+            if 'HC' in cui and term_type == 'PT':
                 #insert a new HCUI into the cui_suis_updated table since it does not exist in the table yet.
                 sql = """INSERT INTO cui_suis_updated (start_id, end_id, type) VALUES ('{cui}','{sui}','PREF_TERM')""".format(cui=cui,sui=sui)
                 cursor.execute(sql)
@@ -1369,6 +1501,25 @@ def insert_new_codes(config):
         SELECT nm.node_id, oum.cui as cui, nm.sab as sab FROM ccf_node_metadata nm, ontology_uri_map oum
         WHERE nm.sab = 'CCF'
         AND oum.ontology_uri = nm.node_id) source_table"""
+        
+        """NOTE THIS IS A HACK TO FIX AN ISSUE WITH THE WAY THE CCF DATA IS CREATED!!!!!!"""
+        
+        sql = """SELECT DISTINCT ontology_uri, cui, sab FROM (
+        SELECT ontology_uri, cui, sab FROM ontology_uri_map oum
+        WHERE codeid is not null
+        AND sab NOT IN ('UBERON','CL','CCF')
+        UNION ALL
+        SELECT nm.node_id, tccc.cui as cui, nm.sab as sab 
+          FROM ccf_node_metadata nm, temp_ccf_cui_codes tccc
+                WHERE nm.sab = 'CCF'
+                AND substring(nm.node_id,instr(nm.node_id, '_')+1) = substring(tccc.codeid,instr(tccc.codeid, '_')+1)
+                AND length(tccc.cui) != 0
+          UNION
+           SELECT oum.ontology_uri, oum.cui, 'CCF' as sab 
+            FROM temp_ccf_cui_codes tccc, ontology_uri_map oum
+                WHERE substring_index(oum.ontology_uri, '/',-1) = substring(tccc.codeid,instr(tccc.codeid, ' ')+1)
+                AND length(tccc.cui) = 0) source_table"""
+        
         '''This query has 2 parts:
         1) select all the data connected to UMLS vocabularies (i.e. NOT UBERON, CL, or CCF)
         2) select the CCF data that has not been added yet
@@ -1512,6 +1663,7 @@ def transform(config):
     param dict config: The configuration data for this application.
     '''
     
+    temp_build_ccf_code_cui_table(config)
     build_ambiguous_codes_table(config)
     build_ontology_uri_to_umls_map_table(config)
     insert_new_cuis(config)
@@ -1655,12 +1807,16 @@ if __name__ == '__main__':
     file_name = 'app.cfg'
     config = load_config(file_path, file_name)
     
+    #temp_build_ccf_code_cui_table(config)
+    #transform(config)
+    load(config)
+    """
     if 'extract' in command_list:
         extract(config)
     if 'transform' in command_list:
         transform(config)
     if 'load' in command_list:
         load(config)
-
+    """
 
 

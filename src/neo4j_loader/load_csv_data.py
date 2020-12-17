@@ -210,6 +210,250 @@ def load_ccf_nodes_and_edges(config):
         if connection != None:
             connection.close()        
 
+def load_edge_list(config):
+    node_metadata_list = config['EDGE_LIST_FILE_TABLE_INFO']
+    connection = None
+    sql = ''
+    record_count = 0
+    try:
+        connection = mysql.connector.connect(
+            host=config['MYSQL_HOSTNAME'],
+            user=config['MYSQL_USERNAME'],
+            password=config['MYSQL_PASSWORD'],
+            database=config['MYSQL_DATABASE_NAME'],
+            charset='utf8mb4',collation='utf8mb4_bin')
+        cursor = connection.cursor(dictionary=True)
+
+        for table_data in node_metadata_list:
+            table_name = table_data['table_name']
+            file_name = table_data['file_name']
+            sab = table_data['sab']
+            drop_table_sql = "DROP TABLE IF EXISTS {table_name}".format(table_name=table_name)
+            cursor.execute(drop_table_sql)
+            table_create_sql = """CREATE TABLE {table_name} (
+                id INT NOT NULL AUTO_INCREMENT,
+                subject VARCHAR(2048) NOT NULL,
+                predicate VARCHAR(2048) NOT NULL,
+                object VARCHAR(2048) NOT NULL,
+                sab VARCHAR(50),
+                PRIMARY KEY(id)
+            )""".format(table_name=table_name)
+            cursor.execute(table_create_sql)
+            connection.commit()
+            print("Created table: " + table_name)
+            file_path = os.path.join(config['ONTOLOGY_SOURCE_DIR'], file_name)
+            load_file(config, file_path, table_name)
+            sql = "UPDATE {table_name} SET sab = '{sab}'".format(table_name=table_name,sab=sab)
+            # add the SAB for all records in table
+            cursor.execute(sql)
+            connection.commit()
+    except mysql.connector.Error as err:
+        print("Error in SQL: " + sql )
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+        connection.rollback()
+    finally:
+        if connection != None:
+            connection.close()    
+
+def load_synonym_list(config):
+    node_metadata_list = config['SYNONYM_LIST_FILE_TABLE_INFO']
+    connection = None
+    sql = ''
+    record_count = 0
+    try:
+        connection = mysql.connector.connect(
+            host=config['MYSQL_HOSTNAME'],
+            user=config['MYSQL_USERNAME'],
+            password=config['MYSQL_PASSWORD'],
+            database=config['MYSQL_DATABASE_NAME'],
+            charset='utf8mb4',collation='utf8mb4_bin')
+        cursor = connection.cursor(dictionary=True)
+
+        for table_data in node_metadata_list:
+            table_name = table_data['table_name']
+            file_name = table_data['file_name']
+            sab = table_data['sab']
+            drop_table_sql = "DROP TABLE IF EXISTS {table_name}".format(table_name=table_name)
+            cursor.execute(drop_table_sql)
+            table_create_sql = """CREATE TABLE {table_name} (
+                id INT NOT NULL AUTO_INCREMENT,
+                ontology_uri VARCHAR(2048) NOT NULL,
+                synonym VARCHAR(2048) NOT NULL,
+                sab VARCHAR(50),
+                PRIMARY KEY(id)
+            )""".format(table_name=table_name)
+            cursor.execute(table_create_sql)
+            connection.commit()
+            print("Created table: " + table_name)
+            file_path = os.path.join(config['ONTOLOGY_SOURCE_DIR'], file_name)
+            load_file(config, file_path, table_name)
+            sql = "UPDATE {table_name} SET sab = '{sab}'".format(table_name=table_name,sab=sab)
+            # add the SAB for all records in table
+            cursor.execute(sql)
+            connection.commit()
+    except mysql.connector.Error as err:
+        print("Error in SQL: " + sql )
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+        connection.rollback()
+    finally:
+        if connection != None:
+            connection.close()    
+
+def load_relations(config):
+    node_metadata_list = config['RELATIONS_FILE_TABLE_INFO']
+    connection = None
+    sql = ''
+    record_count = 0
+    try:
+        connection = mysql.connector.connect(
+            host=config['MYSQL_HOSTNAME'],
+            user=config['MYSQL_USERNAME'],
+            password=config['MYSQL_PASSWORD'],
+            database=config['MYSQL_DATABASE_NAME'],
+            charset='utf8mb4',collation='utf8mb4_bin')
+        cursor = connection.cursor(dictionary=True)
+
+        for table_data in node_metadata_list:
+            table_name = table_data['table_name']
+            file_name = table_data['file_name']
+            sab = table_data['sab']
+            drop_table_sql = "DROP TABLE IF EXISTS {table_name}".format(table_name=table_name)
+            cursor.execute(drop_table_sql)
+            table_create_sql = """CREATE TABLE {table_name} (
+                id INT NOT NULL AUTO_INCREMENT,
+                relation_id VARCHAR(2048) NOT NULL,
+                relation_label VARCHAR(2048) NOT NULL,
+                inverse_relation_label VARCHAR(2048),
+                PRIMARY KEY(id)
+            )""".format(table_name=table_name)
+            cursor.execute(table_create_sql)
+            connection.commit()
+            print("Created table: " + table_name)
+            file_path = os.path.join(config['ONTOLOGY_SOURCE_DIR'], file_name)
+            load_file(config, file_path, table_name)
+    except mysql.connector.Error as err:
+        print("Error in SQL: " + sql )
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+        connection.rollback()
+    finally:
+        if connection != None:
+            connection.close()    
+            
+def load_node_metadata(config):
+    node_metadata_list = config['NODE_METADATA_FILE_TABLE_INFO']
+    connection = None
+    sql = ''
+    record_count = 0
+    try:
+        connection = mysql.connector.connect(
+            host=config['MYSQL_HOSTNAME'],
+            user=config['MYSQL_USERNAME'],
+            password=config['MYSQL_PASSWORD'],
+            database=config['MYSQL_DATABASE_NAME'],
+            charset='utf8mb4',collation='utf8mb4_bin')
+        cursor = connection.cursor(dictionary=True)
+
+        for table_data in node_metadata_list:
+            table_name = table_data['table_name']
+            file_name = table_data['file_name']
+            sab = table_data['sab']
+            drop_table_sql = "DROP TABLE IF EXISTS {table_name}".format(table_name=table_name)
+            cursor.execute(drop_table_sql)
+            table_create_sql = """CREATE TABLE {table_name} (
+            id INT NOT NULL AUTO_INCREMENT,
+            ontology_uri VARCHAR(2048) NOT NULL,
+            codeid VARCHAR(2048) NOT NULL,
+            node_label VARCHAR(2048) NOT NULL,
+            node_definition VARCHAR(2048) NOT NULL,
+            sab VARCHAR(50),
+            PRIMARY KEY(id)
+            )""".format(table_name=table_name)
+            cursor.execute(table_create_sql)
+            connection.commit()
+            print("Created table: " + table_name)
+            file_path = os.path.join(config['ONTOLOGY_SOURCE_DIR'], file_name)
+            load_file(config, file_path, table_name)
+            sql = "UPDATE {table_name} SET sab = '{sab}'".format(table_name=table_name,sab=sab)
+            # add the SAB for all records in table
+            cursor.execute(sql)
+            connection.commit()
+    except mysql.connector.Error as err:
+        print("Error in SQL: " + sql )
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+        connection.rollback()
+    finally:
+        if connection != None:
+            connection.close()        
+
+def load_dbxref(config):
+    node_metadata_list = config['DBXREF_FILE_TABLE_INFO']
+    connection = None
+    sql = ''
+    record_count = 0
+    try:
+        connection = mysql.connector.connect(
+            host=config['MYSQL_HOSTNAME'],
+            user=config['MYSQL_USERNAME'],
+            password=config['MYSQL_PASSWORD'],
+            database=config['MYSQL_DATABASE_NAME'],
+            charset='utf8mb4',collation='utf8mb4_bin')
+        cursor = connection.cursor(dictionary=True)
+
+        for table_data in node_metadata_list:
+            table_name = table_data['table_name']
+            file_name = table_data['file_name']
+            sab = table_data['sab']
+            drop_table_sql = "DROP TABLE IF EXISTS {table_name}".format(table_name=table_name)
+            cursor.execute(drop_table_sql)
+            table_create_sql = """CREATE TABLE {table_name} (
+            id INT NOT NULL AUTO_INCREMENT,
+            ontology_uri VARCHAR(2048) NOT NULL,
+            dbxrefs VARCHAR(5120) NOT NULL,
+            sab VARCHAR(50),
+            PRIMARY KEY(id)
+            )""".format(table_name=table_name)
+            cursor.execute(table_create_sql)
+            connection.commit()
+            print("Created table: " + table_name)
+            file_path = os.path.join(config['ONTOLOGY_SOURCE_DIR'], file_name)
+            load_file(config, file_path, table_name)
+            """sql = "UPDATE {table_name} SET sab = '{sab}'".format(table_name=table_name,sab=sab)
+            # add the SAB for all records in table
+            cursor.execute(sql)
+            connection.commit()"""
+    except mysql.connector.Error as err:
+        print("Error in SQL: " + sql )
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+        connection.rollback()
+    finally:
+        if connection != None:
+            connection.close()        
+        
 
 def load_pkl_edge_list(config):
     file_path = os.path.join(config['PHEKNOWLATER_SOURCE_DIR'], 'PheKnowLator_Subclass_OWLNETS_edge_list_16OCT2020.txt')
@@ -1807,9 +2051,15 @@ if __name__ == '__main__':
     file_name = 'app.cfg'
     config = load_config(file_path, file_name)
     
+    load_node_metadata(config)
+    load_dbxref(config)
+    load_edge_list(config)
+    load_relations(config)
+    load_synonym_list(config)
     #temp_build_ccf_code_cui_table(config)
     #transform(config)
-    load(config)
+    #load(config)
+    print("Done")
     """
     if 'extract' in command_list:
         extract(config)

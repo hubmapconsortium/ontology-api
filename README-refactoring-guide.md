@@ -29,7 +29,7 @@ The configuration file will direct the data load process.  The refactor modifies
 * EDGE_LIST_FILE_TABLE_INFO
 * NODE_METADATA_FILE_TABLE_INFO
 * DBXREF_FILE_TABLE_INFO
-* SYNONYM_LIST__FILE_TABLE_INFO
+* SYNONYM_LIST_FILE_TABLE_INFO
 * RELATIONS_FILE_TABLE_INFO  
 
 Each of these settings contains an array with objects.  **The order of the objects is important.  The objects must be listed in the correct order for "layering" the data.  If ontology A depends on ontology B then ontology B must be listed first.**  Each object contains this information:

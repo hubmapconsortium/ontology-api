@@ -1123,6 +1123,7 @@ def build_ontology_uri_to_umls_map_table(config):
                 cui VARCHAR(2048),
                 codeid VARCHAR(2048),
                 type VARCHAR(50),
+                mapping_type VARCHAR(50),
                 sab VARCHAR(50),
                 PRIMARY KEY(id)
                 );"""
@@ -1184,6 +1185,7 @@ def build_ontology_uri_to_umls_map_table(config):
         connection.commit()
         print("Loaded SNOMED map into table ontology_uri_map")
         
+
         # add indices after loading to speed up the load
         sql = "ALTER TABLE ontology_uri_map ADD INDEX ontology_uri_map_ontology_uri_idx(ontology_uri(50))"
         cursor.execute(sql)
@@ -1193,9 +1195,21 @@ def build_ontology_uri_to_umls_map_table(config):
         cursor.execute(sql)
         sql = "ALTER TABLE ontology_uri_map ADD INDEX ontology_uri_map_type_idx(type(50))"
         cursor.execute(sql)
+        sql = "ALTER TABLE ontology_uri_map ADD INDEX ontology_uri_map_mapping_type_idx(mapping_type(50))"
+        cursor.execute(sql)
         sql = "ALTER TABLE ontology_uri_map ADD INDEX ontology_uri_map_sab_idx(sab(50))"
         cursor.execute(sql)
         print("Built indices for table ontology_uri_map")
+
+        sql = """UPDATE ontology_uri_map SET mapping_type = 'PRIMARY' where codeid is null AND ontology_uri IN (
+        SELECT ontology_uri from (SELECT ontology_uri FROM ontology_uri_map
+        where codeid is null
+        group by ontology_uri
+        having count(distinct cui) = 1) as table_one)"""
+        # This query sets all the PRIMARY CUIs
+        cursor.execute(sql)
+        connection.commit()
+        print("Loaded PRIMARY CUI map data into table ontology_uri_map")
 
     except mysql.connector.Error as err:
         print("Error in SQL: " + sql )
@@ -1249,7 +1263,9 @@ def insert_new_cui_cui_relations(config):
         FROM pkl_edge_list el, pkl_relations rel, ontology_uri_map subject_table, ontology_uri_map object_table
         WHERE rel.relation_id = el.predicate
         AND subject_table.ontology_uri = el.subject
+        AND subject_table.mapping_type = 'PRIMARY'
         AND object_table.ontology_uri = el.object
+        AND object_table.mapping_type = 'PRIMARY'
         AND subject_table.cui != object_table.cui
         AND el.sab = 'UBERON'"""
         """
@@ -1268,7 +1284,9 @@ def insert_new_cui_cui_relations(config):
         FROM pkl_edge_list el, pkl_relations rel, ontology_uri_map subject_table, ontology_uri_map object_table
         WHERE rel.relation_id = el.predicate
         AND subject_table.ontology_uri = el.subject
+        AND subject_table.mapping_type = 'PRIMARY'
         AND object_table.ontology_uri = el.object
+        AND object_table.mapping_type = 'PRIMARY'
         AND subject_table.cui != object_table.cui
         AND rel.inverse_relation_label IS NOT NULL
         AND el.sab = 'UBERON'"""
@@ -1287,7 +1305,9 @@ def insert_new_cui_cui_relations(config):
         FROM pkl_edge_list el, pkl_relations rel, ontology_uri_map subject_table, ontology_uri_map object_table
         WHERE rel.relation_id = el.predicate
         AND subject_table.ontology_uri = el.subject
+        AND subject_table.mapping_type = 'PRIMARY'
         AND object_table.ontology_uri = el.object
+        AND object_table.mapping_type = 'PRIMARY'
         AND subject_table.cui != object_table.cui
         AND el.sab = 'CL'"""
         # This query is basically the same as the UBERON query above except it finds CL to CL relationships
@@ -1296,11 +1316,13 @@ def insert_new_cui_cui_relations(config):
         print("Loaded CL map into table cui_cuis")
 
         sql = """INSERT INTO umls_cui_cuis (start_id, type, end_id, sab)
-        SELECT DISTINCT object_table.cui as start_id, lower(replace(rel.inverse_relation_label,' ','_')) as type, subject_table.cui as end_id, 'UBERON' as sab
+        SELECT DISTINCT object_table.cui as start_id, lower(replace(rel.inverse_relation_label,' ','_')) as type, subject_table.cui as end_id, 'CL' as sab
         FROM pkl_edge_list el, pkl_relations rel, ontology_uri_map subject_table, ontology_uri_map object_table
         WHERE rel.relation_id = el.predicate
         AND subject_table.ontology_uri = el.subject
+        AND subject_table.mapping_type = 'PRIMARY'
         AND object_table.ontology_uri = el.object
+        AND object_table.mapping_type = 'PRIMARY'
         AND subject_table.cui != object_table.cui
         AND rel.inverse_relation_label IS NOT NULL
         AND el.sab = 'CL'"""
@@ -1319,7 +1341,9 @@ def insert_new_cui_cui_relations(config):
         FROM ccf_edge_list el, pkl_relations rel, ontology_uri_map subject_table, ontology_uri_map object_table
         WHERE rel.relation_id = el.predicate
         AND subject_table.ontology_uri = el.subject
+        AND subject_table.mapping_type = 'PRIMARY'
         AND object_table.ontology_uri = el.object
+        AND object_table.mapping_type = 'PRIMARY'
         AND subject_table.cui != object_table.cui
         AND el.sab = 'CCF'"""
         cursor.execute(sql)
@@ -1331,7 +1355,9 @@ def insert_new_cui_cui_relations(config):
         FROM ccf_edge_list el, pkl_relations rel, ontology_uri_map subject_table, ontology_uri_map object_table
         WHERE rel.relation_id = el.predicate
         AND subject_table.ontology_uri = el.subject
+        AND subject_table.mapping_type = 'PRIMARY'
         AND object_table.ontology_uri = el.object
+        AND object_table.mapping_type = 'PRIMARY'
         AND subject_table.cui != object_table.cui
         AND rel.inverse_relation_label IS NOT NULL
         AND el.sab = 'CCF'"""
@@ -1457,6 +1483,7 @@ def insert_new_terms(config):
                 FROM pkl_node_metadata nm
                 INNER JOIN ontology_uri_map oum
                 ON nm.node_id = oum.ontology_uri
+                AND oum.mapping_type = 'PRIMARY'
                 LEFT OUTER JOIN suis_updated su
                 ON nm.node_label = su.name
                 WHERE nm.sab IN ('UBERON', 'CL')
@@ -1466,6 +1493,7 @@ def insert_new_terms(config):
                 FROM pkl_node_metadata nm
                 INNER JOIN ontology_uri_map oum
                 ON nm.node_id = oum.ontology_uri
+                AND oum.mapping_type = 'PRIMARY'
                 LEFT OUTER JOIN suis_updated su
                 ON nm.node_label = su.name
                 WHERE replace(substring_index(oum.ontology_uri, '/',-1), '_', ' ') NOT IN (select start_id FROM code_suis_updated)
@@ -1474,6 +1502,7 @@ def insert_new_terms(config):
                 FROM ccf_edge_list nm
                 INNER JOIN ontology_uri_map oum
                 ON nm.subject = oum.ontology_uri
+                AND oum.mapping_type = 'PRIMARY'
                 LEFT OUTER JOIN suis_updated su
                 ON nm.object = su.name
                 WHERE CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) NOT IN (select start_id FROM code_suis_updated) 
@@ -1483,82 +1512,12 @@ def insert_new_terms(config):
                 FROM ccf_node_metadata nm
                 INNER JOIN ontology_uri_map oum
                 ON nm.node_id = oum.ontology_uri
+                AND oum.mapping_type = 'PRIMARY'
                 LEFT OUTER JOIN suis_updated su
                 ON nm.node_label = su.name
                 WHERE CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) NOT IN (select start_id FROM code_suis_updated) ) source_table
         """
         
-        """NOTE THIS IS A HACK TO FIX AN ISSUE WITH THE WAY THE CCF DATA IS CREATED!!!!!!"""
-        sql = """SELECT DISTINCT ontology_uri, cui, codeid, label, sab, sui, term_type FROM (
-        SELECT oum.ontology_uri as ontology_uri, oum.cui AS cui, oum.codeid AS codeid,  nm.node_label AS label, nm.sab as sab, su.sui AS sui, 'PT' AS term_type
-                FROM pkl_node_metadata nm
-                INNER JOIN ontology_uri_map oum
-                ON nm.node_id = oum.ontology_uri
-                LEFT OUTER JOIN suis_updated su
-                ON nm.node_label = su.name
-                WHERE nm.sab IN ('UBERON', 'CL')
-                AND (oum.codeid is null OR oum.codeid NOT IN (select start_id FROM code_suis_updated))
-        UNION
-        SELECT oum.ontology_uri as ontology_uri, oum.cui AS cui, replace(substring_index(oum.ontology_uri, '/',-1), '_', ' ') AS codeid,  nm.node_label AS label, nm.sab as sab, su.sui AS sui, 'PT' AS term_type
-                FROM pkl_node_metadata nm
-                INNER JOIN ontology_uri_map oum
-                ON nm.node_id = oum.ontology_uri
-                LEFT OUTER JOIN suis_updated su
-                ON nm.node_label = su.name
-                WHERE replace(substring_index(oum.ontology_uri, '/',-1), '_', ' ') NOT IN (select start_id FROM code_suis_updated)
-       UNION
-       SELECT oum.ontology_uri as ontology_uri, tccc.cui AS cui,CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) AS codeid,  nm.object AS label, nm.sab as sab, su.sui AS sui, 'SY' AS term_type
-                FROM ccf_edge_list nm
-                INNER JOIN ontology_uri_map oum
-                ON nm.subject = oum.ontology_uri
-                INNER JOIN temp_ccf_cui_codes tccc
-                ON CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) = tccc.codeid
-                AND LENGTH(tccc.cui) > 0
-                LEFT OUTER JOIN suis_updated su
-                ON nm.object = su.name
-                WHERE CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) NOT IN (select start_id FROM code_suis_updated) 
-                AND INSTR(nm.predicate, 'hasExactSynonym') > 0 
-          UNION 
-           SELECT oum.ontology_uri as ontology_uri, ccu.start_id AS cui,CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) AS codeid,  nm.object AS label, nm.sab as sab, su.sui AS sui, 'SY' AS term_type
-                FROM ccf_edge_list nm
-                INNER JOIN ontology_uri_map oum
-                ON nm.subject = oum.ontology_uri
-                INNER JOIN temp_ccf_cui_codes tccc
-                ON CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) = tccc.codeid
-                AND LENGTH(tccc.cui) = 0
-                INNER JOIN cui_codes_updated ccu
-                ON CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) = ccu.end_id
-                AND LENGTH(tccc.cui) = 0
-                LEFT OUTER JOIN suis_updated su
-                ON nm.object = su.name
-                WHERE CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) NOT IN (select start_id FROM code_suis_updated) 
-                AND INSTR(nm.predicate, 'hasExactSynonym') > 0 
-
-        UNION 
-        SELECT oum.ontology_uri as ontology_uri,tccc.cui AS cui,CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) AS codeid,  nm.node_label AS label, nm.sab as sab, su.sui AS sui, 'PT' AS term_type
-                FROM ccf_node_metadata nm
-                INNER JOIN ontology_uri_map oum
-                ON nm.node_id = oum.ontology_uri
-                INNER JOIN temp_ccf_cui_codes tccc
-                ON CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) = tccc.codeid
-                AND LENGTH(tccc.cui) > 0
-                LEFT OUTER JOIN suis_updated su
-                ON nm.node_label = su.name
-                WHERE CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) NOT IN (select start_id FROM code_suis_updated)
-        UNION
-        SELECT oum.ontology_uri as ontology_uri, ccu.start_id AS cui,CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) AS codeid,  nm.node_label AS label, nm.sab as sab, su.sui AS sui, 'PT' AS term_type
-                FROM ccf_node_metadata nm
-                INNER JOIN ontology_uri_map oum
-                ON nm.node_id = oum.ontology_uri
-                INNER JOIN temp_ccf_cui_codes tccc
-                ON CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) = tccc.codeid
-                AND LENGTH(tccc.cui) = 0
-                INNER JOIN cui_codes_updated ccu
-                ON CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) = ccu.end_id
-                AND LENGTH(tccc.cui) = 0
-                LEFT OUTER JOIN suis_updated su
-                ON nm.node_label = su.name
-                WHERE CONCAT('CCF ', substring_index(oum.ontology_uri, '/',-1)) NOT IN (select start_id FROM code_suis_updated) ) source_table"""
         
         """This query joins the ontology_uri_map data to the label from the node_metadata table.  The query only returns
         records where the codeid is NULL or the codeid is missing from the code_suis_updated table.  These represent
@@ -1678,7 +1637,7 @@ def insert_new_cuis(config):
 
 
         sql = """select node_id as ontology_uri, sab as sab from pkl_node_metadata nm
-        where nm.node_id NOT IN (select ontology_uri from ontology_uri_map)
+        where nm.node_id NOT IN (select ontology_uri from ontology_uri_map WHERE mapping_type = 'PRIMARY')
         and (node_id like 'http://purl.obolibrary.org/obo/CL\_%' or node_id like 'http://purl.obolibrary.org/obo/UBERON\_%')"""
         
         """Find all the records in node_metadata that were not mapped to an UMLS terms.  The 'where nm.node_id NOT IN (select ontology_uri from ontology_uri_map)'
@@ -1724,7 +1683,7 @@ def insert_new_cuis(config):
                 sys.exit()
 
             
-            sql = """INSERT INTO ontology_uri_map (ontology_uri,codeid,cui,sab) VALUES ('{ontology_uri}','{codeid}','{cui}','{sab}')""".format(codeid=codeid,cui=cui,ontology_uri=ontology_uri,sab=current_sab)
+            sql = """INSERT INTO ontology_uri_map (ontology_uri,codeid,cui,sab,mapping_type) VALUES ('{ontology_uri}','{codeid}','{cui}','{sab}','PRIMARY')""".format(codeid=codeid,cui=cui,ontology_uri=ontology_uri,sab=current_sab)
             # add the new HCUI to the ontology_uri_map
             cursor.execute(sql)
             sql = """INSERT INTO cuis_updated (cui) VALUES ('{cui}')""".format(cui=cui)
@@ -1787,23 +1746,7 @@ def insert_new_codes(config):
         WHERE nm.sab = 'CCF'
         AND oum.ontology_uri = nm.node_id) source_table"""
         
-        """NOTE THIS IS A HACK TO FIX AN ISSUE WITH THE WAY THE CCF DATA IS CREATED!!!!!!"""
-        
-        sql = """SELECT DISTINCT ontology_uri, cui, sab FROM (
-        SELECT ontology_uri, cui, sab FROM ontology_uri_map oum
-        WHERE codeid is not null
-        AND sab NOT IN ('UBERON','CL','CCF')
-        UNION ALL
-        SELECT nm.node_id, tccc.cui as cui, nm.sab as sab 
-          FROM ccf_node_metadata nm, temp_ccf_cui_codes tccc
-                WHERE nm.sab = 'CCF'
-                AND substring(nm.node_id,instr(nm.node_id, '_')+1) = substring(tccc.codeid,instr(tccc.codeid, '_')+1)
-                AND length(tccc.cui) != 0
-          UNION
-           SELECT oum.ontology_uri, oum.cui, 'CCF' as sab 
-            FROM temp_ccf_cui_codes tccc, ontology_uri_map oum
-                WHERE substring_index(oum.ontology_uri, '/',-1) = substring(tccc.codeid,instr(tccc.codeid, ' ')+1)
-                AND length(tccc.cui) = 0) source_table"""
+
         
         '''This query has 2 parts:
         1) select all the data connected to UMLS vocabularies (i.e. NOT UBERON, CL, or CCF)
@@ -1895,6 +1838,7 @@ def insert_new_defs(config):
         sql = """SELECT cui, node_definition, IF(INSTR(oum.ontology_uri,'UBERON')>0,'UBERON','CL') as sab 
         FROM pkl_node_metadata nm, ontology_uri_map oum 
         WHERE nm.node_id = oum.ontology_uri
+        AND oum.mapping_type = 'PRIMARY'
         AND node_definition <> 'None'
         AND node_definition <> '.'"""
         
@@ -2094,11 +2038,13 @@ if __name__ == '__main__':
     config = load_config(file_path, file_name)
     
     #temp_build_ccf_code_cui_table(config)
+
     #transform(config)
     #load(config)
     #extract(config)
     build_xref_table(config)
     print("Done")
+
     """
     if 'extract' in command_list:
         extract(config)

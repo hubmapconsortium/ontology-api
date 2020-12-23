@@ -102,6 +102,14 @@ def create_database(config):
             connection.close()        
 
 def create_indices(config):
+    ''' Create the indices in the mysql database to improve performance in the 
+    transform step.  There is a set of default indices that need to be created.
+    These are found in the config parameter INDEX_CREATE_SQL_FILEPATH.  After these
+    are created, a series of custom indices need to be added to the various tables
+    created from the other config parameters.
+    
+        :param dict config: The configuration settings 
+    '''
     connection = None
     try:
         connection = mysql.connector.connect(
@@ -110,12 +118,60 @@ def create_indices(config):
             password=config['MYSQL_PASSWORD'],
             database=config['MYSQL_DATABASE_NAME'])
         cursor = connection.cursor()
+        
+        """
         with open(config['INDEX_CREATE_SQL_FILEPATH'], encoding="utf-8") as f:
+            # this code creates the "default" indices
             commands = f.read().split(';')
             for command in commands:
                 if str(command).strip() != "":
                     print('Executing: ' + command)
                     cursor.execute(command)
+        """
+                    
+        # the code below creates the indices for the tables created from entries in the 
+        # app.cfg file
+        for table_info in config['NODE_METADATA_FILE_TABLE_INFO']:
+            sql = "ALTER TABLE {table_name} ADD INDEX {table_name}_ontology_uri_idx (ontology_uri(500))".format(table_name=table_info['table_name'])
+            cursor.execute(sql)
+            sql = "ALTER TABLE {table_name} ADD INDEX {table_name}_node_label_idx (node_label(500))".format(table_name=table_info['table_name'])
+            cursor.execute(sql)
+            sql = "ALTER TABLE {table_name} ADD INDEX {table_name}_codeid_idx (codeid(500))".format(table_name=table_info['table_name'])
+            cursor.execute(sql)
+            sql = "ALTER TABLE {table_name} ADD INDEX {table_name}_sab_idx (sab(50))".format(table_name=table_info['table_name'])
+            cursor.execute(sql)
+
+        for table_info in config['EDGE_LIST_FILE_TABLE_INFO']:
+            sql = "ALTER TABLE {table_name} ADD INDEX {table_name}_subject_idx (subject(50))".format(table_name=table_info['table_name'])
+            cursor.execute(sql)
+            sql = "ALTER TABLE {table_name} ADD INDEX {table_name}_predicate_idx (predicate(100))".format(table_name=table_info['table_name'])
+            cursor.execute(sql)
+            sql = "ALTER TABLE {table_name} ADD INDEX {table_name}_object_idx (object(100))".format(table_name=table_info['table_name'])
+            cursor.execute(sql)
+            sql = "ALTER TABLE {table_name} ADD INDEX {table_name}_sab_idx (sab(50))".format(table_name=table_info['table_name'])
+            cursor.execute(sql)
+ 
+        for table_info in config['DBXREF_FILE_TABLE_INFO']:
+            sql = "ALTER TABLE {table_name} ADD INDEX {table_name}_ontology_uri_idx (ontology_uri(50))".format(table_name=table_info['table_name'])
+            cursor.execute(sql)
+            sql = "ALTER TABLE {table_name} ADD FULLTEXT INDEX {table_name}_dbxrefs_idx (dbxrefs(700))".format(table_name=table_info['table_name'])
+            cursor.execute(sql)
+
+        for table_info in config['RELATIONS_FILE_TABLE_INFO']:
+            sql = "ALTER TABLE {table_name} ADD INDEX {table_name}_relation_id_idx (relation_id(100))".format(table_name=table_info['table_name'])
+            cursor.execute(sql)
+            sql = "ALTER TABLE {table_name} ADD INDEX {table_name}_relation_label_idx (relation_label(50))".format(table_name=table_info['table_name'])
+            cursor.execute(sql)            
+            sql = "ALTER TABLE {table_name} ADD INDEX {table_name}_inverse_relation_label_idx (inverse_relation_label(50))".format(table_name=table_info['table_name'])
+            cursor.execute(sql)  
+            
+        for table_info in config['SYNONYM_LIST_FILE_TABLE_INFO']:
+            sql = "ALTER TABLE {table_name} ADD INDEX {table_name}_ontology_uri_idx (ontology_uri(500))".format(table_name=table_info['table_name'])
+            cursor.execute(sql)
+            sql = "ALTER TABLE {table_name} ADD INDEX {table_name}_synonym_idx (synonym(500))".format(table_name=table_info['table_name'])
+            cursor.execute(sql)
+            sql = "ALTER TABLE {table_name} ADD INDEX {table_name}_sab_idx (sab(50))".format(table_name=table_info['table_name'])
+            cursor.execute(sql)
         print ("Done creating database indices.")
     
     except mysql.connector.Error as err:
@@ -129,6 +185,7 @@ def create_indices(config):
         if connection != None:
             connection.close()        
 
+# can remove this method
 def load_ccf_nodes_and_edges(config):
     """Adding the SAB column to edge_list, node_metadata
     The SAB in the edge_list allows us to track the source of the edge
@@ -454,7 +511,7 @@ def load_dbxref(config):
         if connection != None:
             connection.close()        
         
-
+# can remove this method
 def load_pkl_edge_list(config):
     file_path = os.path.join(config['PHEKNOWLATER_SOURCE_DIR'], 'PheKnowLator_Subclass_OWLNETS_edge_list_16OCT2020.txt')
     table_name = 'pkl_edge_list'
@@ -495,6 +552,7 @@ def load_pkl_edge_list(config):
         if connection != None:
             connection.close()        
 
+# can remove this method
 def load_pkl_node_metadata(config):
     '''
     Load the PheKnowLator Node Metadata file.  This file does not get processed like the other files because it 
@@ -591,12 +649,14 @@ def load_pkl_node_metadata(config):
     finally:
         if connection != None:
             connection.close()        
-    
+
+# can remove this method    
 def load_pkl_ontology_dbxref(config):
     file_path = os.path.join(config['PHEKNOWLATER_SOURCE_DIR'], 'PheKnowLator_Subclass_OWLNETS_Ontology_DbXRef_16OCT2020.txt')
     table_name = 'pkl_ontology_dbxref'
     load_file(config, file_path, table_name)
     
+# can remove this method
 def load_pkl_relations(config):
     file_path = os.path.join(config['PHEKNOWLATER_SOURCE_DIR'], 'INVERSE_RELATIONS.txt')
     table_name = 'pkl_inverse_relations'
@@ -729,6 +789,8 @@ def build_xref_table(config):
     
     :param dict config: The configuration settings 
     '''
+    dbxref_list = config['DBXREF_FILE_TABLE_INFO']
+
     connection = None
     sql = ''
     try:
@@ -748,30 +810,34 @@ def build_xref_table(config):
                 PRIMARY KEY(id)
                 );"""
         cursor.execute(create_table_sql)
-        cursor.execute("SELECT ontology_uri, dbxrefs FROM pkl_ontology_dbxref WHERE ontology_uri LIKE 'http://purl.obolibrary.org/obo/CL_%' OR ontology_uri LIKE 'http://purl.obolibrary.org/obo/UBERON_%'")
-        print("Loading data into table {table_name}".format(table_name="dbxrefs"), end='', flush=True)
-        result = cursor.fetchall()
-        record_count = 0
-        for row in result:
-            ontology_uri = row['ontology_uri']
-            all_xrefs = row['dbxrefs']
-            xref_list = all_xrefs.split('|')
-            # For each row in the ontology_dbxref table, split the dbxrefs column into a list
-            for ref in xref_list:
-                # for each xref in the list, insert a new row into the dbxrefs table
-                ref = ref.replace("'","''")
-                sql = "INSERT INTO dbxrefs (ontology_uri, xref) VALUES ('{ontology_uri}','{ref}')".format(ontology_uri=ontology_uri, ref=ref)
-                cursor.execute(sql)
-            
-                record_count = record_count + 1
-                #commit every 10,000 records
-                if record_count % 10000 == 0:
-                    print('.', end='', flush=True)
-                    connection.commit()
-                    
-        print('') # do this to disable the 'end' flag in prior print statements
-        connection.commit()
-        print ("Done loading the {table_name} table.".format(table_name="dbxrefs"))
+        for table_data in dbxref_list:
+            table_name = table_data['table_name']
+            sab = table_data['sab']
+    
+            cursor.execute("SELECT ontology_uri, dbxrefs FROM {table_name}".format(table_name=table_name))
+            print("Loading {sab} data into table {table_name}".format(table_name="dbxrefs", sab=sab), end='', flush=True)
+            result = cursor.fetchall()
+            record_count = 0
+            for row in result:
+                ontology_uri = row['ontology_uri']
+                all_xrefs = row['dbxrefs']
+                xref_list = all_xrefs.split('|')
+                # For each row in the ontology_dbxref table, split the dbxrefs column into a list
+                for ref in xref_list:
+                    # for each xref in the list, insert a new row into the dbxrefs table
+                    ref = ref.replace("'","''")
+                    sql = "INSERT INTO dbxrefs (ontology_uri, xref) VALUES ('{ontology_uri}','{ref}')".format(ontology_uri=ontology_uri, ref=ref)
+                    cursor.execute(sql)
+                
+                    record_count = record_count + 1
+                    #commit every 10,000 records
+                    if record_count % 10000 == 0:
+                        print('.', end='', flush=True)
+                        connection.commit()
+                        
+            print('') # do this to disable the 'end' flag in prior print statements
+            connection.commit()
+            print ("Done loading the {table_name} table.".format(table_name="dbxrefs"))
     except mysql.connector.Error as err:
         print("Error in SQL: " + sql )
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
@@ -888,11 +954,11 @@ def extract(config):
     param dict config: The configuration data for this application 
     '''
     create_database(config)
-    load_pkl_node_metadata(config)
-    load_pkl_relations(config)
-    load_pkl_ontology_dbxref(config)
-    load_pkl_edge_list(config)
-    load_ccf_nodes_and_edges(config)
+    load_node_metadata(config)
+    load_relations(config)
+    load_dbxref(config)
+    load_edge_list(config)
+    load_synonym_list(config)
     load_umls_codes(config)
     load_umls_defs(config)
     load_umls_suis(config)
@@ -905,7 +971,6 @@ def extract(config):
     load_umls_cui_tuis(config)
     load_umls_def_rel(config)
     load_umls_tui_rel(config)
-    build_xref_table(config)
     create_indices(config)
     print("Done with extract process")
 
@@ -942,36 +1007,12 @@ def build_ambiguous_codes_table(config):
         cursor.execute(create_table_sql)
         print("Created table temp_ambiguous_codes")
         sql = """INSERT INTO temp_ambiguous_codes (ontology_uri, codeid) 
-        SELECT DISTINCT ontology_uri, CONCAT('FMA ',upper(substring(xref,instr(xref, ':')+1))) as codeid
+        SELECT DISTINCT ontology_uri, xref as codeid
         FROM dbxrefs, umls_cui_codes as rel
-        WHERE substring_index(xref,':', 1) = 'fma'
-        AND CONCAT('FMA ',upper(substring(xref,instr(xref, ':')+1))) = rel.end_id
-        GROUP BY ontology_uri, CONCAT('FMA ',upper(substring(xref,instr(xref, ':')+1)))
-        HAVING COUNT(DISTINCT rel.start_id) > 1
-        UNION
-        SELECT DISTINCT ontology_uri, CONCAT('NCI ',upper(substring(xref,instr(xref, ':')+1))) as codeid
-        FROM dbxrefs, umls_cui_codes as rel
-        WHERE substring_index(xref,':', 1) = 'ncit'
-        AND CONCAT('NCI ',upper(substring(xref,instr(xref, ':')+1))) = rel.end_id
-        GROUP BY ontology_uri, CONCAT('NCI ',upper(substring(xref,instr(xref, ':')+1)))
-        HAVING COUNT(DISTINCT rel.start_id) > 1
-        UNION
-        SELECT DISTINCT ontology_uri, CONCAT('MSH ',upper(substring(xref,instr(xref, ':')+1))) as codeid
-        FROM dbxrefs, umls_cui_codes as rel
-        WHERE substring_index(xref,':', 1) = 'mesh'
-        AND CONCAT('MSH ',upper(substring(xref,instr(xref, ':')+1))) = rel.end_id
-        AND instr(xref, 'mesh:d') > 0
-        AND instr(xref, 'mesh:d24') = 0
-        GROUP BY ontology_uri, CONCAT('MSH ',upper(substring(xref,instr(xref, ':')+1)))
-        HAVING COUNT(DISTINCT rel.start_id) > 1
-        UNION
-        SELECT DISTINCT ontology_uri, CONCAT('SNOMEDCT_US ',upper(substring(xref,instr(xref, 'details/')+8))) as codeid
-        FROM dbxrefs, umls_cui_codes as rel
-        WHERE substring_index(xref,'details/', 1) = 'http://www.snomedbrowser.com/codes/'
-        AND CONCAT('SNOMEDCT_US ',upper(substring(xref,instr(xref, 'details/')+8))) = rel.end_id
-        GROUP BY ontology_uri, CONCAT('SNOMEDCT_US ',upper(substring(xref,instr(xref, 'details/')+8)))
+        WHERE xref = rel.end_id
+        GROUP BY ontology_uri, xref
         HAVING COUNT(DISTINCT rel.start_id) > 1"""
-        """This query builds the temp_ambiguous_codes table from FMA, NCI, MeSH, and SNOMED.  It inserts codes with
+        """This query builds the temp_ambiguous_codes table.  It inserts codes with
         more than 1 CUI into the temp_ambiguous_codes table.
         """
 
@@ -1907,7 +1948,8 @@ def transform(config):
     param dict config: The configuration data for this application.
     '''
     
-    temp_build_ccf_code_cui_table(config)
+    #temp_build_ccf_code_cui_table(config)
+    build_xref_table(config)
     build_ambiguous_codes_table(config)
     build_ontology_uri_to_umls_map_table(config)
     insert_new_cuis(config)
@@ -2051,14 +2093,11 @@ if __name__ == '__main__':
     file_name = 'app.cfg'
     config = load_config(file_path, file_name)
     
-    load_node_metadata(config)
-    load_dbxref(config)
-    load_edge_list(config)
-    load_relations(config)
-    load_synonym_list(config)
     #temp_build_ccf_code_cui_table(config)
     #transform(config)
     #load(config)
+    #extract(config)
+    build_xref_table(config)
     print("Done")
     """
     if 'extract' in command_list:

@@ -1,3 +1,7 @@
+MATCH (a:Concept)-[:CODE]->(:Code)<-[:CODE]-(:Concept)-[:STY]->(b:Semantic)
+WHERE SIZE((a)-[:STY]->(:Semantic)) = 0
+MERGE (a)-[:STY]->(b);
+
 MATCH (a:Code)<--(b:Concept) WHERE 
 a.SAB IN ['UBERON','CL','CCF'] AND SIZE((b)-->(:Semantic)) = 0
 CALL { WITH b

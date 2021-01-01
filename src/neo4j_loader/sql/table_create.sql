@@ -19,6 +19,14 @@ CREATE TABLE umls_codes (
     PRIMARY KEY (id)
 );
 
+CREATE TABLE codes_updated (
+    id INT NOT NULL AUTO_INCREMENT,
+    codeid VARCHAR(2048) NOT NULL,
+    sab VARCHAR(2048) NOT NULL,
+    code VARCHAR(5120) NOT NULL,
+    PRIMARY KEY (id)
+);
+
 CREATE TABLE umls_tui_rel (
     id INT NOT NULL AUTO_INCREMENT,
     start_id VARCHAR(2048) NOT NULL,

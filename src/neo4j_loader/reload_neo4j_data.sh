@@ -11,7 +11,7 @@ cd /var/lib/neo4j
 sudo neo4j stop
 sudo rm -rf data/databases/*
 sudo rm -rf data/transactions/*
-sudo rm import/*
+sudo rm -rf import/*
 sudo cp ~/umls_data/export/* import
 sudo cp ~/umls_data/jonathan_revised_files/NDC* import
 sudo chown neo4j:adm import/*

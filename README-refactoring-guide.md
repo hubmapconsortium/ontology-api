@@ -119,11 +119,11 @@ The `ontology-api/src/neo4j_loader/load_csv_data.py` file creates all the CSV fi
 * transform- run the `transform(config)` method.  This method reads the data written in the `extract(config)` step.  The method is written so it can be run repeatedly.  In other words, all the new data added in previous runs of this steps is removed from the database while this code runs (either through `DROP TABLE` or SQL `DELETE` statements).  This step takes the least amount of time to run.
 * load- run the `load(config)` method.  This method takes the data from the `transform(config)` step and writes it out to a set of CSV files
 
-These parameters can be used singly or in sequence.  For instance:
-`python3 load_csv_data.py extract`
-`python3 load_csv_data.py extract transform`
-`python3 load_csv_data.py extract transform load` (runs the whole workflow)
-`python3 load_csv_data.py transform load` (can be run after the extract step has run)
+These parameters can be used singly or in sequence.  For instance:  
+`python3 load_csv_data.py extract`  
+`python3 load_csv_data.py extract transform`  
+`python3 load_csv_data.py extract transform load` (runs the whole workflow)  
+`python3 load_csv_data.py transform load` (can be run after the extract step has run)  
 ### Step 2: Loading the neo4j Graph
 The `ontology-api/src/neo4j_loader/reload_neo4j_data.sh` bash script runs a series of commands that does the following:
 1.  Stops neo4j
@@ -134,7 +134,7 @@ The `ontology-api/src/neo4j_loader/reload_neo4j_data.sh` bash script runs a seri
 6.  Start neo4j
 7.  Run a series of neo4j cypher commands (and .cql files) to remove some orphaned data and create indices.
 
-To use the `reload_neo4j_data.sh` you must be sudo:
+To use the `reload_neo4j_data.sh` you must be sudo:  
 `sudo ./reload_neo4j_data.sh 1234` (where 1234 is the new password)
 
 ## Loose Ends

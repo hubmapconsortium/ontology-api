@@ -158,3 +158,5 @@ def extract_non_umls(config):
 It might also need a modified `create_indices(config)` method.  
 * The `app.cfg` file contains entries for the neo4j connection.  These entries might be useful if the `reload_neo4j_data.sh` script is modified to read data from `app.cfg`.
 * There is an `ontology-api/test/test_load_csv_data.py` test code.  This code uses the neo4j connection entries in the `app.cfg` file.  I think the tests are still valid, but they will definitely need to change over time.  The `setUp(self)` method contains a hardcoded path to find `app.cfg`.  This path should be made relative.
+
+#NOTE#: Need to add info about lack of error checking

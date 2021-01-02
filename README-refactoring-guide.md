@@ -23,8 +23,14 @@ There are 5 file structures used by the refactored code.  These files follow a f
   * **synonym** the synonym for the **ontology_uri**
 * **relations** This file has a single entry for each unique **predicate** found in the **edge_list** file.  It also provides an English label for each relation.
   * **relation_id** The URI for the relation.  The relation URI should only be found in the list once.
-  * **relation_label** The English label for the relation.  
+  * **relation_label** The English label for the relation.
+  * **inverse_relation_label** The English label for the inverse of the relation.  An inverse_relation_label does not need a corresponding relation_id.
 
+### File Requirements
+The code does not enforce these requirements, but there are some implied relationships between these files.  At some point the code should be modified to check these requirements.  
+1.  There is a one-to-one relation between the node_metadata, dbxref, and edge_list.  You need a set of these files for each SAB (aka ontology) you want to load.  For example, if you want to load UBERON you will need a set of UBERON node_metadata, dbxref, and edge_list files.
+2.  The synonym file is optional for any SAB.
+3.  The relations file can be a single file representing a superset of all the relations across all SABs.  Alternatively, it can be a set of files. 
 ## Configuration File
 The configuration file will direct the data load process.  The refactor modifies one existing setting  and adds 5 items to the configuration file.  The new configuration file expects all the ontology files to live in the same directory `ONTOLOGY_SOURCE_DIR`.  Prior versions of the configuration file had several separate locations for the ontology files.  The file adds 5 settings:
 * EDGE_LIST_FILE_TABLE_INFO

@@ -1,7 +1,7 @@
 # Knowledge Base ETL Workflow Refactoring
 
 ## Introduction
-This document explains how the current ETL Process for loading the Knowledge Base should be refactored.  The process will start with the UMLS .CSV files loaded using these steps: https://github.com/dbmi-pitt/UMLS-Graph/blob/master/CSV-Extracts.md.  These files form the UMLS basis for the rest of the process.
+This document explains how the current ETL Process for loading the Knowledge Base should be refactored.  The process will start with the UMLS .CSV files loaded using these steps: https://github.com/dbmi-pitt/UMLS-Graph/blob/master/CSV-Extracts.md.  These files form the UMLS basis for the rest of the process.  This code is currently in `refactored_code` branch in github.
 
 ## Prerequisites
 There are 5 file structures used by the refactored code.  These files follow a format initially developed by the PheKnowLator project.  **PLEASE NOTE: These files cannot contain any extra information.  The load process assumes there is no further filtering required to process this data.  Some errors may occur if extra entities or relations are found within the data.** The files and formats are presented below:  
@@ -19,6 +19,7 @@ There are 5 file structures used by the refactored code.  These files follow a f
   * **object**- The second identifier in the statement.  It is the target of the predicate.  
 * **synonym list**- This file contains a list of **ontology_uri** and a list of strings representing the **ontology_uri's** synonyms.  In this file, the **ontology_uri** will repeat on several lines if there are multiple synonyms.  **PLEASE NOTE: Do not include any preferred terms in this file.  Only include synonyms.**    
   * **ontology_uri** the same unique identifier as found int the **node metadata** file.
+  * **codeid**- this column contains an SAB prefix plus a code for the **ontology_uri** (ex: UBERON 12345, CL OU812).  
   * **synonym** the synonym for the **ontology_uri**
 * **relations** This file has a single entry for each unique **predicate** found in the **edge_list** file.  It also provides an English label for each relation.
   * **relation_id** The URI for the relation.  The relation URI should only be found in the list once.
@@ -38,7 +39,7 @@ Each of these settings contains an array with objects.  **The order of the objec
 * **SAB**- The SAB to be used when loading this data.
 
 An example of these 5 settings is below:
-```
+```python
 EDGE_LIST_FILE_TABLE_INFO = [{'table_name':'uberon_edge_list','file_name':'uberon_edge.txt','SAB':'UBERON'},
 {'table_name':'cl_edge_list','file_name':'cl_edge.txt','SAB':'CL'}]
 NODE_METADATA_FILE_TABLE_INFO = [{'table_name':'uberon_node_metadata','file_name':'uberon_node_metadata.txt','SAB':'UBERON'},
@@ -61,10 +62,9 @@ The `load_file(config, file_path, table_name)` needs to be updated to create the
 
 The `create_indices(config)` method needs to change.  It should use the 5 new configuration items (EDGE_LIST_FILE_TABLE_INFO, NODE_METADATA_FILE_TABLE_INFO, etc.) as parameters.  It will use these table_names to create indices for the tables created from the configuration files.  
 
-The `build_xref_table(config)` method should be moved to the `transform(config)` method since it is really a transform step.
 
-The new `extract(config)` method should look like this:
-```
+The new `extract(config)` method looks like this:
+```python
     create_database(config)
     load_node_metadata(config)
     load_relations(config)
@@ -86,9 +86,69 @@ The new `extract(config)` method should look like this:
     create_indices(config)
     print("Done with extract process")
 ```
-
+The `load_node_metadata(config)`,    `load_relations(config)`,`load_dbxref(config)`, `load_edge_list(config)`,`load_synonym_list(config)` methods all follow the same general pattern:
+1.  Access one of the `FILE_TABLE_INFO` config variables like `EDGE_LIST_FILE_TABLE_INFO`, `NODE_METADATA_FILE_TABLE_INFO`, etc.
+2.  For each entry, extract the `table_name`, `file_name`, and `sab` from the `FILE_TABLE_INFO` config variable
+3. Use `CREATE TABLE` SQL statement to create a table called `table_name`
+4. Use the `load_file` method to load the `file_name` data into the newly created `table_name` SQL table
+5. Update the records in the newly created `table_name` SQL table to fill in the `sab` column
 ### Transform Step
-The `transform(config)` method changes quite a bit in the refactored code.  First, `build_xref_table(config)` is added to the start of the `transform(config)` method.  
-
+The `transform(config)` method changes quite a bit in the refactored code.  First, `build_xref_table(config)` is added to the start of the `transform(config)` method.  The changes look like this:  
+```python
+    build_xref_table(config)
+    build_ambiguous_codes_table(config)
+    build_ontology_uri_to_umls_map_table(config)
+    build_relations_table(config)
+    insert_new_cuis(config)
+    insert_new_codes(config)
+    insert_new_terms(config)
+    insert_new_defs(config)
+    insert_new_cui_cui_relations(config)
+```
+Most of the methods in the 'transform(config)` method follow a general pattern of steps:
+1.  Access one of the `FILE_TABLE_INFO` config variables like `EDGE_LIST_FILE_TABLE_INFO`, `NODE_METADATA_FILE_TABLE_INFO`, etc.
+2.  Use the `FILE_TABLE_INFO` variable to walk through the existing mysql tables (created in the `extract(config)` method).  
+3.  For each `table_name` in the `FILE_TABLE_INFO` variable, include the mysql table in a SQL query to build the parts of the graph (CUIs, SUIs, Codes, etc.)
 ### Load Step
 The `load(config)` method does not change in the refactored code.
+
+## Running the Code
+### Step 1: Building neo4j Graph CSV Files
+The `ontology-api/src/neo4j_loader/load_csv_data.py` file creates all the CSV files necessary to load neo4j.  The code relies upon a file called `app.cfg`.  This file is based off the `app.cfg.example` file.  Once the `app.cfg` file is in place, you can run the `load_csv_data.py` code.  The `load_csv_data.py` code takes three parameters:
+* extract- run the `extract(config)` method.  This reads all the CSV files and creates the starting SQL tables.  This method takes the longest amount of time to run.
+* transform- run the `transform(config)` method.  This method reads the data written in the `extract(config)` step.  The method is written so it can be run repeatedly.  In other words, all the new data added in previous runs of this steps is removed from the database while this code runs (either through `DROP TABLE` or SQL `DELETE` statements).  This step takes the least amount of time to run.
+* load- run the `load(config)` method.  This method takes the data from the `transform(config)` step and writes it out to a set of CSV files
+
+These parameters can be used singly or in sequence.  For instance:
+`python3 load_csv_data.py extract`
+`python3 load_csv_data.py extract transform`
+`python3 load_csv_data.py extract transform load` (runs the whole workflow)
+`python3 load_csv_data.py transform load` (can be run after the extract step has run)
+### Step 2: Loading the neo4j Graph
+The `ontology-api/src/neo4j_loader/reload_neo4j_data.sh` bash script runs a series of commands that does the following:
+1.  Stops neo4j
+2.  Deletes the existing neo4j data in preparation for the `neo4j-admin import` step.
+3.  Copies the CSV files created by the `load_csv_data.py` into the neo4j `import` directories.
+4.  Executes the `neo4j-admin import` step (it has to be done against a stopped neo4j instance).
+5.  Set the initial password for the `neo4j` user in the neo4j graph (the password is a parameter of the `reload_neo4j_data.sh` script)
+6.  Start neo4j
+7.  Run a series of neo4j cypher commands (and .cql files) to remove some orphaned data and create indices.
+
+To use the `reload_neo4j_data.sh` you must be sudo:
+`sudo ./reload_neo4j_data.sh 1234` (where 1234 is the new password)
+
+## Loose Ends
+* The `reload_neo4j_data.sh` script works, but it contains several hard-coded paths.  I think it could import a lot of its information from app.cfg.
+* The NDC .CSV files are disjoint from the rest of the UMLS data processing.  This is acceptable from a coding perspective (in other words the code doesn't need the NDC data), but it requires the `reload_neo4j_data.sh` script to copy them into place separately.
+* Adding a new method called `extract_non_umls(config)` might be a good idea.  This method would just include the steps the load the data listed in the `FILE_TABLE_INFO` config variables.  By adding this method, we could reduce the cost of the extract step.  The biggest time cost associated with the `extract(config)` method is the extracting of the UMLS data.  The `extract_non_umls(config)` would be useful in situations where the non-UMLS data changes but the UMLS data is static.  The method would look like this:
+```python
+def extract_non_umls(config):
+    load_node_metadata(config)
+    load_relations(config)
+    load_dbxref(config)
+    load_edge_list(config)
+    load_synonym_list(config)
+```
+It might also need a modified `create_indices(config)` method.  
+* The `app.cfg` file contains entries for the neo4j connection.  These entries might be useful if the `reload_neo4j_data.sh` script is modified to read data from `app.cfg`.
+* There is an `ontology-api/test/test_load_csv_data.py` test code.  This code uses the neo4j connection entries in the `app.cfg` file.  I think the tests are still valid, but they will definitely need to change over time.  The `setUp(self)` method contains a hardcoded path to find `app.cfg`.  This path should be made relative.

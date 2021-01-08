@@ -1,5 +1,7 @@
 # HuBMAP Knowledge Graph Deployment Steps
 
+The HuBMAP Knowledge Graph is deployed to ont-build.dev.hubmapconsortium.org
+
 ## Prerequisites
 
 **install git:** sudo yum install git
@@ -92,7 +94,23 @@ MYSQL_DATABASE_NAME = 'knowledge_graph'
   * **convert the ccf.owl to N-Triples (execute in /opt/rdfconvert-0.4/bin):** sudo ./rdfconvert.sh -i 'RDF/XML' -o 'N-Triples' /opt/ontology_files/ccf_source_files/ccf.owl /opt/ontology_files/ccf_source_files/ccf.nt  
  
  **Step 3: pre-process source files**
- 
+ Edit the /opt/ontology-api/src/neo4j_loader/pre_process_files.sh file to reference the correct directories:  
+ ```
+cd /opt/ontology_files/pheknowlator_source_files
+head -1 PheKnowLator_Subclass_OWLNETS_Ontology_DbXRef_16OCT2020.txt > /opt/ontology_files/pheknowlator_source_files/cl_dbxref.txt
+grep "^http://purl.obolibrary.org/obo/CL_" PheKnowLator_Subclass_OWLNETS_Ontology_DbXRef_16OCT2020.txt >> /opt/ontology_files/pheknowlator_source_files/cl_dbxref.txt
+head -1 PheKnowLator_Subclass_OWLNETS_Ontology_DbXRef_16OCT2020.txt > /opt/ontology_files/pheknowlator_source_files/uberon_dbxref.txt
+grep "^http://purl.obolibrary.org/obo/UBERON_" PheKnowLator_Subclass_OWLNETS_Ontology_DbXRef_16OCT2020.txt >> /opt/ontology_files/pheknowlator_source_files/uberon_dbxref.txt
+head -1 PheKnowLator_Subclass_OWLNETS_edge_list_16OCT2020.txt > /opt/ontology_files/pheknowlator_source_files/cl_edge_list.txt
+grep "^http://purl.obolibrary.org/obo/CL_" PheKnowLator_Subclass_OWLNETS_edge_list_16OCT2020.txt >> /opt/ontology_files/pheknowlator_source_files/cl_edge_list.txt
+head -1 PheKnowLator_Subclass_OWLNETS_edge_list_16OCT2020.txt > /opt/ontology_files/pheknowlator_source_files/uberon_edge_list.txt
+grep "^http://purl.obolibrary.org/obo/UBERON_" PheKnowLator_Subclass_OWLNETS_edge_list_16OCT2020.txt >> /opt/ontology_files/pheknowlator_source_files/uberon_edge_list.txt
+head -1 PheKnowLator_Subclass_OWLNETS_NodeMetadata_16OCT2020.txt > /opt/ontology_files/pheknowlator_source_files/cl_node_metadata.txt
+grep "^http://purl.obolibrary.org/obo/CL_" PheKnowLator_Subclass_OWLNETS_NodeMetadata_16OCT2020.txt >> /opt/ontology_files/pheknowlator_source_files/cl_node_metadata.txt
+head -1 PheKnowLator_Subclass_OWLNETS_NodeMetadata_16OCT2020.txt > /opt/ontology_files/pheknowlator_source_files/uberon_node_metadata.txt
+grep "^http://purl.obolibrary.org/obo/UBERON_" PheKnowLator_Subclass_OWLNETS_NodeMetadata_16OCT2020.txt >> /opt/ontology_files/pheknowlator_source_files/uberon_node_metadata.txt
+
+ ```
  
  
  

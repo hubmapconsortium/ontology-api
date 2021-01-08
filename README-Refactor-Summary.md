@@ -147,18 +147,12 @@ To use the `reload_neo4j_data.sh` you must be sudo:
 * The `reload_neo4j_data.sh` script works, but it contains several hard-coded paths.  I think it could import a lot of its information from app.cfg.
 * The NDC .CSV files are disjoint from the rest of the UMLS data processing.  This is acceptable from a coding perspective (in other words the code doesn't need the NDC data), but it requires the `reload_neo4j_data.sh` script to copy them into place separately.
 * The `load_csv_data.py` code does not do much error checking.  For example, it does not check if the number of node_metadata files matches the edge_list files.  It also does not check if all the ontology_uris exist in various files.
-* Adding a new method called `extract_non_umls(config)` might be a good idea.  This method would just include the steps the load the data listed in the `FILE_TABLE_INFO` config variables.  By adding this method, we could reduce the cost of the extract step if one is only reloading the non-UMLS data.  The biggest time cost associated with the `extract(config)` method is the extracting of the UMLS data.  The `extract_non_umls(config)` would be useful in situations where the non-UMLS data changes but the UMLS data is static.  The method would look like this:
-```python
-def extract_non_umls(config):
-    load_node_metadata(config)
-    load_relations(config)
-    load_dbxref(config)
-    load_edge_list(config)
-    load_synonym_list(config)
-```
-It might also need a modified `create_indices(config)` method.  
 * The `app.cfg` file contains entries for the neo4j connection.  These entries might be useful if the `reload_neo4j_data.sh` script is modified to read data from `app.cfg`.
+* It might be useful to add nodes to track the version information for the vocabularies/ontologies loaded into the Knoweldge Graph.  It may also be useful to add an overall version node to track when the whole Knowledge Graph was built.
+* It might be useful to add the ontology URI to all the Code nodes.  The current approach requires the user to determine which vocabulary/ontology is dependent on other vocabulary/ontology.  The vocabularies/ontologies lack any globally unique identifiers.  If the data is loaded in the wrong order, it will create duplicate Concept nodes (CUIs).  If we included the ontology URI then we could relax the dependency requirement.  We would not create duplicate CUIs becuase the ontology URI would provide a unique identifier.  We could use the URI to determine if the node already exists or if we are looking at a new node.
+* The code assumes that each source file (cl_node_metadata.txt, uberon_relations.txt, etc.) contains data from one SAB (UBERON, CL, etc.).  The code could be modified to allow one file to contain multiple SABs but it would require the source files to add an SAB column.
 * There is an `ontology-api/test/test_load_csv_data.py` test code.  This code uses the neo4j connection entries in the `app.cfg` file.  I think the tests are still valid, but they will definitely need to change over time.  The `setUp(self)` method contains a hardcoded path to find `app.cfg`.  This path should be made relative.
+
 
 
 

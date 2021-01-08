@@ -126,7 +126,11 @@ cd to /opt/ontology-api/src/neo4j_loader
 install dependencies: sudo pip3 install -r requirements.txt  
 **run extract step**  
 pipe the output to a text file and run in background (it takes 5 hours to run):  
-sudo python3 load_csv_data.py extract > extract_run.log &  
+sudo python3 load_csv_data.py extract > extract_run.log &
+**run extract_non_umls step**
+This is an alternative to the 'extract' command.  It only loads the non-UMLS data.  This can 
+greatly reduce the time required to reload the data.  This can only be used if the UMLS data has not changed since the last
+time the 'extract' was run.
 **run transform step**  
 pipe the output to a text file and run in background (it takes 15 minutes to run):  
 sudo python3 load_csv_data.py transform > transform_run.log &  

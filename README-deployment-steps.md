@@ -47,7 +47,7 @@ unzip rdfconvert-0.4-bin.zip: sudo unzip rdfconvert-0.4-bin.zip
 
 ## Setup Source Files
 
-**Step1: setup source directories**
+**Step 1: setup source directories**
 in /opt: sudo mkdir ontology_files
 under /opt/ontology_files make the following directories:
 * umls_source_files
@@ -89,7 +89,12 @@ MYSQL_DATABASE_NAME = 'knowledge_graph'
   * **Ontology_DbXRef file**- maps ontology URIs to other codes (ex: FMA, MeSH, etc.)
   * **relations file**- lists the relation URIs found in the edge_list with a label for each relation
 * **CCF Source Files:** The CCF source files are available from HuBMAP personnel.  These files will most likely have an .OWL extension (same as RDF/XML).  This allows the file to be converted from RDF/XML to N-triples using RDFConverter.
-  * **convert the ccf.owl to N-Triples (execute in /opt/rdfconvert-0.4/bin):** sudo ./rdfconvert.sh -i 'RDF/XML' -o 'N-Triples' /opt/ontology_files/ccf_source_files/ccf.owl /opt/ontology_files/ccf_source_files/ccf.nt
+  * **convert the ccf.owl to N-Triples (execute in /opt/rdfconvert-0.4/bin):** sudo ./rdfconvert.sh -i 'RDF/XML' -o 'N-Triples' /opt/ontology_files/ccf_source_files/ccf.owl /opt/ontology_files/ccf_source_files/ccf.nt  
+ 
+ **Step 3: pre-process source files**
+ 
+ 
+ 
  
 ## Run Code
 **install python dependencies (just run once)**  

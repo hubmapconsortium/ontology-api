@@ -119,6 +119,8 @@ grep "^http://purl.obolibrary.org/obo/UBERON_" PheKnowLator_Subclass_OWLNETS_Nod
  After the file is edited, run it to build the new files:  
  ./pre_process_files.sh
  
+ Edit the /opt/ontology_files/pheknowlator_source_files/uberon_node_metadata.txt and /opt/ontology_files/pheknowlator_source_files/cl_node_metadata.txt files:  
+ There is an error in the pre_process_files.sh script.  The first columns are set to 'node_id'.  They need to be renamed 'ontology_uri'.
  
 ## Run Code
 **install python dependencies (just run once)**  
@@ -126,11 +128,12 @@ cd to /opt/ontology-api/src/neo4j_loader
 install dependencies: sudo pip3 install -r requirements.txt  
 **run extract step**  
 pipe the output to a text file and run in background (it takes 5 hours to run):  
-sudo python3 load_csv_data.py extract > extract_run.log &
-**run extract_non_umls step**
+sudo python3 load_csv_data.py extract > extract_run.log &  
+**run extract_non_umls step**  
 This is an alternative to the 'extract' command.  It only loads the non-UMLS data.  This can 
 greatly reduce the time required to reload the data.  This can only be used if the UMLS data has not changed since the last
 time the 'extract' was run.
+sudo python3 load_csv_data.py extract_non_umls > extract_non_umls_run.log &  
 **run transform step**  
 pipe the output to a text file and run in background (it takes 15 minutes to run):  
 sudo python3 load_csv_data.py transform > transform_run.log &  
@@ -141,5 +144,38 @@ sudo python3 load_csv_data.py load > load_run.log &
 The code allows you to run multiple commands are the same time.  So you can run this code to perform the entire process:  
 sudo python3 load_csv_data.py extract transform load > full_process.log &  
 
+## Populate neo4j Graph  
+**Step 1: Edit /opt/ontology-api/src/neo4j_loader/reload_neo4j_data.sh**  
+This file runs the neo4j commands to reload neo4j with the new data from the load step.  Edit the file so it looks like this:  
+```
+#!/bin/bash
+die () {
+    echo >&2 "$@"
+    exit 1
+}
 
+[ "$#" -eq 1 ] || die "1 argument required, $# provided"
+echo "Using $1 as the password for the neo4j user"
+
+cd /var/lib/neo4j
+sudo neo4j stop
+sudo rm -rf data/databases/*
+sudo rm -rf data/transactions/*
+sudo rm -rf import/*
+sudo cp /opt/ontology_files/export/* import
+sudo cp /opt/ontology_files/umls_source_files/NDC* import
+sudo chown neo4j:adm import/*
+sudo neo4j-admin import --nodes=Semantic="import/TUIs.csv" --nodes=Concept="import/CUIs.csv" --nodes=Code="import/CODEs.csv" --nodes=Term="import/SUIs.csv" --nodes=Definition="import/DEFs.csv" --nodes=NDC="import/NDCs.csv" --relationships=ISA_STY="import/TUIrel.csv" --relationships=STY="import/CUI-TUIs.csv" --relationships="import/CUI-CUIs.csv" --relationships=CODE="import/CUI-CODEs.csv" --relationships="import/CODE-SUIs.csv" --relationships=PREF_TERM="import/CUI-SUIs.csv" --relationships=DEF="import/DEFrel.csv" --relationships=NDC="import/NDCrel.csv" --skip-bad-relationships --skip-duplicate-nodes
+sudo neo4j-admin set-initial-password $1
+sudo neo4j start
+sleep 20
+sudo cypher-shell -u neo4j -p $1 'MATCH (n:Term) WHERE size((n)--())=0 DELETE (n)'
+sudo cypher-shell -u neo4j -p $1 -f /opt/ontology-api/src/neo4j_loader/cypher/create_neo4j_indices.cql
+sudo cypher-shell -u neo4j -p $1 -f /opt/ontology-api/src/neo4j_loader/cypher/create_semantic_types.cql
+
+
+```
+
+**Step 2: Run /opt/ontology-api/src/neo4j_loader/reload_neo4j_data.sh**  
+sudo ./reload_neo4j_data.sh 1234
 

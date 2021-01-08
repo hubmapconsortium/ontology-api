@@ -26,7 +26,7 @@ move the ontology-api files to /opt/ontology-api
 **install Java 11 (for neo4j):** downloaded Java 11 SE from Oracle's website (jdk-11.0.9_linux-x64_bin.rpm):  
 sudo rpm -ivh jdk-11.0.9_linux-x64_bin.rpm  
 
-**install neo4j**  
+**install neo4j (this code was tested with neo4j 4.1.4 and 4.1.5)**  
 sudo rpm --import https://debian.neo4j.com/neotechnology.gpg.key  
 sudo touch /etc/yum.repos.d/neo4j.repo  
 sudo vi /etc/yum.repos.d/neo4j.repo  

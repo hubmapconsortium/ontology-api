@@ -256,6 +256,11 @@ def load_synonym_list(config):
     
     param dict config: the configuration data for this application
     '''
+    
+    if SYNONYM_LIST_FILE_TABLE_INFO not in config:
+        #don't run this code if the synonym file is missing
+        return 
+    
     synonym_list = config['SYNONYM_LIST_FILE_TABLE_INFO']
     connection = None
     sql = ''

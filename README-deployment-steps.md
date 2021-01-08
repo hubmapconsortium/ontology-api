@@ -92,8 +92,11 @@ MYSQL_DATABASE_NAME = 'knowledge_graph'
   * **relations file**- lists the relation URIs found in the edge_list with a label for each relation
 * **CCF Source Files:** The CCF source files are available from HuBMAP personnel.  These files will most likely have an .OWL extension (same as RDF/XML).  This allows the file to be converted from RDF/XML to N-triples using RDFConverter.
   * **convert the ccf.owl to N-Triples (execute in /opt/rdfconvert-0.4/bin):** sudo ./rdfconvert.sh -i 'RDF/XML' -o 'N-Triples' /opt/ontology_files/ccf_source_files/ccf.owl /opt/ontology_files/ccf_source_files/ccf.nt  
+
+**Step 3: copy relations files**
+There are 2 relations files stored in the repo: cl_relations.txt and uberon_relations.txt.  These files contain the UBERON and Cell Ontology relations plus their inverse relations.  These files need to be copied from /opt/ontology-api/src/neo4j_loader to /opt/ontology_files/pheknowlator_source_files.
  
- **Step 3: pre-process source files**
+ **Step 4: pre-process source files**
  The pre_process_files.sh file splits the PheKnowLator files (which contain a superset of data) into their ontology-specific (UBERON, Cell Ontology, etc.) subset of files.  
  Edit the /opt/ontology-api/src/neo4j_loader/pre_process_files.sh file to reference the correct directories:  
  ```
@@ -123,7 +126,11 @@ cd to /opt/ontology-api/src/neo4j_loader
 install dependencies: sudo pip3 install -r requirements.txt  
 **run extract step**  
 pipe the output to a text file and run in background (it takes 5 hours to run):  
-sudo python3 load_csv_data.py extract > extract_run.log &  
+sudo python3 load_csv_data.py extract > extract_run.log &
+**run extract_non_umls step**
+This is an alternative to the 'extract' command.  It only loads the non-UMLS data.  This can 
+greatly reduce the time required to reload the data.  This can only be used if the UMLS data has not changed since the last
+time the 'extract' was run.
 **run transform step**  
 pipe the output to a text file and run in background (it takes 15 minutes to run):  
 sudo python3 load_csv_data.py transform > transform_run.log &  

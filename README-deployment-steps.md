@@ -60,11 +60,19 @@ edit app.cfg:
 
 ```
 UMLS_SOURCE_DIR = '/opt/ontology_files/umls_source_files'
-PHEKNOWLATER_SOURCE_DIR = '/opt/ontology_files/pheknowlator_source_files'
-CCF_SOURCE_DIR = '/opt/ontology_files/ccf_source_files'
+ONTOLOGY_SOURCE_DIR = '/opt/ontology_files/pheknowlator_source_files'
 TABLE_CREATE_SQL_FILEPATH = '/opt/ontology-api/src/neo4j_loader/sql/table_create.sql'
 INDEX_CREATE_SQL_FILEPATH = '/opt/ontology-api/src/neo4j_loader/sql/add_indices.sql'
 OUTPUT_DIR = '/opt/ontology_files/export'
+EDGE_LIST_FILE_TABLE_INFO = [{'table_name':'uberon_edge_list','file_name':'uberon_edge_list.txt','sab':'UBERON'},
+{'table_name':'cl_edge_list','file_name':'cl_edge_list.txt','sab':'CL'}]
+NODE_METADATA_FILE_TABLE_INFO = [{'table_name':'uberon_node_metadata','file_name':'uberon_node_metadata.txt','sab':'UBERON'},
+{'table_name':'cl_node_metadata','file_name':'cl_node_metadata.txt','sab':'CL'}]
+DBXREF_FILE_TABLE_INFO = [{'table_name':'uberon_dbxref','file_name':'uberon_dbxref.txt','sab':'UBERON'},
+{'table_name':'cl_dbxref','file_name':'cl_dbxref.txt','sab':'CL'}]
+#SYNONYM_LIST_FILE_TABLE_INFO = [{'table_name':'ccf_synonym','file_name':'ccf_synonym.txt','sab':'CCF'}]
+RELATIONS_FILE_TABLE_INFO = [{'table_name':'uberon_relation','file_name':'uberon_relations.txt','sab':'UBERON'},
+{'table_name':'cl_relation','file_name':'cl_relations.txt','sab':'CL'}]
 
 # mysql connection
 MYSQL_HOSTNAME = '127.0.0.1'

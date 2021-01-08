@@ -363,6 +363,102 @@ def load_relations(config):
         if connection != None:
             connection.close()    
             
+            
+def create_missing_codeids(config):
+    node_metadata_list = config['NODE_METADATA_FILE_TABLE_INFO']
+    connection = None
+    sql = ''
+    record_count = 0
+    try:
+        connection = mysql.connector.connect(
+            host=config['MYSQL_HOSTNAME'],
+            user=config['MYSQL_USERNAME'],
+            password=config['MYSQL_PASSWORD'],
+            database=config['MYSQL_DATABASE_NAME'],
+            charset='utf8mb4',collation='utf8mb4_bin')
+        cursor = connection.cursor(dictionary=True)
+
+        for table_data in node_metadata_list:
+            table_name = table_data['table_name']
+            sql = """UPDATE {table_name}  
+            SET codeid = REPLACE(REPLACE(ontology_uri, 'http://purl.obolibrary.org/obo/',''), '_', ' ')
+            WHERE codeid IS NULL""".format(table_name=table_name)
+            # add a codeid for all records in table
+            cursor.execute(sql)
+            connection.commit()
+    except mysql.connector.Error as err:
+        print("Error in SQL: " + sql )
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+        connection.rollback()
+    finally:
+        if connection != None:
+            connection.close()        
+
+def fix_dbxrefs(config):
+    connection = None
+    sql = ''
+    record_count = 0
+    try:
+        connection = mysql.connector.connect(
+            host=config['MYSQL_HOSTNAME'],
+            user=config['MYSQL_USERNAME'],
+            password=config['MYSQL_PASSWORD'],
+            database=config['MYSQL_DATABASE_NAME'],
+            charset='utf8mb4',collation='utf8mb4_bin')
+        cursor = connection.cursor(dictionary=True)
+
+        table_name = 'dbxrefs'
+        sql = """UPDATE {table_name}  
+        SET xref = UPPER(xref)""".format(table_name=table_name)
+        # uppercase all dbxrefs data in table
+        cursor.execute(sql)
+        connection.commit()
+
+        sql = """UPDATE {table_name}  
+        SET xref = REPLACE(xref, 'NCIT:', 'NCI:') WHERE xref LIKE 'NCIT:%'""".format(table_name=table_name)
+        # convert all the NCI codes
+        cursor.execute(sql)
+        connection.commit()
+
+        sql = """UPDATE {table_name}  
+        SET xref = REPLACE(xref, 'HTTP://WWW.SNOMEDBROWSER.COM/CODES/DETAILS/', 'SNOMEDCT_US:') WHERE xref LIKE 'HTTP://WWW.SNOMEDBROWSER.COM/CODES/DETAILS/%'""".format(table_name=table_name)
+        # convert all the SNOMED codes
+        cursor.execute(sql)
+        connection.commit()
+
+        sql = """UPDATE {table_name}  
+        SET xref = REPLACE(xref, 'MESH:', 'MSH:') WHERE xref LIKE 'MESH:%'
+        AND instr(xref, 'MESH:D') > 0
+        AND instr(xref, 'MESH:D24') = 0""".format(table_name=table_name)
+        # convert all the MeSH codes
+        cursor.execute(sql)
+        connection.commit()
+        
+        sql = """UPDATE {table_name}  
+        SET xref = REPLACE(xref, ':', ' ')""".format(table_name=table_name)
+        # replace all remaining colons with spaces dbxrefs data in table
+        cursor.execute(sql)
+        connection.commit()
+        
+            
+    except mysql.connector.Error as err:
+        print("Error in SQL: " + sql )
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+        connection.rollback()
+    finally:
+        if connection != None:
+            connection.close()        
+    
 def load_node_metadata(config):
     '''
     Load all of the node_metadata CSV files into a series of mysql tables.
@@ -395,7 +491,7 @@ def load_node_metadata(config):
             table_create_sql = """CREATE TABLE {table_name} (
             id INT NOT NULL AUTO_INCREMENT,
             ontology_uri VARCHAR(2048) NOT NULL,
-            codeid VARCHAR(2048) NOT NULL,
+            codeid VARCHAR(2048),
             node_label VARCHAR(2048) NOT NULL,
             node_definition VARCHAR(2048) NOT NULL,
             sab VARCHAR(50),
@@ -704,6 +800,17 @@ def load_file(config, file_path, table_name):
         if connection != None:
             connection.close()        
 
+def extract_non_umls(config):
+    load_node_metadata(config)
+    load_relations(config)
+    load_dbxref(config)
+    load_edge_list(config)
+    load_synonym_list(config)
+
+    # This code is temporary.  It should be moved to a pre-processing step
+    create_missing_codeids(config)
+    # END This code is temporary.  It should be moved to a pre-processing step
+    
 def extract(config):
     '''
     The extract method loads the CSV and tab-delimited files into mysql tables mirroring their file structure.
@@ -728,6 +835,12 @@ def extract(config):
     load_umls_cui_tuis(config)
     load_umls_def_rel(config)
     load_umls_tui_rel(config)
+    
+    # This code is temporary.  It should be moved to a pre-processing step
+    create_missing_codeids(config)
+    # END This code is temporary.  It should be moved to a pre-processing step
+    
+    
     create_indices(config)
     print("Done with extract process")
 
@@ -1309,6 +1422,11 @@ def insert_new_synonyms(config, record_count):
     
     param dict config: The configuration data for this application.
     '''
+    
+    if 'SYNONYM_LIST_FILE_TABLE_INFO' not in config:
+        #skip this method if there are no synonym files defined
+        return
+    
     synonym_list = config['SYNONYM_LIST_FILE_TABLE_INFO']
     connection = None
     sql = ''
@@ -1687,6 +1805,12 @@ def transform(config):
     '''
     
     build_xref_table(config)
+    
+    # This code is temporary.  It should be moved to a pre-processing step
+    fix_dbxrefs(config)
+    # END This code is temporary.  It should be moved to a pre-processing step
+
+    
     build_ambiguous_codes_table(config)
     build_ontology_uri_to_umls_map_table(config)
     build_relations_table(config)
@@ -1824,33 +1948,27 @@ if __name__ == '__main__':
         args = parser.parse_args()
         command_list =  args.commands
     except:
-        command_list = ['extract','transform','load']
+        command_list = ['extract','extract_non_umls','transform','load']
 
     file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)))
     #file_path = '/home/chb69/git/ontology-api/src/neo4j_loader'
     file_name = 'app.cfg'
     config = load_config(file_path, file_name)
     
-    #temp_build_ccf_code_cui_table(config)
 
-    #load_edge_list(config)
+    #extract_non_umls(config)
     #transform(config)
     #load(config)
-    #extract(config)
-    """build_xref_table(config)
-    build_ambiguous_codes_table(config)
-    build_ontology_uri_to_umls_map_table(config)
-    insert_new_cuis(config)
-    insert_new_codes(config)"""
-
-
+    
+    if 'extract_non_umls' in command_list:
+        extract_non_umls(config)
     if 'extract' in command_list:
         extract(config)
     if 'transform' in command_list:
         transform(config)
     if 'load' in command_list:
         load(config)
-
+    
     print("Done")
 
 

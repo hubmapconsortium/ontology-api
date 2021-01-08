@@ -47,7 +47,7 @@ unzip rdfconvert-0.4-bin.zip: sudo unzip rdfconvert-0.4-bin.zip
 
 ## Setup Source Files
 
-**setup source directories**
+**Step1: setup source directories**
 in /opt: sudo mkdir ontology_files
 under /opt/ontology_files make the following directories:
 * umls_source_files
@@ -73,7 +73,7 @@ MYSQL_PASSWORD = '<MYSQL_ROOT_PASSWORD>'
 MYSQL_DATABASE_NAME = 'knowledge_graph'
 ```
 
-**obtain source files**
+**Step 2: obtain source files**
 * **UMLS Source Files:** The UMLS Source Files are exported from an Oracle installation of the UMLS Metathesaurus.  The instructions for doing this are found here: https://github.com/dbmi-pitt/UMLS-Graph/blob/master/CSV-Extracts.md.  Extract the files and move them to the UMLS_SOURCE_DIR directory in app.cfg (ex: /opt/ontology_files/umls_source_files.
 * **PheKnowLator Source Files:** The PheKnowLator files are exported by running the software found here: https://github.com/callahantiff/PheKnowLator.  Specifically, this code needs 4 output files:
   * **edge_list file**- this file contains relationship data in the form of an RDF triple: subject, predicate, and object

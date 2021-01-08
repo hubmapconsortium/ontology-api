@@ -94,6 +94,7 @@ MYSQL_DATABASE_NAME = 'knowledge_graph'
   * **convert the ccf.owl to N-Triples (execute in /opt/rdfconvert-0.4/bin):** sudo ./rdfconvert.sh -i 'RDF/XML' -o 'N-Triples' /opt/ontology_files/ccf_source_files/ccf.owl /opt/ontology_files/ccf_source_files/ccf.nt  
  
  **Step 3: pre-process source files**
+ The pre_process_files.sh file splits the PheKnowLator files (which contain a superset of data) into their ontology-specific (UBERON, Cell Ontology, etc.) subset of files.  
  Edit the /opt/ontology-api/src/neo4j_loader/pre_process_files.sh file to reference the correct directories:  
  ```
 cd /opt/ontology_files/pheknowlator_source_files
@@ -112,6 +113,8 @@ grep "^http://purl.obolibrary.org/obo/UBERON_" PheKnowLator_Subclass_OWLNETS_Nod
 
  ```
  
+ After the file is edited, run it to build the new files:  
+ ./pre_process_files.sh
  
  
 ## Run Code

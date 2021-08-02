@@ -2,30 +2,17 @@
 
 The HuBMAP Ontology API contains a Neo4j graph loaded with the [UMLS](https://www.nlm.nih.gov/research/umls/index.html).  The UMLS allows extensive cross-referencing across many biomedical vocabulary systems.  The UMLS structure will form the basis for the rest of the ontologies added into this system.  The backbone of the UMLS data is the Concept to Concept relationship (aka the UMLS CUI to CUI).  The UMLS Concept provides an anchor for the various vocabularies and ontologies.  The user can "walk" backbone of the graph in a vocabulary agnostic manner and/or branch off into specific voabularies.
 
-The HuBMAP Ontology API consists of four pieces:
-* Code to load UMLS and ontologies into Neo4j
-* Neo4j graph containing UMLS plus other ontologies
-* Web service interface into the Neo4j graph ***coming soon***
-* Docker containers for the web service and graph ***coming soon***
-
+There are three pieces/containers here:
+* The neo4j server that contains the onthology which is build with .csv files on startup. The .csv files are not stored in the git repo because some are covered by licenses. The .csv files will be deleted when the server is built to save disk space on the server.
+* Constraints need to be added to the data in the neo4j database, but that can only be done after it is up and running. The neo4j-constraints container will wait for the neo4j server to start to take commands and then run a batch of constraints to 'fixup' the databse making it ready to be used.
+* The server container is a RESTful API server that is created by the 'build-serer.sh' script from the 'ontology-x.x.x.yml' OpenAPI specification file. There is an additional 'server/openapi_server/controllers/neo4j_manager.py' that is used to define neo4j queries that are used by the endpoints in a one-to-one manner. From this YAML file it is also possible to create clients for the server that can be included in programs acessing the serer.
 
 ## Deployment Instructions
 
-### Current Deployment
-REQUIREMENTS: MySQL 14.14 and Neo4j 4.1.4 
+* Create an 'import' directory under the 'neo4j' that contains the CSV files that should be imported into the neo4j database by the 'neo4j-admin' program in the Docker file.
+* Run the file 'docker-compose build --no-cache' which will create the three containers described above.
+* After the containers are built, run 'docker-compose up' to start all three containers. When the 'neo4j-constraints' container has finished the database will have been build.
 
-The executable code in src/neo4j_loader/load_csv_data.py is directed by a file called app.cfg:
+## Use it Instructions
 
-* UMLS_SOURCE_DIR the directory containing the source UMLS source CSV files
-* PHEKNOWLATER_SOURCE_DIR the directory containing the PheKnowLator tab-delimited files (the UBERON and Cell Ontology sources)
-* TABLE_CREATE_SQL_FILEPATH the filepath to the file used to create the tables in mysql (ontology-api/src/neo4j_loader/sql/table_create.sql)
-* INDEX_CREATE_SQL_FILEPATH the filepath to the file used to create indices in mysql (ontology-api/src/neo4j_loader/sql/add_index.sql)
-* OUTPUT_DIR the directory where the updated CSV files will be created.
-* MySQL and Neo4j settings
-
-To run the code, comment out the extract(config), transform(config), and load(config) depending on what piece you wish to run.
-* extract(config) this takes the data from UMLS_SOURCE_DIR and PHEKNOWLATER_SOURCE_DIR and loads it into the MySQL database.  This takes a long period of time to run (approx. 2-3 hours).
-* transform(config) this merges the UMLS data, UBERON, and Cell Ontoloogy into a new set of MySQL tables
-* load(config) this dumps the MySQL data into a new set of CSV files for loading into Neo4j
-
-The /ontology-api/src/neo4j_loader/reload_neo4j_data.sh script helps load a Neo4j graph with the data from the OUTPUT_DIR.
+* The URL 'http://<<host>>:8080/ui/' will render an interface from which the OPEN

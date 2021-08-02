@@ -15,4 +15,5 @@ There are three pieces/containers here:
 
 ## Use it Instructions
 
-* The URL 'http://<<host>>:8080/ui/' will render an interface from which the OPEN
+* The URL 'http://<<host>>:8080/ui/' will render an interface from which the OPENapi endpoints can be viewed and tested.
+* 

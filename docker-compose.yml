@@ -1,0 +1,67 @@
+version: '3.8'
+# https://docs.docker.com/compose/compose-file/compose-file-v3/
+
+services:
+  neo4j:
+    container_name: neo4j
+    build: neo4j
+    restart: unless-stopped
+    ports:
+      - 7474:7474
+      - 7687:7687
+    volumes:
+      - neo4j-data:/data
+    healthcheck:
+      # https://docs.docker.com/engine/reference/builder/#healthcheck
+      test: ["CMD", "curl", "--fail", "http://localhost:7474/", "||", "exit 1"]
+      # test: curl --fail -s http://localhost:7474/ || exit 1
+      # test: perl -MIO::Socket::INET -e 'exit(! defined( IO::Socket::INET->new("localhost:7687")))'
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+    # Allow the JVM to read cgroup limits
+    # -XX:+UseContainerSupport is enabled by default on linux machines,
+    # this feature was introduced in java10 then backported to Java-8u191, the base image comes with OpenJDK(build 1.8.0_232-b09)
+    # -XX:MaxRAMPercentage (double) is depending on the max memory limit assigned to the contaienr
+    # When the container has > 1G memory, set -XX:MaxRAMPercentage=75.0 is good (doesn't waste too many resources)
+    environment:
+      - _JAVA_OPTIONS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    networks:
+      - neo4j-network
+
+  neo4j-constraints:
+    container_name: neo4j-constraints
+    build: neo4j-constraints
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    networks:
+      - neo4j-network
+    depends_on:
+      - neo4j
+
+  onthology:
+    container_name: onthology_server
+    build: server
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    ports:
+      - 8080:8080
+    networks:
+      - neo4j-network
+    depends_on:
+      - neo4j-constraints
+
+volumes:
+  neo4j-data:
+
+networks:
+  neo4j-network:

@@ -1,0 +1,427 @@
+openapi: 3.0.3
+info:
+  title: Ontology API
+  description: This document describes the Ontology API
+  version: 0.0.1
+servers:
+  - url: http://localhost:8080
+paths:
+  /codes/{code_id}/codes:
+    get:
+      summary: Returns a list of {Concept, Code} dictionaries associated with the code_id
+      operationId: codes_code_id_codes_get
+      parameters:
+        - name: code_id
+          in: path
+          required: true
+          description: The code identifier
+          schema:
+            type: string
+            example: SNOMEDCT_US 254837009
+      responses:
+        '200':
+          description: A JSON array of {Concept, Code} dictionaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConceptCode'
+  /codes/{code_id}/concepts:
+    get:
+      operationId: codes_code_id_concepts_get
+      summary: Returns a list of {Concept, Prefterm} dictionaries associated with the code_id
+      parameters:
+        - name: code_id
+          in: path
+          required: true
+          description: The code identifier
+          schema:
+            type: string
+            example: SNOMEDCT_US 254837009
+      responses:
+        '200':
+          description: A JSON array of {Concept, Prefterm} dictionaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConceptDetail'
+  /codes/{code_id}/terms:
+    get:
+      operationId: codes_code_id_terms_get
+      summary: Returns a list of {TermType, Term} dictionaries associated with the code_id
+      parameters:
+        - name: code_id
+          in: path
+          required: true
+          description: The code identifier
+          schema:
+            type: string
+            example: SNOMEDCT_US 254837009
+      responses:
+        '200':
+          description: A JSON array of {Concept, Prefterm} dictionaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TermtypeTerm'
+  /concepts/{concept_id}/codes:
+    get:
+      operationId: concepts_concept_id_codes_get
+      summary: Returns a distinct list of codes associated with the concept_id
+      parameters:
+        - name: concept_id
+          in: path
+          required: true
+          description: The concept identifier
+          schema:
+            type: string
+            example: C0678222
+      responses:
+        '200':
+          description: A JSON array of codes associated with the concept
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  example: CHV 0000052645
+  /concepts/{concept_id}/concepts:
+    get:
+      operationId: concepts_concept_id_concepts_get
+      summary: Returns a list of {Sab, Relationship, Concept, Prefterm} dictionaries associated with the concept_id
+      parameters:
+        - name: concept_id
+          in: path
+          required: true
+          description: The concept identifier
+          schema:
+            type: string
+            example: C0006142
+      responses:
+        '200':
+          description: A JSON array of {Sab, Relationship, Concept, Prefterm} dictionaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SabRelationshipConceptPrefterm'
+  /concepts/{concept_id}/definitions:
+    get:
+      operationId: concepts_concept_id_definitions_get
+      summary: Returns a list of {Sab, Definition} dictionaries associated with the concept_id
+      parameters:
+        - name: concept_id
+          in: path
+          required: true
+          description: The concept identifier
+          schema:
+            type: string
+            example: C0006142
+      responses:
+        '200':
+          description: A JSON array of {Sab, Relationship, Concept, Prefterm} dictionaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SabDefinition'
+  /concepts/{concept_id}/terms:
+    get:
+      operationId: concepts_concept_id_terms_get
+      summary: Returns a list of Terms associated with the concept_id
+      parameters:
+        - name: concept_id
+          in: path
+          required: true
+          description: The concept identifier
+          schema:
+            type: string
+            example: C0006142
+      responses:
+        '200':
+          description: A JSON array of terms associated with the concept
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  example: Breast Cancer
+  /concepts/{concept_id}/semantics:
+    get:
+      operationId: concepts_concept_id_semantics_get
+      summary: Returns a list of {Sty, Tui, Stn} dictionaries associated with the concept_id
+      parameters:
+        - name: concept_id
+          in: path
+          required: true
+          description: The concept identifier
+          schema:
+            type: string
+            example: C0304055
+      responses:
+        '200':
+          description: A JSON array of {Sty, Tui, Stn} dictionaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StyTuiStn'
+  /semantics/{semantic_id}/semantics:
+    get:
+      operationId: semantics_semantic_id_semantics_get
+      summary: Returns a list of {queryTUI, querySTN ,semantic, TUI_STN} dictionaries associated with the concept_id
+      parameters:
+        - name: semantic_id
+          in: path
+          required: true
+          description: The semantic identifier
+          schema:
+            type: string
+            example: Physical Object
+      responses:
+        '200':
+          description: A JSON array of {queryTUI, querySTN ,semantic, TUI_STN} dictionaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QQST'
+  /tui/{tui_id}/semantics:
+    get:
+      operationId: tui_tui_id_semantics_get
+      summary: Returns a list of {semantic, STN} dictionaries associated with the tui_id
+      parameters:
+        - name: tui_id
+          in: path
+          required: true
+          description: The TUI identifier
+          schema:
+            type: string
+            example: T200
+      responses:
+        '200':
+          description: A JSON array of {semantic, STN} dictionaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SemanticStn'
+  /terms/{term_id}/codes:
+    get:
+      operationId: terms_term_id_codes_get
+      summary: Returns a list of {TermType, Code} dictionaries associated with the term_id
+      parameters:
+        - name: term_id
+          in: path
+          required: true
+          description: The term identifier
+          schema:
+            type: string
+            example: Breast cancer
+      responses:
+        '200':
+          description: A JSON array of {TermType, Code} dictionaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TermtypeCode'
+  /terms/{term_id}/concepts:
+    get:
+      operationId: terms_term_id_concepts_get
+      summary: Returns a list of Terms associated with the concept_id
+      parameters:
+        - name: term_id
+          in: path
+          required: true
+          description: The term identifier
+          schema:
+            type: string
+            example: lidocaine 0.05 MG/MG Medicated Patch
+      responses:
+        '200':
+          description: A JSON array of concepts associated with the term
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  example: C0794811
+  /terms/{term_id}/concepts/terms:
+    get:
+      operationId: terms_term_id_concepts_terms_get
+      summary: Returns a list of {Concept, Term} dictionaries associated with the term_id
+      parameters:
+        - name: term_id
+          in: path
+          required: true
+          description: The term identifier
+          schema:
+            type: string
+            example: Breast cancer
+      responses:
+        '200':
+          description: A JSON array of {Concept, Term} dictionaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConceptTerm'
+  /codes/{code_id}/description:
+    get:
+      operationId: codes_code_id_description_get
+      summary: Returns a list of {SAB, Code, Term} dictionaries associated with the code_id
+      parameters:
+        - name: code_id
+          in: path
+          required: true
+          description: The code identifier
+          schema:
+            type: string
+            example: CCF UBERON_0013702
+      responses:
+        '200':
+          description: A JSON array of {SAB, Code, Term} dictionaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SabCodeTerm'
+components:
+  schemas:
+    ConceptDetail:    # Schema name
+      type: object
+      properties:
+        concept:
+          type: string
+          example: C0006142
+        perfterm:
+          type: string
+          example: Malignant neoplasm of breast
+    ConceptCode: # Schema name
+      type: object
+      properties:
+        concept:
+          type: string
+          example: C0006142
+        code:
+          type: string
+          example: CCS 2.5
+    TermtypeTerm: # Schema name
+      type: object
+      properties:
+        termtype:
+          type: string
+          example: FN
+        term:
+          type: string
+          example: Malignant neoplasm of breast (disorder)
+    SabRelationshipConceptPrefterm: # Schema name
+      type: object
+      properties:
+        sab:
+          type: string
+          example: ICD10AM
+        relationship:
+          type: string
+          example: CHD
+        concept:
+          type: string
+          example: C0006826
+        perfterm:
+          type: string
+          example: Malignant Neoplasms
+    SabDefinition: # Schema name
+      type: object
+      properties:
+        sab:
+          type: string
+          example: NCI
+        definition:
+          type: string
+          example: A primary or metastatic malignant neoplasm involving the breast. The vast majority of cases are carcinomas arising from the breast parenchyma or the nipple. Malignant breast neoplasms occur more frequently in females than in males.
+    StyTuiStn: # Schema name
+      type: object
+      properties:
+        sty:
+          type: string
+          example: Organic Chemical
+        tui:
+          type: string
+          example: T109
+        stn:
+          type: string
+          example: A1.4.1.2.1
+    QQST: # Schema name
+      type: object
+      properties:
+        queryTUI:
+          type: string
+          example: T072
+        querySTN:
+          type: string
+          example: A1
+        semantic:
+          type: string
+          example: Entity
+        TUI:
+          type: string
+          example: T071
+        STN:
+          type: string
+          example: A
+    SemanticStn: # Schema name
+      type: object
+      properties:
+        semantic:
+          type: string
+          example: Entity
+        STN:
+          type: string
+          example: A
+    TermtypeCode: # Schema name
+      type: object
+      properties:
+        termtype:
+          type: string
+          example: LA
+        code:
+          type: string
+          example: LNC LA14283-8
+    ConceptTerm: # Schema name
+      type: object
+      properties:
+        concept:
+          type: string
+          example: C0006826
+        term:
+          type: string
+          example: LNC LA14283-8
+    SabCodeTerm: # Schema name
+      type: object
+      properties:
+        SAB:
+          type: string
+          example: CCF
+        code:
+          type: string
+          example: UBERON_0000056
+        term:
+          type: string
+          example: Ureter

@@ -1,7 +1,7 @@
 FROM neo4j:4.2
 
 ENV USER=neo4j
-ENV PASSWD=password
+ENV PASSWD=HappyG0at
 # https://neo4j.com/docs/operations-manual/current/docker/introduction/#docker-overview
 ENV NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
 ENV NEO4J_AUTH=${USER}/${PASSWD}

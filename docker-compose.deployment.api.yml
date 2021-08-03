@@ -1,0 +1,21 @@
+version: '3.8'
+# https://docs.docker.com/compose/compose-file/compose-file-v3/
+
+services:
+  onthology:
+    hostname: onthology-api
+    container_name: onthology-api
+    build: server
+    # Avoid accidentally creating zombie processes
+    init: true
+    # Specifying a restart policy to avoid downtime
+    restart: always
+    ports:
+      - 8080:8080
+    networks:
+      - gateway_hubmap
+
+networks:
+  # This is the network created by gateway to enable communicaton between multiple docker-compose projects
+  gateway_hubmap:
+    external: true

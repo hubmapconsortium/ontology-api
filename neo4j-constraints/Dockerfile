@@ -2,7 +2,7 @@ FROM neo4j:4.2
 
 ENV USER=neo4j
 ENV PASSWD=HappyG0at
-ENV BOLT_URL=bolt://ontology-neo4j:7687
+ENV BOLT_URL=bolt://ontology-neo4j:7688
 
 ENV IMPORT=/usr/src/neo4j/import
 RUN mkdir -p ${IMPORT}

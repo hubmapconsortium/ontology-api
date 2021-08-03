@@ -47,7 +47,7 @@ services:
     networks:
       - ontology-neo4j-network
     depends_on:
-      - neo4j
+      - ontology-neo4j
 
 volumes:
   neo4j-data:

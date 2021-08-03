@@ -2,9 +2,9 @@ version: '3.7'
 # https://docs.docker.com/compose/compose-file/compose-file-v3/
 
 services:
-  neo4j:
-    hostname: onthology-neo4j
-    container_name: onthology-neo4j
+  ontology-neo4j:
+    hostname: ontology-neo4j
+    container_name: ontology-neo4j
     build: neo4j
     # Avoid accidentally creating zombie processes
     init: true

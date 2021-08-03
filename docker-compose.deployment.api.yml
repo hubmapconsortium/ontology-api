@@ -2,7 +2,7 @@ version: '3.7'
 # https://docs.docker.com/compose/compose-file/compose-file-v3/
 
 services:
-  onthology:
+  ontology-api:
     hostname: onthology-api
     container_name: onthology-api
     build: server

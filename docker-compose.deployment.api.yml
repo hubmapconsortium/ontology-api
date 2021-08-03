@@ -3,8 +3,8 @@ version: '3.7'
 
 services:
   ontology-api:
-    hostname: onthology-api
-    container_name: onthology-api
+    hostname: ontology-api
+    container_name: ontology-api
     build: server
     # Avoid accidentally creating zombie processes
     init: true

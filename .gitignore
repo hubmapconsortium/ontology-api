@@ -4,4 +4,4 @@ venv/
 **/*.bak
 \#*\#
 **~
-neo4j/import
+neo4j/import*

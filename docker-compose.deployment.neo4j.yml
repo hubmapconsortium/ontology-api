@@ -13,16 +13,22 @@ services:
     ports:
       - 7477:7474
       - 7688:7687
-    volumes:
-      - neo4j-data:/data
     healthcheck:
       # https://docs.docker.com/engine/reference/builder/#healthcheck
-      test: ["CMD", "curl", "--fail", "http://localhost:7474/", "||", "exit 1"]
+      test: ["CMD", "curl", "--fail", "http://localhost:7474/"]
       # test: curl --fail -s http://localhost:7474/ || exit 1
       # test: perl -MIO::Socket::INET -e 'exit(! defined( IO::Socket::INET->new("localhost:7687")))'
       interval: 10s
       timeout: 10s
       retries: 10
+    volumes:
+      # Mount the neo4j configuration file to container
+      - "./neo4j/neo4j.conf:/usr/src/app/neo4j/conf/neo4j.conf"
+      # Mount the data to container
+      - "./neo4j/data:/usr/src/app/neo4j/data"
+    # By default this `deploy` key only takes effect when deploying to a swarm with docker stack deploy, and is ignored by docker-compose up
+    # However, we can use the `--compatibility` flag within `docker-compose --compatibility up`
+    # The `--compatibility` flag will attempt to convert deploy keys in docker-compose v3 to their non-Swarm equivalent
     deploy:
       resources:
         limits:
@@ -48,9 +54,6 @@ services:
       - ontology-neo4j-network
     depends_on:
       - ontology-neo4j
-
-volumes:
-  neo4j-data:
 
 networks:
   ontology-neo4j-network:

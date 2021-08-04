@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:/bin/java::")
+
 USER=$1
 PASSWD=$2
 BOLT_URL=$3

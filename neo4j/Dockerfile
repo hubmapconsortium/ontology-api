@@ -20,4 +20,7 @@ RUN neo4j-admin import --nodes=Semantic="${IMPORT}/TUIs.csv" --nodes=Concept="${
 
 RUN rm -rf ${IMPORT}
 
+# For healthcheck in docker-compose.yml
+RUN apt-get update && apt-get install -y curl
+
 CMD [ "neo4j" ]

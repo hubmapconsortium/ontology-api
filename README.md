@@ -29,8 +29,19 @@ docker-compose -f docker-compose.deployment.neo4j.yml up -d
 
 ### Deploy ontology-api
 
+First need to configure `ontology-api/server/openapi_server/resources/app.properties` with the correct neo4j connection information, in order to connect to the `ontology-neo4j` container running on another VM.
+
 On the VM where the `ontology-api` service will be running:
 
 ````
 docker-compose -f docker-compose.deployment.api.yml up -d
+````
+
+## Data persistence
+
+The ontology data is being mounted from the `ontology-neo4j` container to the host VM using named volume: `ontology-neo4j-data`, which is defiened in the `docker-compose.deployment.neo4j.yml`. 
+
+To locate the mountpoint on the host file system, run:
+````
+docker volume inspect ontology-api_ontology-neo4j-data
 ````

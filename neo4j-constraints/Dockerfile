@@ -1,20 +1,14 @@
 FROM hubmap/neo4j-image:4.2.5
 
-ENV USER=neo4j
-ENV PASSWD=HappyG0at
+WORKDIR /usr/src/app
 
-# ontology-neo4j is the container's hostname
-ENV BOLT_URL=bolt://ontology-neo4j:7687
+# Copy files from host to image
+COPY . .
 
-ENV IMPORT=/usr/src/app/neo4j/import
-
-COPY load_constraints.sh ${IMPORT}
-RUN chmod +x ${IMPORT}/load_constraints.sh
-COPY set_constraints.cypher ${IMPORT}
+# Make the script executable
+RUN chmod +x load_constraints.sh
 
 # Export the path for running cypher-shell in load_constraints.sh
 ENV PATH=/usr/src/app/neo4j/bin:$PATH
 
-RUN echo $PATH
-
-CMD ${IMPORT}/load_constraints.sh ${USER} ${PASSWD} ${BOLT_URL} ${IMPORT}
+CMD ["./load_constraints.sh"]

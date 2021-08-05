@@ -6,8 +6,6 @@ venv/
 **~
 neo4j/import*
 
-# Ignore the mounted data
-neo4j/data/*
+# log files in any path
+**/*.log
 
-# Keep the empty README.md to preserve the data directory in github
-!neo4j/data/README.md

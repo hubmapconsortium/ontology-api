@@ -1,0 +1,72 @@
+version: '3.7'
+# https://docs.docker.com/compose/compose-file/compose-file-v3/
+
+services:
+  ontology-neo4j:
+    hostname: ontology-neo4j
+    container_name: ontology-neo4j
+    build: neo4j
+    environment:
+      # Used for setting the initial neo4j password, defaut to HappyG0at
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-HappyG0at}
+      # Allow the JVM to read cgroup limits
+      # -XX:+UseContainerSupport is enabled by default on linux machines,
+      # this feature was introduced in java10 then backported to Java-8u191, the base image comes with OpenJDK(build 1.8.0_232-b09)
+      # -XX:MaxRAMPercentage (double) is depending on the max memory limit assigned to the contaienr
+      # When the container has > 1G memory, set -XX:MaxRAMPercentage=75.0 is good (doesn't waste too many resources)
+      - _JAVA_OPTIONS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    # Avoid accidentally creating zombie processes
+    init: true
+    # Specifying a restart policy to avoid downtime
+    restart: always
+    ports:
+      - 7477:7474
+      - 7688:7687
+    healthcheck:
+      # https://docs.docker.com/engine/reference/builder/#healthcheck
+      test: ["CMD", "curl", "--fail", "http://localhost:7474/"]
+      # test: curl --fail -s http://localhost:7474/ || exit 1
+      # test: perl -MIO::Socket::INET -e 'exit(! defined( IO::Socket::INET->new("localhost:7687")))'
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    volumes:
+      # Mount the neo4j configuration file to container
+      - "./neo4j/neo4j.conf:/usr/src/app/neo4j/conf/neo4j.conf"
+      # Logging mount
+      - "./neo4j/logs:/usr/src/app/neo4j/logs"
+      # Data mount using named voulme
+      - ontology-neo4j-data:/usr/src/app/neo4j/data
+    # By default this `deploy` key only takes effect when deploying to a swarm with docker stack deploy, and is ignored by docker-compose up
+    # However, we can use the `--compatibility` flag within `docker-compose --compatibility up`
+    # The `--compatibility` flag will attempt to convert deploy keys in docker-compose v3 to their non-Swarm equivalent
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+    networks:
+      - ontology-neo4j-network
+
+  neo4j-constraints:
+    container_name: neo4j-constraints
+    build: neo4j-constraints
+    environment:
+      # Used for connecting to ontology-neo4j contaienr, defaut to HappyG0at
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-HappyG0at}
+      # Used for connecting to ontology-neo4j contaienr, defaut to bolt://ontology-neo4j:7687
+      - NEO4J_URI=${NEO4J_URI:-bolt://ontology-neo4j:7687}
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    networks:
+      - ontology-neo4j-network
+    depends_on:
+      - ontology-neo4j
+
+# Named volume
+volumes:
+  ontology-neo4j-data:
+
+networks:
+  ontology-neo4j-network:

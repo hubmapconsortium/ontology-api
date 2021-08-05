@@ -4,4 +4,8 @@ venv/
 **/*.bak
 \#*\#
 **~
-neo4j/import
+neo4j/import*
+
+# log files in any path
+**/*.log
+

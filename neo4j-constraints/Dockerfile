@@ -1,14 +1,14 @@
-FROM neo4j:4.2
+FROM hubmap/neo4j-image:4.2.5
 
-ENV USER=neo4j
-ENV PASSWD=password
-ENV BOLT_URL=bolt://neo4j:7687
+WORKDIR /usr/src/app
 
-ENV IMPORT=/usr/src/neo4j/import
-RUN mkdir -p ${IMPORT}
+# Copy files from host to image
+COPY . .
 
-COPY load_constraints.sh ${IMPORT}
-RUN chmod +x ${IMPORT}/load_constraints.sh
-COPY set_constraints.cypher ${IMPORT}
+# Make the script executable
+RUN chmod +x load_constraints.sh
 
-CMD ${IMPORT}/load_constraints.sh ${USER} ${PASSWD} ${BOLT_URL} ${IMPORT}
+# Export the path for running cypher-shell in load_constraints.sh
+ENV PATH=/usr/src/app/neo4j/bin:$PATH
+
+CMD ["./load_constraints.sh"]

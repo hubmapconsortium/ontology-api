@@ -1,4 +1,5 @@
 .idea
+.DS_Store
 server.bak/
 venv/
 **/*.bak
@@ -9,7 +10,7 @@ neo4j/data/
 scripts/builds/logs/*.log
 scripts/resources/
 scripts/pkt_kg/
-scripts/owlnets_output
+scripts/owlnets_output**
 scripts/venv
 scripts/.python-version
 

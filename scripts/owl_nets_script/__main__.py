@@ -19,7 +19,7 @@ from tqdm import tqdm
 # Python 3.9.5
 # $ pip install -r requirements.txt
 # $ brew install wget
-# $ ./owl_nets_script/__main__.py
+# $ time ./owl_nets_script/__main__.py
 
 
 def file_from_uri(uri: str) -> str:
@@ -39,13 +39,25 @@ def download_to_resources(uri: str):
     path = full_path(file)
     open(path, 'wb').write(r.content)
 
-
 # Use the simpler one first....
 uberon_owl_url = 'http://purl.obolibrary.org/obo/uberon.owl'
 # Use this data (the extended version)...
 uberon_ext_owl_url = 'http://purl.obolibrary.org/obo/uberon/ext.owl'
 
-uri = uberon_owl_url
+# http://www.obofoundry.org/ontology/cl.html
+# Complete ontology, plus inter-ontology axioms, and imports modules
+cl_owl_url = 'http://purl.obolibrary.org/obo/cl.owl'
+
+# http://www.obofoundry.org/ontology/chebi.html
+chebl_owl_url = 'http://purl.obolibrary.org/obo/chebi.owl'
+
+# http://www.obofoundry.org/ontology/pr.html
+pro_owl_url = 'http://purl.obolibrary.org/obo/pr.owl'
+
+# http://www.obofoundry.org/ontology/pato.html
+pato_owl_url = 'http://purl.obolibrary.org/obo/pato.owl'
+
+uri = uberon_ext_owl_url
 
 # Both of these directories are found in the .gitignore file...
 working_dir = './owlnets_output'

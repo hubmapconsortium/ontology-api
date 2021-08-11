@@ -5,6 +5,12 @@ venv/
 \#*\#
 **~
 neo4j/import*
+neo4j/data/
+scripts/resources/
+scripts/pkt_kg/
+scripts/owlnets_output
+scripts/venv
+scripts/.python-version
 
 # log files in any path
 **/*.log

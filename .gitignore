@@ -6,6 +6,7 @@ venv/
 **~
 neo4j/import*
 neo4j/data/
+scripts/builds/logs/*.log
 scripts/resources/
 scripts/pkt_kg/
 scripts/owlnets_output

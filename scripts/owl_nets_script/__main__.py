@@ -10,12 +10,16 @@ from rdflib import Graph, Namespace, URIRef, BNode, Literal
 from rdflib.namespace import OWL, RDF, RDFS
 from tqdm import tqdm
 
+# Setup and running the script...
+#
+# $ cd scripts
 # $ python3 -m venv venv
 # $ source venv/bin/activate
 # $ python --version
 # Python 3.9.5
 # $ pip install -r requirements.txt
 # $ brew install wget
+# $ ./owl_nets_script/__main__.py
 
 
 def file_from_uri(uri: str) -> str:
@@ -43,6 +47,7 @@ uberon_ext_owl_url = 'http://purl.obolibrary.org/obo/uberon/ext.owl'
 
 uri = uberon_owl_url
 
+# Both of these directories are found in the .gitignore file...
 working_dir = './owlnets_output'
 owltools_location = './pkt_kg/libs'
 

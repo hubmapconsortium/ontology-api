@@ -9,6 +9,10 @@ import re
 from rdflib import Graph, Namespace, URIRef, BNode, Literal
 from rdflib.namespace import OWL, RDF, RDFS
 from tqdm import tqdm
+import glob
+import logging.config
+import time
+from datetime import timedelta
 
 # Setup and running the script...
 #
@@ -21,6 +25,9 @@ from tqdm import tqdm
 # $ brew install wget
 # $ time ./owl_nets_script/__main__.py
 
+log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
+logger = logging.getLogger(__name__)
+logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
 def file_from_uri(uri: str) -> str:
     if uri.find('/'):
@@ -39,10 +46,14 @@ def download_to_resources(uri: str):
     path = full_path(file)
     open(path, 'wb').write(r.content)
 
+# This should get relationships and inverses and the RO code where we want the name...
+# http://www.obofoundry.org/ontology/ro.html
+ro_url = 'http://purl.obolibrary.org/obo/ro.owl'
+
 # Use the simpler one first....
 uberon_owl_url = 'http://purl.obolibrary.org/obo/uberon.owl'
 # Use this data (the extended version)...
-uberon_ext_owl_url = 'http://purl.obolibrary.org/obo/uberon/ext.owl'
+# uberon_ext_owl_url = 'http://purl.obolibrary.org/obo/uberon/ext.owl'
 
 # http://www.obofoundry.org/ontology/cl.html
 # Complete ontology, plus inter-ontology axioms, and imports modules
@@ -57,49 +68,57 @@ pro_owl_url = 'http://purl.obolibrary.org/obo/pr.owl'
 # http://www.obofoundry.org/ontology/pato.html
 pato_owl_url = 'http://purl.obolibrary.org/obo/pato.owl'
 
-uri = uberon_ext_owl_url
+uri = uberon_owl_url
 
 # Both of these directories are found in the .gitignore file...
-working_dir = './owlnets_output'
+base_working_dir = './owlnets_output'
 owltools_location = './pkt_kg/libs'
 
 
+# Code taken from:
 # https://github.com/callahantiff/PheKnowLator/blob/master/notebooks/OWLNETS_Example_Application.ipynb
 
 
 def download_owltools(loc: str):
-    # move into pkt_kg/libs/ directory
-    cwd = os.getcwd()
-    os.system(f'mkdir -p {loc}')
-    os.chdir(loc)
+    cmd = os.system(f'ls {loc}/owltools')
+    if os.WEXITSTATUS(cmd) != 0:
+        logger.info('Download owltools and update permissions')
+        # move into pkt_kg/libs/ directory
+        cwd = os.getcwd()
+        os.system(f'mkdir -p {loc}')
+        os.chdir(loc)
 
-    os.system('wget https://github.com/callahantiff/PheKnowLator/raw/master/pkt_kg/libs/owltools')
-    os.system('chmod +x owltools')
+        os.system('wget https://github.com/callahantiff/PheKnowLator/raw/master/pkt_kg/libs/owltools')
+        os.system('chmod +x owltools')
 
-    # move back to the working directory
-    os.chdir(cwd)
+        # move back to the working directory
+        os.chdir(cwd)
 
 
-print('Download owltools and update permissions...')
+start_time = time.time()
+logger.info("Processing '%s'", uri)
+
 download_owltools(owltools_location)
 
-print('Make sure working directory exists...')
+working_file = file_from_uri(uri)
+working_dir = base_working_dir + os.path.sep + working_file.rsplit('.', 1)[0]
+logger.info("Make sure working directory '%s' exists", working_dir)
 os.system(f'mkdir -p {working_dir}')
 
 # cpus
 cpus = psutil.cpu_count(logical=True)
 
-print('Loading ontology...')
+logger.info('Loading ontology')
 graph = Graph().parse(uri, format='xml')
 
-print('Extract Node Metadata...')
+logger.info('Extract Node Metadata')
 ont_classes = pkt.utils.gets_ontology_classes(graph)
 ont_labels = {str(x[0]): str(x[2]) for x in list(graph.triples((None, RDFS.label, None)))}
 ont_synonyms = pkt.utils.gets_ontology_class_synonyms(graph)
 ont_dbxrefs = pkt.utils.gets_ontology_class_dbxrefs(graph)
 ont_objects = pkt.utils.gets_object_properties(graph)
 
-print('Add the class metadata to the master metadata dictionary...')
+logger.info('Add the class metadata to the master metadata dictionary')
 entity_metadata = {'nodes': {}, 'relations': {}}
 for cls in tqdm(ont_classes):
     # get class metadata - synonyms and dbxrefs
@@ -120,7 +139,7 @@ for cls in tqdm(ont_classes):
         'namespace': namespace
     }
 
-print('Add the object metadata to the master metadata dictionary...')
+logger.info('Add the object metadata to the master metadata dictionary')
 for obj in tqdm(ont_objects):
     # get object label
     label_hits = list(graph.objects(obj, RDFS.label))
@@ -138,29 +157,29 @@ for obj in tqdm(ont_objects):
     # update dict
     entity_metadata['relations'][str(obj)] = {'label': label, 'namespace': namespace}
 
-print('Add RDF:type and RDFS:subclassOf...')
+logger.info('Add RDF:type and RDFS:subclassOf')
 entity_metadata['relations']['http://www.w3.org/2000/01/rdf-schema#subClassOf'] = {'label': 'subClassOf', 'namespace': 'www.w3.org'}
 entity_metadata['relations']['https://www.w3.org/1999/02/22-rdf-syntax-ns#type'] = {'label': 'type', 'namespace': 'www.w3.org'}
 
-print('Stats for original graph before running OWL-NETS...')
+logger.info('Stats for original graph before running OWL-NETS')
 pkt.utils.derives_graph_statistics(graph)
 
-print('Initialize owlnets class...')
+logger.info('Initialize owlnets class')
 owlnets = pkt.OwlNets(graph=graph,
                       write_location=working_dir + '/',
                       filename=file_from_uri(uri),
                       kg_construct_approach=None,
                       owl_tools=owltools_location + '/owltools')
 
-print('Remove disjointness...')
+logger.info('Remove disjointness')
 owlnets.removes_disjoint_with_axioms()
 
-print('Remove triples used only to support semantics...')
+logger.info('Remove triples used only to support semantics')
 cleaned_graph = owlnets.removes_edges_with_owl_semantics()
 filtered_triple_count = len(owlnets.owl_nets_dict['filtered_triples'])
-print('removed {} triples that were not biologically meaninginful'.format(filtered_triple_count))
+logger.info('removed {} triples that were not biologically meaninginful'.format(filtered_triple_count))
 
-print('Gather list of owl:class and owl:axiom entities...')
+logger.info('Gather list of owl:class and owl:axiom entities')
 owl_classes = list(pkt.utils.gets_ontology_classes(owlnets.graph))
 owl_axioms = []
 for x in tqdm(set(owlnets.graph.subjects(RDF.type, OWL.Axiom))):
@@ -170,16 +189,16 @@ for x in tqdm(set(owlnets.graph.subjects(RDF.type, OWL.Axiom))):
     elif (OWL.Class in src and len(tgt) == 0) or (OWL.Class in tgt and len(src) == 0): owl_axioms += [x]
     else: pass
 node_list = list(set(owl_classes) | set(owl_axioms))
-print('There are:\n-{} OWL:Class objects\n-{} OWL:Axiom Objects'. format(len(owl_classes), len(owl_axioms)))
+logger.info('There are:\n-{} OWL:Class objects\n-{} OWL:Axiom Objects'. format(len(owl_classes), len(owl_axioms)))
 
-print('Decode owl semantics...')
+logger.info('Decode owl semantics')
 decoded_graph = owlnets.cleans_owl_encoded_entities(node_list)
 decoded_graph = owlnets.gets_owlnets_graph()
 
-print('Update graph to get all cleaned egdes...')
+logger.info('Update graph to get all cleaned edges')
 owlnets.graph = cleaned_graph + decoded_graph
 
-print('Owlnets results...')
+logger.info('Owlnets results')
 str1 = 'Decoded {} owl-encoded classes and axioms. Note the following:\nPartially processed {} cardinality ' \
                'elements\nRemoved {} owl:disjointWith axioms\nIgnored:\n  -{} misc classes;\n  -{} classes constructed with ' \
                'owl:complementOf;\n  -{} classes containing negation (e.g. pr#lacks_part, cl#has_not_completed)\n' \
@@ -194,18 +213,18 @@ print('=' * 80 + '\n' + stats_str + '\n' + '=' * 80)
 # common_ancestor = 'http://purl.obolibrary.org/obo/BFO_0000001'
 # owlnets.graph = owlnets.makes_graph_connected(owlnets.graph, common_ancestor)
 
-print('Save and write owl-nets results...')
+logger.info('Save and write owl-nets results')
 owlnets.write_location = working_dir
 owlnets.write_out_results(owlnets.graph)
 
-print('Writing edge list...')
+logger.info('Writing edge list')
 edge_list_filename = working_dir + '/' + 'OWLNETS_edgelist.txt'
 with open(edge_list_filename, 'w') as out:
     out.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
     for row in tqdm(owlnets.graph):
         out.write(str(row[0]) + '\t' + str(row[1]) + '\t' + str(row[2]) + '\n')
 
-print('Writing node metadata...')
+logger.info('Writing node metadata')
 node_metadata_filename = working_dir + '/' + 'OWLNETS_node_metadata.txt'
 
 # get all unique nodes in OWL-NETS graph
@@ -222,7 +241,7 @@ with open(node_metadata_filename, 'w') as out:
             dbxrefs = entity_metadata['nodes'][x]['dbxrefs']
             out.write(x + '\t' + namespace + '\t' + labels + '\t' + synonyms + '\t' + dbxrefs + '\n')
 
-print('Writing relation metadata...')
+logger.info('Writing relation metadata')
 relation_filename = working_dir + '/' + 'OWLNETS_relations.txt'
 
 # get all unique nodes in OWL-NETS graph
@@ -239,4 +258,5 @@ with open(relation_filename, 'w') as out:
 # https://docs.python.org/3/library/pdb.html
 # import pdb; pdb.set_trace()
 
-print('done')
+elapsed_time = time.time() - start_time
+logger.info('Done! Elapsed time %s', "{:0>8}".format(str(timedelta(seconds=elapsed_time))))

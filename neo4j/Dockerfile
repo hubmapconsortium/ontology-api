@@ -19,7 +19,7 @@ WORKDIR /usr/src/app/neo4j/bin
 
 # Import the CSV files into the ontology database using --database
 # The default database is neo4j if no --database being used
-RUN ./neo4j-admin import --verbose --database=ontology --nodes=Semantic="${IMPORT}/TUIs.csv" --nodes=Concept="${IMPORT}/CUIs.csv" --nodes=Code="${IMPORT}/CODEs.csv" --nodes=Term="${IMPORT}/SUIs.csv" --nodes=Definition="${IMPORT}/DEFs.csv" --nodes=NDC="${IMPORT}/NDCs.csv" --relationships=ISA_STY="${IMPORT}/TUIrel.csv" --relationships=STY="${IMPORT}/CUI-TUIs.csv" --relationships="${IMPORT}/CUI-CUIs.csv" --relationships=CODE="${IMPORT}/CUI-CODEs.csv" --relationships="${IMPORT}/CODE-SUIs.csv" --relationships=PREF_TERM="${IMPORT}/CUI-SUIs.csv" --relationships=DEF="${IMPORT}/DEFrel.csv" --relationships=NDC="${IMPORT}/NDCrel.csv" --skip-bad-relationships --skip-duplicate-nodes
+RUN ./neo4j-admin import --verbose --database=ontology --nodes=Semantic="${IMPORT}/TUIs.csv" --nodes=Concept="${IMPORT}/CUIs.csv" --nodes=Code="${IMPORT}/CODEs.csv" --nodes=Term="${IMPORT}/SUIs.csv" --nodes=Definition="${IMPORT}/DEFs.csv" --relationships=ISA_STY="${IMPORT}/TUIrel.csv" --relationships=STY="${IMPORT}/CUI-TUIs.csv" --relationships="${IMPORT}/CUI-CUIs.csv" --relationships=CODE="${IMPORT}/CUI-CODEs.csv" --relationships="${IMPORT}/CODE-SUIs.csv" --relationships=PREF_TERM="${IMPORT}/CUI-SUIs.csv" --relationships=DEF="${IMPORT}/DEFrel.csv" --skip-bad-relationships --skip-duplicate-nodes
 
 # - Install curl
 # - Make the start script executable

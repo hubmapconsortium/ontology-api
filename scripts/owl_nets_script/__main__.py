@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-import requests
-
 import os
 import pkt_kg as pkt
 import psutil
@@ -29,31 +27,15 @@ log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/log
 logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
-def file_from_uri(uri: str) -> str:
-    if uri.find('/'):
-        return uri.rsplit('/', 1)[1]
-
-
-def full_path(file: str) -> str:
-    return f"../resources/{file}"
-
-
-def download_to_resources(uri: str):
-    # https://www.codementor.io/@aviaryan/downloading-files-from-urls-in-python-77q3bs0un
-    print(f"Downloading: {uri} to resources")
-    r = requests.get(uri, allow_redirects=True)
-    file = file_from_uri(uri)
-    path = full_path(file)
-    open(path, 'wb').write(r.content)
-
-# This should get relationships and inverses and the RO code where we want the name...
-# http://www.obofoundry.org/ontology/ro.html
-ro_url = 'http://purl.obolibrary.org/obo/ro.owl'
-
+# https://uberon.github.io/downloads.html
 # Use the simpler one first....
 uberon_owl_url = 'http://purl.obolibrary.org/obo/uberon.owl'
 # Use this data (the extended version)...
 # uberon_ext_owl_url = 'http://purl.obolibrary.org/obo/uberon/ext.owl'
+
+# This should get relationships and inverses and the RO code where we want the name...
+# http://www.obofoundry.org/ontology/ro.html
+ro_url = 'http://purl.obolibrary.org/obo/ro.owl'
 
 # http://www.obofoundry.org/ontology/cl.html
 # Complete ontology, plus inter-ontology axioms, and imports modules
@@ -77,6 +59,11 @@ owltools_location = './pkt_kg/libs'
 
 # Code taken from:
 # https://github.com/callahantiff/PheKnowLator/blob/master/notebooks/OWLNETS_Example_Application.ipynb
+
+
+def file_from_uri(uri: str) -> str:
+    if uri.find('/'):
+        return uri.rsplit('/', 1)[1]
 
 
 def download_owltools(loc: str):
@@ -254,9 +241,6 @@ with open(relation_filename, 'w') as out:
         namespace = entity_metadata['relations'][x]['namespace']
         labels = entity_metadata['relations'][x]['label']
         out.write(x + '\t' + namespace + '\t' + labels + '\n')
-
-# https://docs.python.org/3/library/pdb.html
-# import pdb; pdb.set_trace()
 
 elapsed_time = time.time() - start_time
 logger.info('Done! Elapsed time %s', "{:0>8}".format(str(timedelta(seconds=elapsed_time))))

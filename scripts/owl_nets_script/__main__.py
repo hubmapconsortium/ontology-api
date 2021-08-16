@@ -31,7 +31,7 @@ logging.config.fileConfig(log_config[0], disable_existing_loggers=False, default
 # Use the simpler one first....
 uberon_owl_url = 'http://purl.obolibrary.org/obo/uberon.owl'
 # Use this data (the extended version)...
-# uberon_ext_owl_url = 'http://purl.obolibrary.org/obo/uberon/ext.owl'
+uberon_ext_owl_url = 'http://purl.obolibrary.org/obo/uberon/ext.owl'
 
 # This should get relationships and inverses and the RO code where we want the name...
 # http://www.obofoundry.org/ontology/ro.html
@@ -50,7 +50,7 @@ pro_owl_url = 'http://purl.obolibrary.org/obo/pr.owl'
 # http://www.obofoundry.org/ontology/pato.html
 pato_owl_url = 'http://purl.obolibrary.org/obo/pato.owl'
 
-uri = uberon_owl_url
+uri = uberon_ext_owl_url
 
 # Both of these directories are found in the .gitignore file...
 base_working_dir = './owlnets_output'
@@ -61,9 +61,9 @@ owltools_location = './pkt_kg/libs'
 # https://github.com/callahantiff/PheKnowLator/blob/master/notebooks/OWLNETS_Example_Application.ipynb
 
 
-def file_from_uri(uri: str) -> str:
-    if uri.find('/'):
-        return uri.rsplit('/', 1)[1]
+def file_from_uri(uri_str: str) -> str:
+    if uri_str.find('/'):
+        return uri_str.rsplit('/', 1)[1]
 
 
 def download_owltools(loc: str):

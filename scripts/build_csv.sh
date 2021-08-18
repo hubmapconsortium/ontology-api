@@ -36,7 +36,7 @@ OBI_OWL_URL='http://purl.obolibrary.org/obo/obi.owl'
 
 CCF_OWL_URL='https://ccf-ontology.hubmapconsortium.org/ccf.owl'
 
-OWL_URLS=($UBERON_OWL_URL $CL_OWL_URL $CHEBL_OWL_URL $PRO_OWL_URL $PATO_OWL_URL $DOID_OWL_URL $OBI_OWL_URL $CCF_OWL_URL)
+OWL_URLS=("$UBERON_OWL_URL" "$CL_OWL_URL" "$CHEBL_OWL_URL" "$PRO_OWL_URL" "$PATO_OWL_URL" "$DOID_OWL_URL" "$OBI_OWL_URL" "$CCF_OWL_URL")
 
 usage() {
   cat << EOF
@@ -55,7 +55,7 @@ VERBOSE=0
 VALIDATION=1
 URL=
 # https://wiki.bash-hackers.org/howto/getopts_tutorial
-while getopts "h?dvu:" opt; do
+while getopts "h?dvu:s" opt; do
   case "$opt" in
     h|\?)
       usage
@@ -110,7 +110,7 @@ if [[ -n $URL ]] ; then
     exit $?
 fi
 
-for url in ${OWL_URLS[*]}; do
+for url in ${OWL_URLS[*]} ; do
     echo "*** Running $OWL_NETS_SCRIPT"
     $OWL_NETS_SCRIPT "$url"
     if [[ $VALIDATION -eq 1 ]] ; then

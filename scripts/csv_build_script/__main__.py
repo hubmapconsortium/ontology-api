@@ -45,9 +45,9 @@ working_dir = base_working_dir + os.path.sep + working_file.rsplit('.', 1)[0]
 # .nt file is probably the same content as
 # Concentrate: edgeslist.txt, node_metadata.txt, relations.txt, and .pkl file
 # in RDF (OWL files) everything is a tripple (edgelist and edge file
-gpickle_file = find_file_with_ext(working_dir, '.gpickle')
+pkl_file = find_file_with_ext(working_dir, '.pkl')
 start_time = time.time()
-logger.info("Processing '%s'", gpickle_file[0])
+logger.info("Processing '%s'", pkl_file[0])
 
 # https://docs.python.org/3/library/pickle.html
 df = pd.read_pickle(pkl_file[0])

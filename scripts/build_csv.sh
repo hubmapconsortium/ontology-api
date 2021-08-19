@@ -19,7 +19,7 @@ UBERON_OWL_URL='http://purl.obolibrary.org/obo/uberon.owl'
 # http://www.obofoundry.org/ontology/ro.html
 # RO_URL = 'http://purl.obolibrary.org/obo/ro.owl'
 
-# Elapsed time 0:02:47.911526
+# Elapsed time 0:02:55.045686
 # http://www.obofoundry.org/ontology/cl.html
 # Complete ontology, plus inter-ontology axioms, and imports modules
 CL_OWL_URL='http://purl.obolibrary.org/obo/cl.owl'
@@ -43,6 +43,7 @@ DOID_OWL_URL='http://purl.obolibrary.org/obo/doid.owl'
 OBI_OWL_URL='http://purl.obolibrary.org/obo/obi.owl'
 
 # Elapsed time 0:00:09.053144
+# Note: currently has just AS (using ccf_part_of as the relationship), but could be a start.
 CCF_OWL_URL='https://ccf-ontology.hubmapconsortium.org/ccf.owl'
 
 OWL_URLS=("$UBERON_OWL_URL" "$CL_OWL_URL" "$CHEBL_OWL_URL" "$PATO_OWL_URL" "$DOID_OWL_URL" "$OBI_OWL_URL" "$CCF_OWL_URL")

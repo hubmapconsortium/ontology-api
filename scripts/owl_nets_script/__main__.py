@@ -25,10 +25,13 @@ from datetime import timedelta
 # Python 3.9.5
 # $ pip install -r requirements.txt
 # $ brew install wget
-# $ time ./owl_nets_script/__main__.py
+# $ ./owl_nets_script/__main__.py owl_url
 
+# https://docs.python.org/3/howto/argparse.html
 parser = argparse.ArgumentParser(description='Run PheKnowLator on OWL file')
 parser.add_argument('owl_url', type=str, help='url for the OWL file to process')
+parser.add_argument("-c", "--clean", action="store_true",
+                    help='clean the owlnets_output directory of previous output files before run')
 args = parser.parse_args()
 
 log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
@@ -80,6 +83,15 @@ working_file = file_from_uri(uri)
 working_dir = base_working_dir + os.path.sep + working_file.rsplit('.', 1)[0]
 logger.info("Make sure working directory '%s' exists", working_dir)
 os.system(f"mkdir -p {working_dir}")
+
+if args.clean is True:
+    logger.info(f"Deleting files in working directory {working_dir} because of --clean option")
+    os.system(f"cd {working_dir}; rm -f *")
+    working_dir_file_list = os.listdir(working_dir)
+    if len(working_dir_file_list) == 0:
+        logger.info(f"Working directory {working_dir} is empty")
+    else:
+        logger.error(f"Working directory {working_dir} is NOT empty")
 
 # cpus
 cpus = psutil.cpu_count(logical=True)

@@ -3,23 +3,28 @@
 # A POSIX variable
 OPTIND=1         # Reset in case getopts has been used previously in the shell.
 
-OWL_NETS_SCRIPT='./owl_nets_script/__main__.py'
+OWL_NETS_SCRIPT='./owl_nets_script/__main__.py -c '
 VALIDATION_SCRIPT='./blackbox_validation/__main__.py'
 
+# All 'Elapsed time' on a Mac Book Pro (32Gb, 2.6 GHz 6-Core Intel Core i7)
+
+# Elapsed time 0:08:03.189532
 # https://uberon.github.io/downloads.html
-# Use the simpler one first....
+# This one contain data without references....
 UBERON_OWL_URL='http://purl.obolibrary.org/obo/uberon.owl'
-# Use this data (the extended version)...
-UBERON_EXT_OWL_URL='http://purl.obolibrary.org/obo/uberon/ext.owl'
+# This one needs processing (see https://robot.obolibrary.org/merge ) to include references...
+# UBERON_EXT_OWL_URL='http://purl.obolibrary.org/obo/uberon/ext.owl'
 
 # This should get relationships and inverses and the RO code where we want the name...
 # http://www.obofoundry.org/ontology/ro.html
-# ro_url = 'http://purl.obolibrary.org/obo/ro.owl'
+# RO_URL = 'http://purl.obolibrary.org/obo/ro.owl'
 
+# Elapsed time 0:02:47.911526
 # http://www.obofoundry.org/ontology/cl.html
 # Complete ontology, plus inter-ontology axioms, and imports modules
 CL_OWL_URL='http://purl.obolibrary.org/obo/cl.owl'
 
+# Elapsed time 17:23:51.998208
 # http://www.obofoundry.org/ontology/chebi.html
 CHEBL_OWL_URL='http://purl.obolibrary.org/obo/chebi.owl'
 
@@ -27,16 +32,20 @@ CHEBL_OWL_URL='http://purl.obolibrary.org/obo/chebi.owl'
 # http://www.obofoundry.org/ontology/pr.html
 PRO_OWL_URL='http://purl.obolibrary.org/obo/pr.owl'
 
+# Elapsed time 0:00:38.827207
 # http://www.obofoundry.org/ontology/pato.html
 PATO_OWL_URL='http://purl.obolibrary.org/obo/pato.owl'
 
+# Elapsed time 0:02:44.425941
 DOID_OWL_URL='http://purl.obolibrary.org/obo/doid.owl'
 
+# Elapsed time 0:00:14.051567
 OBI_OWL_URL='http://purl.obolibrary.org/obo/obi.owl'
 
+# Elapsed time 0:00:09.053144
 CCF_OWL_URL='https://ccf-ontology.hubmapconsortium.org/ccf.owl'
 
-OWL_URLS=("$UBERON_OWL_URL" "$CL_OWL_URL" "$CHEBL_OWL_URL" "$PRO_OWL_URL" "$PATO_OWL_URL" "$DOID_OWL_URL" "$OBI_OWL_URL" "$CCF_OWL_URL")
+OWL_URLS=("$UBERON_OWL_URL" "$CL_OWL_URL" "$CHEBL_OWL_URL" "$PATO_OWL_URL" "$DOID_OWL_URL" "$OBI_OWL_URL" "$CCF_OWL_URL")
 
 usage() {
   cat << EOF
@@ -105,15 +114,15 @@ else
 fi
 
 if [[ -n $URL ]] ; then
-    $OWL_NETS_SCRIPT "$URL"
+    $OWL_NETS_SCRIPT $URL
     status=$?
     exit $?
 fi
 
 for url in ${OWL_URLS[*]} ; do
     echo "*** Running $OWL_NETS_SCRIPT"
-    $OWL_NETS_SCRIPT "$url"
+    $OWL_NETS_SCRIPT $url
     if [[ $VALIDATION -eq 1 ]] ; then
-        $VALIDATION_SCRIPT
+        "$VALIDATION_SCRIPT"
     fi
 done

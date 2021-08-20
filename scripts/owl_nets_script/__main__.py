@@ -27,11 +27,26 @@ from datetime import timedelta
 # $ brew install wget
 # $ ./owl_nets_script/__main__.py owl_url
 
+
+class RawTextArgumentDefaultsHelpFormatter(
+    argparse.ArgumentDefaultsHelpFormatter,
+    argparse.RawTextHelpFormatter
+):
+    pass
+
+
 # https://docs.python.org/3/howto/argparse.html
-parser = argparse.ArgumentParser(description='Run PheKnowLator on OWL file')
-parser.add_argument('owl_url', type=str, help='url for the OWL file to process')
+parser = argparse.ArgumentParser(description='Run PheKnowLator on OWL file.\n'
+                                             'In general you should not have the change any of the optional arguments',
+                                 formatter_class=RawTextArgumentDefaultsHelpFormatter)
+parser.add_argument('owl_url', type=str,
+                    help='url for the OWL file to process.')
 parser.add_argument("-c", "--clean", action="store_true",
                     help='clean the owlnets_output directory of previous output files before run')
+parser.add_argument("-l", "--owlnets", action="store_true", default='./owlnets_output',
+                    help='directory containing the owlnets files')
+parser.add_argument("-t", "--owltools", action="store_true", default='./pkt_kg/libs',
+                    help='directory where the owltools executable is downloaded to')
 args = parser.parse_args()
 
 log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
@@ -39,12 +54,12 @@ logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
 uri = args.owl_url
+# Both of these directories are found in the .gitignore file...
+base_working_dir = args.owlnets
+owltools_location = args.owltools
+
 print(f"Processing '{uri}'")
 logger.info(f"Processing '{uri}'")
-
-# Both of these directories are found in the .gitignore file...
-base_working_dir = './owlnets_output'
-owltools_location = './pkt_kg/libs'
 
 
 def file_from_uri(uri_str: str) -> str:

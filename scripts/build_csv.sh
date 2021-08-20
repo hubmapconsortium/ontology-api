@@ -124,6 +124,6 @@ for url in ${OWL_URLS[*]} ; do
     echo "*** Running $OWL_NETS_SCRIPT"
     $OWL_NETS_SCRIPT $url
     if [[ $VALIDATION -eq 1 ]] ; then
-        "$VALIDATION_SCRIPT"
+        $VALIDATION_SCRIPT $url
     fi
 done

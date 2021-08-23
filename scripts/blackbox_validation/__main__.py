@@ -41,8 +41,9 @@ logging.config.fileConfig(log_config[0], disable_existing_loggers=False, default
 
 
 def scan_owl_xml_for_imports(url: str) -> list:
-    opener: urllib.OpenerDirector = urllib.request.build_opener()
-    tree: etree.ElementTree = etree.parse(opener.open(url))
+    # opener: urllib.OpenerDirector = urllib.request.build_opener()
+    # tree: etree.ElementTree = etree.parse(opener.open(url))
+    tree: etree.ElementTree = etree.parse(url)
     # https://docs.python.org/3/library/xml.etree.elementtree.html#parsing-xml-with-namespaces
     imports: list = tree.findall('owl:Ontology/owl:imports', namespaces={'owl': 'http://www.w3.org/2002/07/owl#'})
     resources: list = []
@@ -60,9 +61,9 @@ logger.info(f"Processing '{uri}'")
 graph = Graph().parse(uri, format='xml')
 imports: list = scan_owl_xml_for_imports(uri)
 if len(imports) != 0:
-    logger.info(f"found the following imports: {', '.join(imports)}")
+    logger.info(f"Found the following imports: {', '.join(imports)}")
 else:
-    logger.info("no imports were found")
+    logger.info("No imports were found")
 
 
 # Add log entry for how long it took to do the processing...

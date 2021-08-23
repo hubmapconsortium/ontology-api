@@ -13,6 +13,7 @@ scripts/pkt_kg/
 scripts/owlnets_output**
 scripts/venv
 scripts/.python-version
+scripts/robot
 
 # log files in any path
 **/*.log

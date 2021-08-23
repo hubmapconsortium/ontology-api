@@ -5,13 +5,14 @@ import os
 import pkt_kg as pkt
 import psutil
 import re
-from rdflib import Graph, Namespace, URIRef, BNode, Literal
+from rdflib import Graph
 from rdflib.namespace import OWL, RDF, RDFS
 from tqdm import tqdm
 import glob
 import logging.config
 import time
 from datetime import timedelta
+from typing import Dict
 
 # Code taken from:
 # https://github.com/callahantiff/PheKnowLator/blob/master/notebooks/OWLNETS_Example_Application.ipynb
@@ -47,6 +48,8 @@ parser.add_argument("-l", "--owlnets", action="store_true", default='./owlnets_o
                     help='directory containing the owlnets files')
 parser.add_argument("-t", "--owltools", action="store_true", default='./pkt_kg/libs',
                     help='directory where the owltools executable is downloaded to')
+parser.add_argument("-r", "--robot", action="store_true",
+                    help='apply robot to owl_url incorporating the includes and exit')
 args = parser.parse_args()
 
 log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
@@ -67,8 +70,17 @@ def file_from_uri(uri_str: str) -> str:
         return uri_str.rsplit('/', 1)[1]
 
 
+def file_from_path(path_str: str) -> str:
+    i = path_str.rfind(os.sep)
+    if i > 0 & i < len(path_str)-1:
+        return path_str[i+1:]
+    return None
+
+
 def download_owltools(loc: str):
-    cmd = os.system(f"ls {loc}/owltools")
+    owl_tools_url = 'https://github.com/callahantiff/PheKnowLator/raw/master/pkt_kg/libs/owltools'
+
+    cmd = os.system(f"ls {loc}{os.sep}owltools")
     if os.WEXITSTATUS(cmd) != 0:
         logger.info('Download owltools and update permissions')
         # move into pkt_kg/libs/ directory
@@ -76,7 +88,7 @@ def download_owltools(loc: str):
         os.system(f"mkdir -p {loc}")
         os.chdir(loc)
 
-        os.system('wget https://github.com/callahantiff/PheKnowLator/raw/master/pkt_kg/libs/owltools')
+        os.system(f'wget {owl_tools_url}')
         os.system('chmod +x owltools')
 
         # move back to the working directory
@@ -90,12 +102,55 @@ def log_files_and_sizes(dir: str) -> None:
         logger.info(f"Generated file '{fp}' size {size:,}")
 
 
+def robot_merge(owl_url: str) -> None:
+    loc = f'.{os.sep}robot'
+    robot_jar = 'https://github.com/ontodev/robot/releases/download/v1.8.1/robot.jar'
+    robot_sh = 'https://raw.githubusercontent.com/ontodev/robot/master/bin/robot'
+
+    if 'JAVA_HOME' not in os.environ:
+        print('The environment variable JAVA_HOME must be set and point to a valid JDK')
+        exit(1)
+    java_home: str = os.getenv('JAVA_HOME')
+    jdk: str = file_from_path(java_home)
+    if not re.match(r'^jdk-.*\.jdk$', jdk):
+        print(f'Environment variable JAVA_HOME={java_home} does not appear to point to a valid JDK?')
+        exit(1)
+
+    cwd = os.getcwd()
+    os.system(f"mkdir -p {loc}")
+    os.chdir(loc)
+
+    if not os.path.exists(file_from_uri(robot_jar)):
+        os.system(f"wget {robot_jar}")
+
+    robot: str = file_from_uri(robot_sh)
+    if not os.path.exists(robot):
+        os.system(f"wget {robot_sh}")
+        os.system(f"chmod +x {robot}")
+
+    owl_file: str = file_from_uri(owl_url)
+    if not os.path.exists(owl_file):
+        os.system(f"wget {owl_url}")
+
+    # https://robot.obolibrary.org/merge
+    os.system(f".{os.sep}robot merge --input .{os.sep}{owl_file} --output .{os.sep}{owl_file}.merge")
+
+    # move back to the working directory
+    os.chdir(cwd)
+
+
 start_time = time.time()
+
+if args.robot is True:
+    robot_merge(uri)
+    elapsed_time = time.time() - start_time
+    logger.info('Done! Elapsed time %s', "{:0>8}".format(str(timedelta(seconds=elapsed_time))))
+    exit(0)
 
 download_owltools(owltools_location)
 
-working_file = file_from_uri(uri)
-working_dir = base_working_dir + os.path.sep + working_file.rsplit('.', 1)[0]
+working_file: str = file_from_uri(uri)
+working_dir: str = base_working_dir + os.path.sep + working_file.rsplit('.', 1)[0]
 logger.info("Make sure working directory '%s' exists", working_dir)
 os.system(f"mkdir -p {working_dir}")
 
@@ -171,7 +226,7 @@ pkt.utils.derives_graph_statistics(graph)
 
 logger.info('Initialize owlnets class')
 owlnets = pkt.OwlNets(graph=graph,
-                      write_location=working_dir + '/',
+                      write_location=working_dir + os.sep,
                       filename=file_from_uri(uri),
                       kg_construct_approach=None,
                       owl_tools=owltools_location + '/owltools')
@@ -200,8 +255,8 @@ node_list = list(set(owl_classes) | set(owl_axioms))
 logger.info('There are:\n-{} OWL:Class objects\n-{} OWL:Axiom Objects'. format(len(owl_classes), len(owl_axioms)))
 
 logger.info('Decode owl semantics')
-decoded_graph = owlnets.cleans_owl_encoded_entities(node_list)
-decoded_graph = owlnets.gets_owlnets_graph()
+owlnets.cleans_owl_encoded_entities(node_list)
+decoded_graph: Dict = owlnets.gets_owlnets_graph()
 
 logger.info('Update graph to get all cleaned edges')
 owlnets.graph = cleaned_graph + decoded_graph
@@ -225,7 +280,7 @@ logger.info(f"Writing owl-nets results files to directory '{working_dir}'")
 owlnets.write_location = working_dir
 owlnets.write_out_results(owlnets.graph)
 
-edge_list_filename = working_dir + '/' + 'OWLNETS_edgelist.txt'
+edge_list_filename: str = working_dir + os.sep + 'OWLNETS_edgelist.txt'
 logger.info(f"Write edge list results to '{edge_list_filename}'")
 with open(edge_list_filename, 'w') as out:
     out.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
@@ -235,7 +290,7 @@ with open(edge_list_filename, 'w') as out:
 logger.info('Get all unique nodes in OWL-NETS graph')
 nodes = set([x for y in [[str(x[0]), str(x[2])] for x in owlnets.graph] for x in y])
 
-node_metadata_filename = working_dir + '/' + 'OWLNETS_node_metadata.txt'
+node_metadata_filename: str = working_dir + os.sep + 'OWLNETS_node_metadata.txt'
 logger.info(f"Write node metadata results to '{node_metadata_filename}'")
 with open(node_metadata_filename, 'w') as out:
     out.write('node_id' + '\t' + 'node_namespace' + '\t' + 'node_label' + '\t' + 'node_synonyms' + '\t' + 'node_dbxrefs' + '\n')
@@ -250,7 +305,7 @@ with open(node_metadata_filename, 'w') as out:
 logger.info('Get all unique nodes in OWL-NETS graph')
 relations = set([str(x[1]) for x in owlnets.graph])
 
-relation_filename = working_dir + '/' + 'OWLNETS_relations.txt'
+relation_filename: str = working_dir + os.sep + 'OWLNETS_relations.txt'
 logger.info(f"Writing relation metadata results to '{relation_filename}'")
 with open(relation_filename, 'w') as out:
     out.write('relation_id' + '\t' + 'relation_namespace' + '\t' + 'relation_label' + '\n')

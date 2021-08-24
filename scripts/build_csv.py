@@ -183,7 +183,6 @@ def lines_in_csv_files(path: str, save_path: str) -> None:
             logger.info(f"Lines in files: {fp} {lines_fp}; {fp_save} {lines_fp_save}; difference: {lines_fp-lines_fp_save}")
 
 
-
 for owl_url in OWL_URLS:
     print(f"Processing OWL file: {owl_url}")
     if args.skipPheKnowLator is not True:
@@ -197,6 +196,8 @@ for owl_url in OWL_URLS:
     working_file: str = file_from_uri(owl_url)
     working_owlnets_dir: str = base_owlnets_dir + os.path.sep + working_file.rsplit('.', 1)[0]
     os.system(f"{UMLS_GRAPH_SCRIPT} {working_owlnets_dir} {csvs_dir}")
+    # Here’s some specific guidance - the following should have numbers and the rest zero:
+    # CODEs, SUIs, CUIs, CUI-CUIs, CUI-CODEs, CUI-SUIs, CODE-SUIs
     lines_in_csv_files(csvs_dir, save_csv_dir)
 
 

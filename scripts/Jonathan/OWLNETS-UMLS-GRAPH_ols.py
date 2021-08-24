@@ -9,20 +9,20 @@
 
 # In[1]:
 
-
 import sys
 import pandas as pd 
 import numpy as np
 import base64
 import json
 
-pd.set_option('display.max_colwidth', None)
-
 import os
 def owlnets_path(file: str) -> str:
     return os.path.join(sys.argv[1], file)
 def csv_path(file: str) -> str:
     return os.path.join(sys.argv[2], file)
+
+pd.set_option('display.max_colwidth', None)
+
 
 # ### Ingest OWLNETS output files
 
@@ -183,7 +183,7 @@ del CODE_CUIss
 del node_metadata[':END_ID']
 
 
-# ### Add column for Xref's CUIs - merge exploded_node_metadata with CUI-CODEs then group and merge with node_metadata
+# ### Add column for Xref's CUIs - merge exploded_node_metadata with CUI_CODEs then group and merge with node_metadata
 
 # In[14]:
 
@@ -436,51 +436,52 @@ newCODE_SUIs.to_csv(csv_path('CODE-SUIs.csv'), mode='a', header=False, index=Fal
 # newCODE_SUIs.tail()
 
 
-# #### Write SUIs (SUI:ID,name) part 2, from synonyms - with existence check
-
-# In[28]:
-
-
-# explode the synonyms, remove NaN, and join with original SUIs plus SUIs1out
-explode_syns = node_metadata.explode('node_synonyms')[['node_id','node_synonyms','CUI']]
-explode_syns.dropna(inplace=True)
-SUIs = pd.concat([SUIs,SUIs1out], axis=0).reset_index(drop=True)
-newSUIs = explode_syns.merge(SUIs, how='left', left_on='node_synonyms', right_on='name')[['node_id','node_synonyms','CUI','SUI:ID','name']]
-
-for index, rows in newSUIs.iterrows():
-    if (rows['name'] != rows['node_synonyms']):
-        rows['SUI:ID'] = base64it(rows['node_synonyms'])[0]
-        
-# change field names
-newSUIs.columns = ['node_id','name','CUI','SUI:ID','OLDname']
-        
-# Select for NaN in name
-SUIs2out = newSUIs.loc[newSUIs['OLDname'].isnull()][['SUI:ID','name']]
-SUIs2out.reset_index(drop=True, inplace=True)
-
-# write out - commented out during development
-SUIs2out.to_csv(csv_path('SUIs.csv'), mode='a', header=False, index=False)
-
-# del newSUIs
-# del SUIs2out
-
-# SUIs2out.tail()
-
-
-# #### Write CODE-SUIs (:END_ID,:START_ID,:TYPE,CUI) part 2, from synonyms
-
-# In[29]:
-
-
-newCODE_SUIs = newSUIs[['SUI:ID','node_id','CUI']].copy()
-newCODE_SUIs.insert(2, ':TYPE', 'SY')
-newCODE_SUIs.columns = [':END_ID',':START_ID',':TYPE','CUI']
-
-# write out newCODE_SUIs - commented out during development
-newCODE_SUIs.to_csv(csv_path('CODE-SUIs.csv'), mode='a', header=False, index=False)
-
-# del newCODE_SUIs
-
+# # #### Write SUIs (SUI:ID,name) part 2, from synonyms - with existence check
+#
+# # In[28]:
+#
+#
+# # explode the synonyms...
+# explode_syns = node_metadata.explode('node_synonyms')[['node_id','node_synonyms','CUI']]
+#
+# ## need to concat original SUIs plus prior newSUIs (write and reload or do in memory) before existence check because of possible new label = new synonym
+#
+# newSUIs = explode_syns.merge(SUIs, how='left', left_on='node_synonyms', right_on='name')[['node_id','node_synonyms','CUI','SUI:ID','name']]
+#
+# for index, rows in newSUIs.iterrows():
+#     if (rows['name'] != rows['node_synonyms']):
+#         rows['SUI:ID'] = base64it(rows['node_synonyms'])[0]
+#
+# # change field names
+# newSUIs.columns = ['node_id','name','CUI','SUI:ID','OLDname']
+#
+# # Select for NaN in name
+# SUIs2out = newSUIs.loc[newSUIs['OLDname'].isnull()][['SUI:ID','name']]
+# SUIs2out.reset_index(drop=True, inplace=True)
+#
+# # write out justnewSUIs - commented out during development
+# # SUIs2out.to_csv(csv_path('SUIs.csv'), mode='a', header=False, index=False)
+#
+# # del newSUIs
+# # del SUIs2out
+#
+# SUIs1out.tail()
+#
+#
+# # #### Write CODE-SUIs (:END_ID,:START_ID,:TYPE,CUI) part 2, from synonyms
+#
+# # In[ ]:
+#
+#
+# newCODE_SUIs = newSUIs[['SUI:ID','node_id','CUI']].copy()
+# newCODE_SUIs.insert(2, ':TYPE', 'SY')
+# newCODE_SUIs.columns = [':END_ID',':START_ID',':TYPE','CUI']
+#
+# # write out newCODE_SUIs - commented out during development
+# # newCODE_SUIs.to_csv(csv_path('CODE-SUIs.csv'), mode='a', header=False, index=False)
+#
+# # del newCODE_SUIs
+#
 # newCODE_SUIs.tail()
 
 

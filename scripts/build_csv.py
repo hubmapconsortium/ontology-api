@@ -7,6 +7,7 @@ import glob
 import logging.config
 import time
 import re
+import subprocess
 from datetime import timedelta
 
 OWLNETS_SCRIPT: str = './owlnets_script/__main__.py -c '
@@ -169,9 +170,7 @@ def copy_csv_files_to_save_dir(path: str, save_dir: str) -> str:
 
 
 def lines_in_file(path: str) -> int:
-    count = 0
-    for line in open(path).xreadlines(): count += 1
-    return count
+    return int(subprocess.check_output(f"/usr/bin/wc -l {path}", shell=True).split()[0])
 
 
 def lines_in_csv_files(path: str, save_path: str) -> None:
@@ -181,7 +180,8 @@ def lines_in_csv_files(path: str, save_path: str) -> None:
             lines_fp = lines_in_file(fp)
             fp_save: str = os.path.join(save_path, filename)
             lines_fp_save = lines_in_file(fp_save)
-            logger.info(f"Lines in files: {fp} {lines_fp}; {fp_save} {lines_fp_save}")
+            logger.info(f"Lines in files: {fp} {lines_fp}; {fp_save} {lines_fp_save}; difference: {lines_fp-lines_fp_save}")
+
 
 
 for owl_url in OWL_URLS:

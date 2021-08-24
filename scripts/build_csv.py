@@ -137,9 +137,7 @@ if args.verbose is True:
 if args.oneOwl is not None:
     OWL_URLS: list = [ args.oneOwl ]
 
-print(f"Processing OWL files: {', '.join(OWL_URLS)}")
-print('')
-
+logger.info(f"Processing OWL files: {', '.join(OWL_URLS)}")
 start_time = time.time()
 
 
@@ -159,14 +157,31 @@ def new_save_dir(path: str, save_dir: str) -> str:
     return new_path
 
 
-def copy_csv_files_to_save_dir(path: str, save_dir: str) -> None:
+def copy_csv_files_to_save_dir(path: str, save_dir: str) -> str:
     save_path: str = new_save_dir(path, save_dir)
     for filename in os.listdir(path):
         if re.match(f'^.*\.csv$', filename):
             fp_src: str = os.path.join(path, filename)
             fp_dst: str = os.path.join(save_path, filename)
             shutil.copyfile(fp_src, fp_dst)
-    print(f"Copied {len(os.listdir(save_path))} files from {path} to {save_path}")
+    logger.info(f"Copied {len(os.listdir(save_path))} files from {path} to {save_path}")
+    return save_path
+
+
+def lines_in_file(path: str) -> int:
+    count = 0
+    for line in open(path).xreadlines(): count += 1
+    return count
+
+
+def lines_in_csv_files(path: str, save_path: str) -> None:
+    for filename in os.listdir(path):
+        if re.match(f'^.*\.csv$', filename):
+            fp: str = os.path.join(path, filename)
+            lines_fp = lines_in_file(fp)
+            fp_save: str = os.path.join(save_path, filename)
+            lines_fp_save = lines_in_file(fp_save)
+            logger.info(f"Lines in files: {fp} {lines_fp}; {fp_save} {lines_fp_save}")
 
 
 for owl_url in OWL_URLS:
@@ -177,10 +192,12 @@ for owl_url in OWL_URLS:
     if args.skipValidation is not True:
         print(f"Running: {VALIDATION_SCRIPT} -o {csvs_dir} -l {base_owlnets_dir}")
         os.system(f"{VALIDATION_SCRIPT} -o {csvs_dir} -l {base_owlnets_dir}")
-    copy_csv_files_to_save_dir(csvs_dir, 'save')
+    save_csv_dir = copy_csv_files_to_save_dir(csvs_dir, 'save')
+    logger.info(f"Saving .csv files to directory: {save_csv_dir}")
     working_file: str = file_from_uri(owl_url)
     working_owlnets_dir: str = base_owlnets_dir + os.path.sep + working_file.rsplit('.', 1)[0]
     os.system(f"{UMLS_GRAPH_SCRIPT} {working_owlnets_dir} {csvs_dir}")
+    lines_in_csv_files(csvs_dir, save_csv_dir)
 
 
 # Add log entry for how long it took to do the processing...

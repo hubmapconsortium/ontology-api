@@ -432,7 +432,7 @@ newCODE_SUIs.insert(2, ':TYPE', 'PT')
 newCODE_SUIs.columns = [':END_ID',':START_ID',':TYPE','CUI']
 
 # write out newCODE_SUIs - commented out during development
-newCODE_SUIs.to_csv(csv_path('CODE_SUIs.csv'), mode='a', header=False, index=False)
+newCODE_SUIs.to_csv(csv_path('CODE-SUIs.csv'), mode='a', header=False, index=False)
 
 # del newCODE_SUIs
 

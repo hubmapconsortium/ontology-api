@@ -26,7 +26,7 @@ from typing import Dict
 # Python 3.9.5
 # $ pip install -r requirements.txt
 # $ brew install wget
-# $ ./owl_nets_script/__main__.py owl_url
+# $ ./owlnets_script/__main__.py owl_url
 
 
 class RawTextArgumentDefaultsHelpFormatter(

@@ -124,9 +124,12 @@ if args.verbose is True:
     print('Parameters:')
     if args.clean is True:
         print(" * Cleaning owlnets directory")
-    print(f" * Owlnets directory: {base_owlnets_dir}")
-    print(f" * Owltools directory: {owltools_dir}")
-    print(f" * Directory containing the UMLS Graph Extract .csv files to process: {csvs_dir}")
+    print(f" * Owlnets directory: {base_owlnets_dir} (exists: {os.path.isdir(base_owlnets_dir)})")
+    print(f" * Owltools directory: {owltools_dir} (exists: {os.path.isdir(owltools_dir)})")
+    csvs_dir_islink = False
+    if os.path.islink(csvs_dir) is True:
+        csvs_dir_islink = os.path.realpath(csvs_dir)
+    print(f" * Directory containing the UMLS Graph Extract .csv files to process: {csvs_dir} (exitst: {os.path.isdir(csvs_dir)}) (simlink: {csvs_dir_islink})")
     if args.skipPheKnowLator is True:
          print(f" * Skip PheKnowLator run")
     if args.oneOwl is not None:

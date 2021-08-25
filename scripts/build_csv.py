@@ -91,6 +91,8 @@ class RawTextArgumentDefaultsHelpFormatter(
 # https://docs.python.org/3/howto/argparse.html
 parser = argparse.ArgumentParser(description='Build .csv files from .owl files using PheKnowLator and Jonathan''s script',
                                  formatter_class=RawTextArgumentDefaultsHelpFormatter)
+parser.add_argument("-u", '--umls_csvs', type=str, default='../neo4j/import/current',
+                    help='the directory containing the UMLS Graph Extract .csv files modified by Jonathan''s script')
 parser.add_argument("-c", "--clean", action="store_true",
                     help='clean the owlnets_output directory of previous output files before run')
 parser.add_argument("-l", "--owlnets", action="store_true", default='./owlnets_output',
@@ -98,8 +100,6 @@ parser.add_argument("-l", "--owlnets", action="store_true", default='./owlnets_o
                          ' which is used by Jonathan''s script')
 parser.add_argument("-t", "--owltools", type=str, default='./pkt_kg/libs',
                     help='directory where the owltools executable is downloaded to')
-parser.add_argument("-C", "--csvs", type=str, default='../neo4j/import',
-                    help='directory where the .csv files modified by Jonathan''s script are located')
 parser.add_argument("-s", "--skipPheKnowLator", action="store_true",
                     help='assume that the PheKnowLator has been run and skip the run of it')
 parser.add_argument("-o", "--oneOwl", type=str, default=None,
@@ -117,7 +117,7 @@ logging.config.fileConfig(log_config[0], disable_existing_loggers=False, default
 
 # Both of these directories are found in the .gitignore file...
 base_owlnets_dir = args.owlnets
-csvs_dir = args.csvs
+csvs_dir = args.umls_csvs
 owltools_dir = args.owltools
 
 if args.verbose is True:
@@ -126,7 +126,7 @@ if args.verbose is True:
         print(" * Cleaning owlnets directory")
     print(f" * Owlnets directory: {base_owlnets_dir}")
     print(f" * Owltools directory: {owltools_dir}")
-    print(f" * Csvs directory: {csvs_dir}")
+    print(f" * Directory containing the UMLS Graph Extract .csv files to process: {csvs_dir}")
     if args.skipPheKnowLator is True:
          print(f" * Skip PheKnowLator run")
     if args.oneOwl is not None:
@@ -148,7 +148,7 @@ def file_from_uri(uri_str: str) -> str:
 
 
 def make_new_save_dir(path: str, save_dir: str) -> str:
-    max_version = -1
+    max_version = 0
     for filename in os.listdir(path):
         if re.match(f'^{save_dir}\.[0-9].*$', filename):
             current_version = int(filename.split('.', 1)[1])

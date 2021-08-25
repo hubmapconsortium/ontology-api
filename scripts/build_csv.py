@@ -147,19 +147,20 @@ def file_from_uri(uri_str: str) -> str:
         return uri_str.rsplit('/', 1)[1]
 
 
-def new_save_dir(path: str, save_dir: str) -> str:
-    save_dirs = []
+def make_new_save_dir(path: str, save_dir: str) -> str:
+    max_version = -1
     for filename in os.listdir(path):
         if re.match(f'^{save_dir}\.[0-9].*$', filename):
-            save_dirs.append(filename)
-    new_dir = f"{save_dir}.{len(save_dirs)+1}"
+            current_version = int(filename.split('.', 1)[1])
+            max_version = max(max_version, current_version)
+    new_dir = f"{save_dir}.{max_version+1}"
     new_path: str = os.path.join(path, new_dir)
     os.mkdir(new_path)
     return new_path
 
 
 def copy_csv_files_to_save_dir(path: str, save_dir: str) -> str:
-    save_path: str = new_save_dir(path, save_dir)
+    save_path: str = make_new_save_dir(path, save_dir)
     for filename in os.listdir(path):
         if re.match(f'^.*\.csv$', filename):
             fp_src: str = os.path.join(path, filename)

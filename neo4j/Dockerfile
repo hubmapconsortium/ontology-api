@@ -15,7 +15,8 @@ COPY start.sh .
 # NOTE: in the repository the 'import/' directory contains one of more directries which contain the UMLS Graph Extracts.
 # These change from time to time, and so the .csv files need to be augmented with other onthologies (see 'scipts/').
 # So, 'current/' is actually a sybolic link to the current UMLS directory (e.g., 'import/UMLS-Graph-Extracts-2021AA/').
-# Please remember to reset this symbolic link between versions or you will be building with the wrong files!!!
+# BIG NOTE: Nice idea, but Docker does not follow symbolic links, so you need to make the link to 'current/' a HARD one
+# (e.g., cd import; mv UMLS-Graph-Extracts-2021AA current).
 COPY import/current/*.csv ${IMPORT}/
 
 # Change directory

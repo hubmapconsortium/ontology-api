@@ -75,6 +75,9 @@ MI_OWL_URL: str = 'http://purl.obolibrary.org/obo/mi.owl'
 # https://www.ebi.ac.uk/sbo/main/
 SBO_OWL_URL: str = 'http://www.ebi.ac.uk/sbo/exports/Main/SBO_OWL.owl'
 
+# http://edamontology.org/page
+EDAN_OWL_URL: str = 'http://edamontology.org/EDAM.owl'
+
 # OWL_URLS: list = [UBERON_OWL_URL, CL_OWL_URL, CHEBI_OWL_URL, PATO_OWL_URL, DOID_OWL_URL, OBI_OWL_URL, CCF_OWL_URL]
 # More stuff....
 # OWL_URLS: list = [UBERON_OWL_URL, CL_OWL_URL, DOID_OWL_URL, OBI_OWL_URL, CCF_OWL_URL, CHEBI_OWL_URL]

@@ -32,7 +32,7 @@ with open(args.filename, "r") as file:
 
     # Add wrapper functions to include the directory as args to the python file
     pos = lines.index('import os')
-    lines[pos:pos] = [
+    lines[pos+1:pos+1] = [
         'def owlnets_path(file: str) -> str:',
         '    return os.path.join(sys.argv[1], file)',
         'def csv_path(file: str) -> str:',
@@ -41,11 +41,15 @@ with open(args.filename, "r") as file:
 
     # Add the wrapper to the input lines...
     for idx, line in enumerate(lines):
-        r_m = re.match(r'(.*pd.read_csv\()(\".*\.txt\")(.*)', line)
+        r_m = re.match(r'(.*pd.read_csv\()(\".*\.txt\")(, sep=\'\\t\'.*)', line)
         if r_m:
             lines[idx] = r_m[1] + 'owlnets_path(' + r_m[2] + ')' + r_m[3]
             continue
         w_m = re.match(r'(.*\.to_csv\()(\'.*\.csv\')(.*)', line)
+        if w_m:
+            lines[idx] = w_m[1] + 'csv_path(' + w_m[2] + ')' + w_m[3]
+            continue
+        w_m = re.match(r'(.*\.read_csv\()(\".*\.csv\")(.*)', line)
         if w_m:
             lines[idx] = w_m[1] + 'csv_path(' + w_m[2] + ')' + w_m[3]
             continue

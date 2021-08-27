@@ -11,18 +11,18 @@
 
 
 import sys
-import pandas as pd 
+import pandas as pd
 import numpy as np
 import base64
 import json
-
-pd.set_option('display.max_colwidth', None)
-
 import os
 def owlnets_path(file: str) -> str:
     return os.path.join(sys.argv[1], file)
 def csv_path(file: str) -> str:
     return os.path.join(sys.argv[2], file)
+
+pd.set_option('display.max_colwidth', None)
+
 
 # ### Ingest OWLNETS output files
 
@@ -30,21 +30,18 @@ def csv_path(file: str) -> str:
 
 
 node_metadata = pd.read_csv(owlnets_path("OWLNETS_node_metadata.txt"), sep='\t')
-# node_metadata.tail()
 
 
 # In[3]:
 
 
 relations = pd.read_csv(owlnets_path("OWLNETS_relations.txt"), sep='\t')
-# relations.tail()
 
 
 # In[4]:
 
 
 edgelist = pd.read_csv(owlnets_path("OWLNETS_edgelist.txt"), sep='\t')
-# edgelist.tail()
 
 
 # #### Delete self-referential edges in edgelist - CUI self-reference also avoided (later) by unique CUIs for node_ids
@@ -53,7 +50,6 @@ edgelist = pd.read_csv(owlnets_path("OWLNETS_edgelist.txt"), sep='\t')
 
 
 edgelist = edgelist[edgelist['subject'] != edgelist['object']].reset_index(drop=True)
-# edgelist.tail()
 
 
 # ### Put relation_label in edgelist, convert subClassOf to isa, convert_, CodeID
@@ -74,8 +70,6 @@ def codeReplacements(x):
 
 edgelist['subject'] = edgelist['subject'].apply(codeReplacements)
 edgelist['object'] = edgelist['object'].apply(codeReplacements)
-
-# edgelist.tail()
 
 
 # ### Add inverse_ edges
@@ -99,7 +93,6 @@ df['inverse'] = df['inverse'].str.replace(' ', '_').str.split('/').str[-1]
 if len(df[(df['inverse'] == 'part_of') | (df['lbl'] == 'part_of')]) == 0:
     df.loc[len(df.index)] = ['has_part', 'part_of']
     df.loc[len(df.index)] = ['part_of', 'has_part']
-df
 
 
 # #### Join the inverse_ relations to edge list (results in some unknowns)
@@ -110,7 +103,6 @@ df
 edgelist = edgelist.merge(df, how='left', left_on='relation_label', right_on='lbl')
 edgelist.drop(columns=['lbl'], inplace=True)
 del df
-# edgelist.tail()
 
 
 # #### Add unknown inverse_ edges
@@ -119,7 +111,6 @@ del df
 
 
 edgelist.loc[edgelist['inverse'].isnull(), 'inverse'] = 'inverse_' + edgelist['relation_label']
-# edgelist.tail()
 
 
 # ### Clean up node_metadata
@@ -145,8 +136,6 @@ node_metadata['node_dbxrefs'] = node_metadata['node_dbxrefs'].str.split('|')
 node_metadata['SAB'] = node_metadata['node_id'].str.split(' ').str[0]
 node_metadata['CODE'] = node_metadata['node_id'].str.split(' ').str[-1]
 del node_metadata['node_namespace']
-
-# node_metadata.tail()
 
 
 # ### Get the UMLS CUIs for each node_id as nodeCUIs
@@ -183,7 +172,7 @@ del CODE_CUIss
 del node_metadata[':END_ID']
 
 
-# ### Add column for Xref's CUIs - merge exploded_node_metadata with CUI-CODEs then group and merge with node_metadata
+# ### Add column for Xref's CUIs - merge exploded_node_metadata with CUI_CODEs then group and merge with node_metadata
 
 # In[14]:
 
@@ -199,7 +188,7 @@ del node_xref_cui
 del explode_dbxrefs
 
 
-# ### Add column for base64 CUIs 
+# ### Add column for base64 CUIs
 
 # In[15]:
 
@@ -221,12 +210,12 @@ node_metadata['CUI'] = node_metadata['base64cui']
 # iterate to join list across row
 for index, rows in node_metadata.iterrows():
     rows.cuis = [rows.nodeCUIs, rows.CUI_CODEs, rows.XrefCUIs, rows.base64cui]
-    
+
     # remove duplicates in row.cuis - can't use set because order of items matters
     res = []
     [res.append(x) for x in rows.cuis if x not in res]
     rows.cuis = res
-    
+
 # remove nan and flatten
 node_metadata['cuis'] = node_metadata['cuis'].apply(lambda x: [i for i in x if i == i])
 node_metadata['cuis'] = node_metadata['cuis'].apply(lambda x: [i for row in x for i in row])
@@ -243,8 +232,6 @@ for index, rows in node_metadata.iterrows():
             rows.CUI = x
             node_idCUIs.append(x)
             addedone = True
-
-# node_metadata.tail()
 
 
 # ### What SAB will relationships in this OWL be assigned to? The greatest number of node_ids by SAB. If not that, then we have OWL-import issues.
@@ -273,8 +260,6 @@ edgelist.columns = ['CUI1','relation_label','CUI2','inverse']
 
 edgelist['SAB'] = OWL_SAB
 
-# edgelist.tail()
-
 
 # ## Write out files
 
@@ -297,8 +282,6 @@ edgelist[[':START_ID', ':END_ID', ':TYPE', 'SAB']].to_csv(csv_path('CUI-CUIs.csv
 
 # del edgelist
 
-# edgelist.tail()
-
 
 # #### Write CODEs (CodeID:ID,SAB,CODE)
 
@@ -315,8 +298,6 @@ newcodes.to_csv(csv_path('CODEs.csv'), mode='a', header=False, index=False)
 
 # del newcodes
 
-# newcodes.tail()
-
 
 # #### Write CUIs (CUI:ID)
 
@@ -332,8 +313,6 @@ newCUIs = newCUIs.rename({'CUI': 'CUI:ID'}, axis=1).reset_index(drop=True)
 newCUIs.to_csv(csv_path('CUIs.csv'), mode='a', header=False, index=False)
 
 # del newCUIs
-
-# newCUIs.tail()
 
 
 # #### Write CUI-CODEs (:START_ID,:END_ID)
@@ -360,8 +339,6 @@ newCUI_CODEs.to_csv(csv_path('CUI-CODEs.csv'), mode='a', header=False, index=Fal
 
 # del newCUI_CODEs
 
-# newCUI_CODEs.tail()
-
 
 # #### Load SUIs from csv
 
@@ -372,7 +349,6 @@ SUIs = pd.read_csv(csv_path("SUIs.csv"))
 # SUIs supposedly unique but...
 # discovered 5 NaN names in SUIs.csv and dropped them - ASCII converstion on original UMLS-Graph-Extract??
 SUIs = SUIs.dropna().reset_index(drop=True)
-# SUIs.tail()
 
 
 # #### Write SUIs (SUI:ID,name) part 1, from label - with existence check
@@ -385,10 +361,10 @@ newSUIs = node_metadata.merge(SUIs, how='left', left_on='node_label', right_on='
 for index, rows in newSUIs.iterrows():
     if (rows['name'] != rows['node_label']):
         rows['SUI:ID'] = base64it(rows['node_label'])[0]
-        
+
 # change field names
 newSUIs.columns = ['node_id','name','base64cui','CUI','SUI:ID','OLDname']
-        
+
 # Select for NaN in name
 SUIs1out = newSUIs.loc[newSUIs['OLDname'].isnull()][['SUI:ID','name']]
 SUIs1out.reset_index(drop=True, inplace=True)
@@ -398,8 +374,6 @@ SUIs1out.to_csv(csv_path('SUIs.csv'), mode='a', header=False, index=False)
 
 # del newSUIs
 # del SUIs1out
-
-# SUIs1out.tail()
 
 
 # #### Write CUI-SUIs (:START_ID,:END_ID)
@@ -416,8 +390,6 @@ newCUI_SUIs.to_csv(csv_path('CUI-SUIs.csv'), mode='a', header=False, index=False
 
 # del newCUI_SUIs
 
-# newCUI_SUIs.tail()
-
 
 # #### Write CODE-SUIs (:END_ID,:START_ID,:TYPE,CUI) part 1, from label
 
@@ -433,12 +405,10 @@ newCODE_SUIs.to_csv(csv_path('CODE-SUIs.csv'), mode='a', header=False, index=Fal
 
 # del newCODE_SUIs
 
-# newCODE_SUIs.tail()
-
 
 # #### Write SUIs (SUI:ID,name) part 2, from synonyms - with existence check
 
-# In[28]:
+# In[27]:
 
 
 # explode the synonyms, remove NaN, and join with original SUIs plus SUIs1out
@@ -450,10 +420,10 @@ newSUIs = explode_syns.merge(SUIs, how='left', left_on='node_synonyms', right_on
 for index, rows in newSUIs.iterrows():
     if (rows['name'] != rows['node_synonyms']):
         rows['SUI:ID'] = base64it(rows['node_synonyms'])[0]
-        
+
 # change field names
 newSUIs.columns = ['node_id','name','CUI','SUI:ID','OLDname']
-        
+
 # Select for NaN in name
 SUIs2out = newSUIs.loc[newSUIs['OLDname'].isnull()][['SUI:ID','name']]
 SUIs2out.reset_index(drop=True, inplace=True)
@@ -464,12 +434,10 @@ SUIs2out.to_csv(csv_path('SUIs.csv'), mode='a', header=False, index=False)
 # del newSUIs
 # del SUIs2out
 
-# SUIs2out.tail()
-
 
 # #### Write CODE-SUIs (:END_ID,:START_ID,:TYPE,CUI) part 2, from synonyms
 
-# In[29]:
+# In[28]:
 
 
 newCODE_SUIs = newSUIs[['SUI:ID','node_id','CUI']].copy()
@@ -481,11 +449,7 @@ newCODE_SUIs.to_csv(csv_path('CODE-SUIs.csv'), mode='a', header=False, index=Fal
 
 # del newCODE_SUIs
 
-# newCODE_SUIs.tail()
-
 
 # ### Backlog items:
 # #### Definitions not yet available and needed from OWLNETS
 # #### CUI-Semantics is a post-neo4j-build activity - needs some refinement
-
-# #### Need to assess what occurs with commas in strings - does pd.to_csv and load into neo4j work together correctly?

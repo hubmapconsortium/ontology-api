@@ -16,9 +16,6 @@ from lxml import etree
 from urllib.request import urlopen
 from typing import Dict
 
-# Code taken from:
-# https://github.com/callahantiff/PheKnowLator/blob/master/notebooks/OWLNETS_Example_Application.ipynb
-
 # Setup and running the script...
 #
 # $ cd scripts
@@ -204,7 +201,10 @@ if args.clean is True:
     else:
         logger.error(f"Working directory {working_dir} is NOT empty")
 
-# cpus
+
+# Code below taken from:
+# https://github.com/callahantiff/PheKnowLator/blob/master/notebooks/OWLNETS_Example_Application.ipynb
+
 cpus = psutil.cpu_count(logical=True)
 
 logger.info('Loading ontology')

@@ -100,11 +100,12 @@ def scan_xml_tree_for_class_about_cl(tree: etree.ElementTree, cl: str) -> list:
                     cl_ids.append(ontology_id[1])
     return cl_ids
 
+
 start_time = time.time()
 
 logger.info(f"Processing '{uri}'")
 
-# Read the xml aid determine if it contains any imports
+# Read the xml to determine if it contains any imports
 # graph = Graph().parse(uri, format='xml')
 
 tree: etree.ElementTree = etree.parse(uri)

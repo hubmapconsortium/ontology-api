@@ -12,6 +12,8 @@ import glob
 import logging.config
 import time
 from datetime import timedelta
+from lxml import etree
+from urllib.request import urlopen
 from typing import Dict
 
 # Code taken from:
@@ -37,9 +39,13 @@ class RawTextArgumentDefaultsHelpFormatter(
 
 
 # https://docs.python.org/3/howto/argparse.html
-parser = argparse.ArgumentParser(description='Run PheKnowLator on OWL file.\n'
-                                             'In general you should not have the change any of the optional arguments',
-                                 formatter_class=RawTextArgumentDefaultsHelpFormatter)
+parser = argparse.ArgumentParser(
+    description='Run PheKnowLator on OWL file (required parameter).\n'
+                'Before running check to see if there are imports in the OWL file and exit if so'
+                'unless the --with_imports switch is also given.\n'
+                '\n'
+                'In general you should not have the change any of the optional arguments',
+    formatter_class=RawTextArgumentDefaultsHelpFormatter)
 parser.add_argument('owl_url', type=str,
                     help='url for the OWL file to process.')
 parser.add_argument("-c", "--clean", action="store_true",
@@ -48,6 +54,8 @@ parser.add_argument("-l", "--owlnets", action="store_true", default='./owlnets_o
                     help='directory containing the owlnets files')
 parser.add_argument("-t", "--owltools", action="store_true", default='./pkt_kg/libs',
                     help='directory where the owltools executable is downloaded to')
+parser.add_argument("-w", "--with_imports", action="store_true",
+                    help='process OWL file even if imports are found, otherwise give up with an error')
 parser.add_argument("-r", "--robot", action="store_true",
                     help='apply robot to owl_url incorporating the includes and exit')
 args = parser.parse_args()
@@ -60,9 +68,6 @@ uri = args.owl_url
 # Both of these directories are found in the .gitignore file...
 base_working_dir = args.owlnets
 owltools_location = args.owltools
-
-print(f"Processing '{uri}'")
-logger.info(f"Processing '{uri}'")
 
 
 def file_from_uri(uri_str: str) -> str:
@@ -95,6 +100,20 @@ def download_owltools(loc: str):
         os.chdir(cwd)
 
 
+# https://docs.python.org/3/library/xml.etree.elementtree.html#parsing-xml-with-namespaces
+def scan_xml_tree_for_imports(tree: etree.ElementTree) -> list:
+    # These should be read from the source file via the 'xmlns' property....
+    owl_xmlns: str = 'http://www.w3.org/2002/07/owl#'
+    rdf_xmlns: str = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+
+    imports: list = tree.findall('owl:Ontology/owl:imports', namespaces={'owl': owl_xmlns})
+    resource_uris: list = []
+    for i in imports:
+        resource_uri: str = i.get(f"{{{rdf_xmlns}}}resource")
+        resource_uris.append(resource_uri)
+    return resource_uris
+
+
 def log_files_and_sizes(dir: str) -> None:
     for f in os.listdir(dir):
         fp: str = os.path.join(dir, f)
@@ -103,6 +122,7 @@ def log_files_and_sizes(dir: str) -> None:
 
 
 def robot_merge(owl_url: str) -> None:
+    logger.info(f"Running robot merge on '{uri}'")
     loc = f'.{os.sep}robot'
     robot_jar = 'https://github.com/ontodev/robot/releases/download/v1.8.1/robot.jar'
     robot_sh = 'https://raw.githubusercontent.com/ontodev/robot/master/bin/robot'
@@ -141,6 +161,27 @@ def robot_merge(owl_url: str) -> None:
 
 start_time = time.time()
 
+print(f"Processing '{uri}'")
+logger.info(f"Processing '{uri}'")
+
+# While 'etree.parse' will read HTTP URIs is will not read HTTPS URIs. In some cases the HTTP is redirected to
+# a HTTPS and so we need to use 'urlopen' which handles all cases.
+with urlopen(uri) as f:
+    parser = etree.HTMLParser()
+    tree: etree.ElementTree = etree.parse(f, parser)
+    imports: list = scan_xml_tree_for_imports(tree)
+    if len(imports) != 0:
+        logger.info(f"Found the following imports were found in the OWL file {uri} : {', '.join(imports)}")
+        if args.with_imports is not True:
+            exit_msg = f"Imports found in OWL file {uri}. Exiting"
+            logger.info(exit_msg)
+            print(exit_msg)
+            exit(1)
+    else:
+        logger.info(f"No imports were found in OWL file {uri}")
+
+# This should remove imports if any. Currently it's a one shot deal and exits.
+# TODO: In the future the output of this can be fed into the pipeline so that the processing contains no imports.
 if args.robot is True:
     robot_merge(uri)
     elapsed_time = time.time() - start_time

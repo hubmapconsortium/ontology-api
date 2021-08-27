@@ -27,8 +27,11 @@ UBERON_OWL_URL: str = 'http://purl.obolibrary.org/obo/uberon.owl'
 # http://www.obofoundry.org/ontology/ro.html
 # RO_URL: str = 'http://purl.obolibrary.org/obo/ro.owl'
 
-# Elapsed time 0:02:55.045686
 # http://www.obofoundry.org/ontology/cl.html
+# Elapsed time 0:00:21.838220
+# Complete CL but with no imports or external axioms (Should be using this one but Jonathan's code breaks wih it at the moment)
+CL_BASE_OWL_URL: str = 'http://purl.obolibrary.org/obo/cl/cl-base.owl'
+# Elapsed time 0:02:55.045686
 # Complete ontology, plus inter-ontology axioms, and imports modules
 CL_OWL_URL: str = 'http://purl.obolibrary.org/obo/cl.owl'
 
@@ -92,8 +95,9 @@ class RawTextArgumentDefaultsHelpFormatter(
 
 
 # https://docs.python.org/3/howto/argparse.html
-parser = argparse.ArgumentParser(description='Build .csv files from .owl files using PheKnowLator and Jonathan''s script',
-                                 formatter_class=RawTextArgumentDefaultsHelpFormatter)
+parser = argparse.ArgumentParser(
+    description='Build .csv files from .owl files using PheKnowLator and Jonathan''s script',
+    formatter_class=RawTextArgumentDefaultsHelpFormatter)
 parser.add_argument("-u", '--umls_csvs', type=str, default='../neo4j/import/current',
                     help='the directory containing the UMLS Graph Extract .csv files modified by Jonathan''s script')
 parser.add_argument("-c", "--clean", action="store_true",

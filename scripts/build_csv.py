@@ -10,7 +10,7 @@ import re
 import subprocess
 from datetime import timedelta
 
-OWLNETS_SCRIPT: str = './owlnets_script/__main__.py -c '
+OWLNETS_SCRIPT: str = './owlnets_script/__main__.py'
 VALIDATION_SCRIPT: str = './blackbox_validation/__main__.py'
 UMLS_GRAPH_SCRIPT: str = './Jonathan/OWLNETS-UMLS-GRAPH.py'
 
@@ -83,8 +83,8 @@ EDAN_OWL_URL: str = 'http://edamontology.org/EDAM.owl'
 
 # OWL_URLS: list = [UBERON_OWL_URL, CL_OWL_URL, CHEBI_OWL_URL, PATO_OWL_URL, DOID_OWL_URL, OBI_OWL_URL, CCF_OWL_URL]
 # More stuff....
-# OWL_URLS: list = [UBERON_OWL_URL, CL_OWL_URL, DOID_OWL_URL, OBI_OWL_URL, CCF_OWL_URL, CHEBI_OWL_URL]
-OWL_URLS: list = [UBERON_OWL_URL, CL_OWL_URL]
+OWL_URLS: list = [UBERON_OWL_URL, CL_OWL_URL, DOID_OWL_URL, OBI_OWL_URL, CCF_OWL_URL, CHEBI_OWL_URL]
+# OWL_URLS: list = [UBERON_OWL_URL, CL_OWL_URL]
 
 
 class RawTextArgumentDefaultsHelpFormatter(
@@ -197,8 +197,11 @@ def lines_in_csv_files(path: str, save_path: str) -> None:
 for owl_url in OWL_URLS:
     print(f"Processing OWL file: {owl_url}")
     if args.skipPheKnowLator is not True:
-        print(f"Running: {OWLNETS_SCRIPT} -c {args.clean} -l {base_owlnets_dir} -t {owltools_dir} {owl_url}")
-        os.system(f"{OWLNETS_SCRIPT} -c {args.clean} -l {base_owlnets_dir} -t {owltools_dir} {owl_url}")
+        clean = ''
+        if args.clean is True:
+            clean = '-c'
+        print(f"Running: {OWLNETS_SCRIPT} {clean} -l {base_owlnets_dir} -t {owltools_dir} {owl_url}")
+        os.system(f"{OWLNETS_SCRIPT} {clean} -l {base_owlnets_dir} -t {owltools_dir} {owl_url}")
     if args.skipValidation is not True:
         print(f"Running: {VALIDATION_SCRIPT} -o {csvs_dir} -l {base_owlnets_dir}")
         os.system(f"{VALIDATION_SCRIPT} -o {csvs_dir} -l {base_owlnets_dir}")

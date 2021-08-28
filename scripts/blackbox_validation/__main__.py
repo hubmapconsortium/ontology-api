@@ -20,11 +20,11 @@ parser = argparse.ArgumentParser(description='Blackbox test newly generated .csv
                                              'In general you should not have the change any of the optional arguments',
                                  formatter_class=RawTextArgumentDefaultsHelpFormatter)
 parser.add_argument('owl_url', type=str, help='url for the OWL file used in the process')
-parser.add_argument("-o", "--csv_original", action="store_true", default='../neo4j/import',
+parser.add_argument("-o", "--csv_original", type=str, default='../neo4j/import',
                     help='directory containing the original .csv files')
-parser.add_argument("-n", "--csv_new", action="store_true", default='./csv_output',
+parser.add_argument("-n", "--csv_new", type=str, default='./csv_output',
                     help='directory containing the newly created .csv files')
-parser.add_argument("-l", "--owlnets", action="store_true", default='./owlnets_output',
+parser.add_argument("-l", "--owlnets", type=str, default='./owlnets_output',
                     help='directory containing the owlnets files')
 args = parser.parse_args()
 

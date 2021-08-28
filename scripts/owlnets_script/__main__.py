@@ -47,9 +47,9 @@ parser.add_argument('owl_url', type=str,
                     help='url for the OWL file to process.')
 parser.add_argument("-c", "--clean", action="store_true",
                     help='clean the owlnets_output directory of previous output files before run')
-parser.add_argument("-l", "--owlnets", action="store_true", default='./owlnets_output',
+parser.add_argument("-l", "--owlnets", type=str, default='./owlnets_output',
                     help='directory containing the owlnets files')
-parser.add_argument("-t", "--owltools", action="store_true", default='./pkt_kg/libs',
+parser.add_argument("-t", "--owltools", type=str, default='./pkt_kg/libs',
                     help='directory where the owltools executable is downloaded to')
 parser.add_argument("-w", "--with_imports", action="store_true",
                     help='process OWL file even if imports are found, otherwise give up with an error')

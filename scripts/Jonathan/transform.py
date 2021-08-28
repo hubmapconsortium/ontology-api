@@ -33,10 +33,15 @@ with open(args.filename, "r") as file:
     # Add wrapper functions to include the directory as args to the python file
     pos = lines.index('import os')
     lines[pos+1:pos+1] = [
+        '',
+        '',
         'def owlnets_path(file: str) -> str:',
         '    return os.path.join(sys.argv[1], file)',
+        '',
+        '',
         'def csv_path(file: str) -> str:',
-        '    return os.path.join(sys.argv[2], file)'
+        '    return os.path.join(sys.argv[2], file)',
+        ''
     ]
 
     # Add the wrapper to the input lines...

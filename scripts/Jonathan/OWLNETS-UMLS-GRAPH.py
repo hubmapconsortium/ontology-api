@@ -16,10 +16,15 @@ import numpy as np
 import base64
 import json
 import os
+
+
 def owlnets_path(file: str) -> str:
     return os.path.join(sys.argv[1], file)
+
+
 def csv_path(file: str) -> str:
     return os.path.join(sys.argv[2], file)
+
 
 pd.set_option('display.max_colwidth', None)
 

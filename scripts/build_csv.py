@@ -100,19 +100,25 @@ class RawTextArgumentDefaultsHelpFormatter(
 parser = argparse.ArgumentParser(
     description='Build .csv files from .owl files using PheKnowLator and Jonathan''s script',
     formatter_class=RawTextArgumentDefaultsHelpFormatter)
-parser.add_argument("-u", '--umls_csvs', type=str, default='../neo4j/import/current',
+parser.add_argument("-u", '--umls_csvs_dir', type=str, default='../neo4j/import/current',
                     help='the directory containing the UMLS Graph Extract .csv files modified by Jonathan''s script')
-parser.add_argument("-c", "--clean", action="store_true",
-                    help='clean the owlnets_output directory of previous output files before run')
-parser.add_argument("-l", "--owlnets", action="store_true", default='./owlnets_output',
+parser.add_argument("-l", "--owlnets_dir", type=str, default='./owlnets_output',
                     help='directory containing the owlnets directories from a run of PheKnowLator'
                          ' which is used by Jonathan''s script')
-parser.add_argument("-t", "--owltools", type=str, default='./pkt_kg/libs',
+parser.add_argument("-t", "--owltools_dir", type=str, default='./pkt_kg/libs',
                     help='directory where the owltools executable is downloaded to')
+parser.add_argument("-o", "--owl_dir", type=str, default='./owl',
+                    help='directory used for the owl input files')
+parser.add_argument("-O", "--oneOwl", type=str, default=None,
+                    help='process only this one OWL file')
+parser.add_argument("-c", "--clean", action="store_true",
+                    help='clean the owlnets_output directory of previous output files before run')
+parser.add_argument("-d", "--force_owl_download", action="store_true",
+                    help='force downloading of the .owl file before processing')
+parser.add_argument("-w", "--with_imports", action="store_true",
+                    help='process OWL file even if imports are found, otherwise give up with an error')
 parser.add_argument("-s", "--skipPheKnowLator", action="store_true",
                     help='assume that the PheKnowLator has been run and skip the run of it')
-parser.add_argument("-o", "--oneOwl", type=str, default=None,
-                    help='process only this one OWL file')
 parser.add_argument("-S", "--skipValidation", action="store_true",
                     help='skip all validation')
 parser.add_argument("-v", "--verbose", action="store_true",
@@ -125,20 +131,27 @@ logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
 # Both of these directories are found in the .gitignore file...
-base_owlnets_dir = args.owlnets
-csvs_dir = args.umls_csvs
-owltools_dir = args.owltools
+base_owlnets_dir = args.owlnets_dir
+csvs_dir = args.umls_csvs_dir
+owltools_dir = args.owltools_dir
+owl_dir = args.owl_dir
 
 if args.verbose is True:
     print('Parameters:')
+    print(f" * Verbose mode")
     if args.clean is True:
         print(" * Cleaning owlnets directory")
     print(f" * Owlnets directory: {base_owlnets_dir} (exists: {os.path.isdir(base_owlnets_dir)})")
     print(f" * Owltools directory: {owltools_dir} (exists: {os.path.isdir(owltools_dir)})")
+    print(f" * Owl directory: {owl_dir} (exists: {os.path.isdir(owl_dir)})")
     csvs_dir_islink = False
     if os.path.islink(csvs_dir) is True:
         csvs_dir_islink = os.path.realpath(csvs_dir)
     print(f" * Directory containing the UMLS Graph Extract .csv files to process: {csvs_dir} (exitst: {os.path.isdir(csvs_dir)}) (simlink: {csvs_dir_islink})")
+    if args.force_owl_download is True:
+        print(f" * PheKnowLator will force .owl file downloads")
+    if args.with_imports is True:
+        print(f" * PheKnowLator will run even if imports are found in .owl file")
     if args.skipPheKnowLator is True:
          print(f" * Skip PheKnowLator run")
     if args.oneOwl is not None:
@@ -201,8 +214,14 @@ for owl_url in OWL_URLS:
     if args.skipPheKnowLator is not True:
         clean = ''
         if args.clean is True:
-            clean = '-c'
-        print(f"Running: {OWLNETS_SCRIPT} {clean} -l {base_owlnets_dir} -t {owltools_dir} {owl_url}")
+            clean = '--clean'
+        force_owl_download = ''
+        if args.force_owl_download is True:
+            force_owl_download = '--force_owl_download'
+        with_imports = ''
+        if args.with_imports is True:
+            with_imports = '--with_imports'
+        print(f"Running: {OWLNETS_SCRIPT} {clean} {force_owl_download} {with_imports} -l {base_owlnets_dir} -t {owltools_dir} -o {owl_dir} {owl_url}")
         os.system(f"{OWLNETS_SCRIPT} {clean} -l {base_owlnets_dir} -t {owltools_dir} {owl_url}")
     if args.skipValidation is not True:
         print(f"Running: {VALIDATION_SCRIPT} -o {csvs_dir} -l {base_owlnets_dir}")

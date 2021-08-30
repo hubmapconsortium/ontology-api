@@ -47,15 +47,15 @@ parser = argparse.ArgumentParser(
     formatter_class=RawTextArgumentDefaultsHelpFormatter)
 parser.add_argument('owl_url', type=str,
                     help='url for the OWL file to process.')
-parser.add_argument("-c", "--clean", action="store_true",
-                    help='clean the owlnets_output directory of previous output files before run')
 parser.add_argument("-l", "--owlnets_dir", type=str, default='./owlnets_output',
                     help='directory used for the owlnets output files')
-parser.add_argument("-o", "--owl_dir", type=str, default='./owl',
-                    help='directory used for the owl input files')
 parser.add_argument("-t", "--owltools_dir", type=str, default='./pkt_kg/libs',
                     help='directory where the owltools executable is downloaded to')
-parser.add_argument("-d", "--download_owl", action="store_false",
+parser.add_argument("-o", "--owl_dir", type=str, default='./owl',
+                    help='directory used for the owl input files')
+parser.add_argument("-c", "--clean", action="store_true",
+                    help='clean the owlnets_output directory of previous output files before run')
+parser.add_argument("-d", "--force_owl_download", action="store_true",
                     help='force downloading of the .owl file before processing')
 parser.add_argument("-w", "--with_imports", action="store_true",
                     help='process OWL file even if imports are found, otherwise give up with an error')
@@ -259,7 +259,7 @@ parse_loc: str = uri
 owl_dir: str = args.owl_dir + os.path.sep + uri_dir
 owl_file: str = owl_dir + os.path.sep + working_file
 
-if compare_file_md5(owl_file) is False or args.download_owl is True:
+if compare_file_md5(owl_file) is False or args.force_owl_download is True:
     download_owl(uri, owl_dir)
 if compare_file_md5(owl_file) is True:
     parse_loc = owl_file

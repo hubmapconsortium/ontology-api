@@ -14,6 +14,8 @@ import time
 from datetime import timedelta
 from lxml import etree
 from urllib.request import urlopen
+import subprocess
+import hashlib
 from typing import Dict
 
 # Setup and running the script...
@@ -47,10 +49,14 @@ parser.add_argument('owl_url', type=str,
                     help='url for the OWL file to process.')
 parser.add_argument("-c", "--clean", action="store_true",
                     help='clean the owlnets_output directory of previous output files before run')
-parser.add_argument("-l", "--owlnets", type=str, default='./owlnets_output',
-                    help='directory containing the owlnets files')
-parser.add_argument("-t", "--owltools", type=str, default='./pkt_kg/libs',
+parser.add_argument("-l", "--owlnets_dir", type=str, default='./owlnets_output',
+                    help='directory used for the owlnets output files')
+parser.add_argument("-o", "--owl_dir", type=str, default='./owl',
+                    help='directory used for the owl input files')
+parser.add_argument("-t", "--owltools_dir", type=str, default='./pkt_kg/libs',
                     help='directory where the owltools executable is downloaded to')
+parser.add_argument("-d", "--download_owl", action="store_false",
+                    help='force downloading of the .owl file before processing')
 parser.add_argument("-w", "--with_imports", action="store_true",
                     help='process OWL file even if imports are found, otherwise give up with an error')
 parser.add_argument("-r", "--robot", action="store_true",
@@ -62,9 +68,6 @@ logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
 uri = args.owl_url
-# Both of these directories are found in the .gitignore file...
-base_working_dir = args.owlnets
-owltools_location = args.owltools
 
 
 def file_from_uri(uri_str: str) -> str:
@@ -79,7 +82,7 @@ def file_from_path(path_str: str) -> str:
     return None
 
 
-def download_owltools(loc: str):
+def download_owltools(loc: str) -> None:
     owl_tools_url = 'https://github.com/callahantiff/PheKnowLator/raw/master/pkt_kg/libs/owltools'
 
     cmd = os.system(f"ls {loc}{os.sep}owltools")
@@ -97,6 +100,45 @@ def download_owltools(loc: str):
         os.chdir(cwd)
 
 
+def download_owl(url: str, loc: str, force_empty=True) -> str:
+    logger.info(f'Downloading \'{url}\' to \'{loc}\'')
+
+    cwd: str = os.getcwd()
+
+    if force_empty is True:
+        os.system(f"rm -rf {loc}")
+    os.system(f"mkdir -p {loc}")
+    os.chdir(loc)
+
+    # TODO: This hangs sometimes, so there should be a timeout...
+    wgetResults: bytes = subprocess.check_output([f'wget {url}'], shell=True, stderr=subprocess.STDOUT)
+    wgetResults_str: str = wgetResults.decode('utf-8')
+    for line in wgetResults_str.strip().split('\n'):
+        if 'Length: unspecified' in line:
+            logger.error(f'Failed to download {uri}')
+            print(f'Failed to download {uri}')
+            print(wgetResults_str)
+            exit(1)
+    # print(wgetResults_str)
+
+    md5: str = hashlib.md5(open(working_file, 'rb').read()).hexdigest()
+    with open(f'{working_file}.md5', 'w', newline='') as fp:
+        fp.write(md5)
+
+    os.chdir(cwd)
+
+
+def compare_file_md5(working_file: str) -> bool:
+    if not os.path.isfile(working_file):
+        return False
+    md5: str = hashlib.md5(open(working_file, 'rb').read()).hexdigest()
+    with open(f'{working_file}.md5', 'r', newline='') as fp:
+        saved_md5 = fp.read()
+        if md5 == saved_md5:
+            return True
+    return False
+
+
 # https://docs.python.org/3/library/xml.etree.elementtree.html#parsing-xml-with-namespaces
 def scan_xml_tree_for_imports(tree: etree.ElementTree) -> list:
     # These should be read from the source file via the 'xmlns' property....
@@ -112,10 +154,10 @@ def scan_xml_tree_for_imports(tree: etree.ElementTree) -> list:
 
 
 def log_files_and_sizes(dir: str) -> None:
-    for f in os.listdir(dir):
-        fp: str = os.path.join(dir, f)
-        size: int = os.path.getsize(fp)
-        logger.info(f"Generated file '{fp}' size {size:,}")
+    for file in os.listdir(dir):
+        generated_file: str = os.path.join(dir, file)
+        size: int = os.path.getsize(generated_file)
+        logger.info(f"Generated file '{generated_file}' size {size:,}")
 
 
 def robot_merge(owl_url: str) -> None:
@@ -161,21 +203,21 @@ start_time = time.time()
 print(f"Processing '{uri}'")
 logger.info(f"Processing '{uri}'")
 
-# While 'etree.parse' will read HTTP URIs is will not read HTTPS URIs. In some cases the HTTP is redirected to
-# a HTTPS and so we need to use 'urlopen' which handles all cases.
-with urlopen(uri) as f:
-    parser = etree.HTMLParser()
-    tree: etree.ElementTree = etree.parse(f, parser)
-    imports: list = scan_xml_tree_for_imports(tree)
-    if len(imports) != 0:
-        logger.info(f"Found the following imports were found in the OWL file {uri} : {', '.join(imports)}")
-        if args.with_imports is not True:
-            exit_msg = f"Imports found in OWL file {uri}. Exiting"
-            logger.info(exit_msg)
-            print(exit_msg)
-            exit(1)
-    else:
-        logger.info(f"No imports were found in OWL file {uri}")
+# # While 'etree.parse' will read HTTP URIs is will not read HTTPS URIs. In some cases the HTTP is redirected to
+# # a HTTPS and so we need to use 'urlopen' which handles all cases.
+# with urlopen(uri) as f:
+#     parser = etree.HTMLParser()
+#     tree: etree.ElementTree = etree.parse(f, parser)
+#     imports: list = scan_xml_tree_for_imports(tree)
+#     if len(imports) != 0:
+#         logger.info(f"Found the following imports were found in the OWL file {uri} : {', '.join(imports)}")
+#         if args.with_imports is not True:
+#             exit_msg = f"Imports found in OWL file {uri}. Exiting"
+#             logger.info(exit_msg)
+#             print(exit_msg)
+#             exit(1)
+#     else:
+#         logger.info(f"No imports were found in OWL file {uri}")
 
 # This should remove imports if any. Currently it's a one shot deal and exits.
 # TODO: In the future the output of this can be fed into the pipeline so that the processing contains no imports.
@@ -185,10 +227,12 @@ if args.robot is True:
     logger.info('Done! Elapsed time %s', "{:0>8}".format(str(timedelta(seconds=elapsed_time))))
     exit(0)
 
-download_owltools(owltools_location)
+download_owltools(args.owltools_dir)
 
 working_file: str = file_from_uri(uri)
-working_dir: str = base_working_dir + os.path.sep + working_file.rsplit('.', 1)[0]
+uri_dir: str = working_file.rsplit('.', 1)[0]
+
+working_dir: str = args.owlnets_dir + os.path.sep + uri_dir
 logger.info("Make sure working directory '%s' exists", working_dir)
 os.system(f"mkdir -p {working_dir}")
 
@@ -208,7 +252,19 @@ if args.clean is True:
 cpus = psutil.cpu_count(logical=True)
 
 logger.info('Loading ontology')
-graph = Graph().parse(uri, format='xml')
+# Parse an XML document from a URL or an InputSource.
+# NOTE: Sometimes, with large documents (eg., chebi) the uri parse hangs, so here we download the document first
+# Another problem is with chebi, there is a redirect which Graph.parse(uri, ...) may not handle.
+parse_loc: str = uri
+owl_dir: str = args.owl_dir + os.path.sep + uri_dir
+owl_file: str = owl_dir + os.path.sep + working_file
+
+if compare_file_md5(owl_file) is False or args.download_owl is True:
+    download_owl(uri, owl_dir)
+if compare_file_md5(owl_file) is True:
+    parse_loc = owl_file
+
+graph = Graph().parse(parse_loc, format='xml')
 
 logger.info('Extract Node Metadata')
 ont_classes = pkt.utils.gets_ontology_classes(graph)
@@ -270,7 +326,7 @@ owlnets = pkt.OwlNets(graph=graph,
                       write_location=working_dir + os.sep,
                       filename=file_from_uri(uri),
                       kg_construct_approach=None,
-                      owl_tools=owltools_location + '/owltools')
+                      owl_tools=args.owltools_dir + os.sep + 'owltools')
 
 logger.info('Remove disjointness with Axioms')
 owlnets.removes_disjoint_with_axioms()

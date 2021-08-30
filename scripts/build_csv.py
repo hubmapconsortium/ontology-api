@@ -86,6 +86,8 @@ EDAN_OWL_URL: str = 'http://edamontology.org/EDAM.owl'
 OWL_URLS: list = [UBERON_OWL_URL, CL_OWL_URL, DOID_OWL_URL, OBI_OWL_URL, CCF_OWL_URL, CHEBI_OWL_URL]
 # OWL_URLS: list = [UBERON_OWL_URL, CL_OWL_URL]
 
+# TODO https://douroucouli.wordpress.com/2019/03/14/biological-knowledge-graph-modeling-design-patterns/
+
 
 class RawTextArgumentDefaultsHelpFormatter(
     argparse.ArgumentDefaultsHelpFormatter,

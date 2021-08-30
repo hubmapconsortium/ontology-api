@@ -10,7 +10,8 @@ neo4j/data/
 scripts/builds/logs/*.log
 scripts/resources/
 scripts/pkt_kg/
-scripts/owlnets_output**
+scripts/owlnets_output
+scripts/owl
 scripts/venv
 scripts/.python-version
 scripts/robot

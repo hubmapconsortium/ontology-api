@@ -101,7 +101,7 @@ def download_owltools(loc: str) -> None:
 
 
 def download_owl(url: str, loc: str, force_empty=True) -> str:
-    logger.info(f'Downloading \'{url}\' to \'{loc}\'')
+    logger.info(f'Downloading owl file from \'{url}\' to \'{loc}\'')
 
     cwd: str = os.getcwd()
 
@@ -122,7 +122,9 @@ def download_owl(url: str, loc: str, force_empty=True) -> str:
     # print(wgetResults_str)
 
     md5: str = hashlib.md5(open(working_file, 'rb').read()).hexdigest()
-    with open(f'{working_file}.md5', 'w', newline='') as fp:
+    md5_file: str = f'{working_file}.md5'
+    logger.info('MD5 for owl file {md5} saved to {md5_file}')
+    with open(md5_file, 'w', newline='') as fp:
         fp.write(md5)
 
     os.chdir(cwd)
@@ -131,9 +133,12 @@ def download_owl(url: str, loc: str, force_empty=True) -> str:
 def compare_file_md5(working_file: str) -> bool:
     if not os.path.isfile(working_file):
         return False
-    md5: str = hashlib.md5(open(working_file, 'rb').read()).hexdigest()
-    with open(f'{working_file}.md5', 'r', newline='') as fp:
+    md5_file: str = f'{working_file}.md5'
+    if not os.path.isfile(md5_file):
+        return False
+    with open(md5_file, 'r', newline='') as fp:
         saved_md5 = fp.read()
+        md5: str = hashlib.md5(open(working_file, 'rb').read()).hexdigest()
         if md5 == saved_md5:
             return True
     return False

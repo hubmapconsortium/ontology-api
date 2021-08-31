@@ -245,7 +245,7 @@ for owl_url in OWL_URLS:
     if owl_sab == 'CL-BASE':
         owl_sab = 'CL'
     umls_graph_script: str = f"{UMLS_GRAPH_SCRIPT} {working_owlnets_dir} {csvs_dir} {owl_sab}"
-    logger.into(f"Running: {umls_graph_script}")
+    logger.info(f"Running: {umls_graph_script}")
     os.system(umls_graph_script)
     lines_in_csv_files(csvs_dir, save_csv_dir)
 

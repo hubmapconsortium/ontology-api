@@ -58,6 +58,12 @@ with open(args.filename, "r") as file:
         if w_m:
             lines[idx] = w_m[1] + 'csv_path(' + w_m[2] + ')' + w_m[3]
             continue
+        sab = re.match(r'(^OWL_SAB = )\'.*\'', line)
+        if sab:
+            lines[idx] = sab[1] + 'sys.argv[3].upper()'
+            continue
 
 with open(args.filename, "w") as file:
     file.writelines(line + '\n' for line in lines)
+
+os.system(f'chmod +x {args.filename}')

@@ -26,6 +26,9 @@ def csv_path(file: str) -> str:
     return os.path.join(sys.argv[2], file)
 
 
+# Asssignnment of SAB for all relationships in edgelist - typically use owl file name before .owl
+OWL_SAB = sys.argv[3].upper()
+
 pd.set_option('display.max_colwidth', None)
 
 
@@ -41,6 +44,10 @@ node_metadata = pd.read_csv(owlnets_path("OWLNETS_node_metadata.txt"), sep='\t')
 
 
 relations = pd.read_csv(owlnets_path("OWLNETS_relations.txt"), sep='\t')
+
+# handle relations with None label here
+relations.loc[(relations.relation_label == 'None'),'relation_label'] = np.NaN
+relations.loc[relations['relation_label'].isnull(), 'relation_label'] = relations['relation_id'].str.split('#').str[-1]
 
 
 # In[4]:
@@ -67,14 +74,14 @@ edgelist = edgelist[['subject','relation_label','object']]
 del relations
 edgelist.loc[(edgelist.relation_label == 'subClassOf'),'relation_label'] = 'isa'
 edgelist['relation_label'] = edgelist['relation_label'].str.replace(' ', '_')
-edgelist['subject'] = edgelist['subject'].str.replace('_', ' ').str.split('/').str[-1]
-edgelist['object'] = edgelist['object'].str.replace('_', ' ').str.split('/').str[-1]
 
 def codeReplacements(x):
-   return str(x).replace('NCIT', 'NCI').replace('MESH', 'MSH').replace('GO ', 'GO GO:').replace('SNOMED', 'SNOMEDCT_US').replace('NCBITaxon', 'NCBI')
+   return x.str.replace('NCIT', 'NCI', regex=False).str.replace('MESH', 'MSH', regex=False).str.replace('GO ', 'GO GO:', regex=False).str.replace('NCBITaxon', 'NCBI', regex=False).str.replace('.*UMLS.*\s', 'UMLS ', regex=True).str.replace('.*SNOMED.*\s', 'SNOMEDCT_US ', regex=True).str.replace('HP ', 'HPO HP:', regex=False).str.replace('^fma','FMA ', regex=True)
 
-edgelist['subject'] = edgelist['subject'].apply(codeReplacements)
-edgelist['object'] = edgelist['object'].apply(codeReplacements)
+edgelist['subject'] = edgelist['subject'].str.replace('#', ' ').str.replace('_', ' ').str.split('/').str[-1]
+edgelist['subject'] = codeReplacements(edgelist['subject'])
+edgelist['object'] = edgelist['object'].str.replace('#', ' ').str.replace('_', ' ').str.split('/').str[-1]
+edgelist['object'] = codeReplacements(edgelist['object'])
 
 
 # ### Add inverse_ edges
@@ -126,12 +133,12 @@ edgelist.loc[edgelist['inverse'].isnull(), 'inverse'] = 'inverse_' + edgelist['r
 # Replacements
 node_metadata.loc[(node_metadata.node_synonyms == 'None'),'node_synonyms'] = np.NaN
 node_metadata['node_dbxrefs'] = node_metadata['node_dbxrefs'].str.upper().str.replace(':', ' ')
-node_metadata['node_dbxrefs'] = node_metadata['node_dbxrefs'].apply(codeReplacements)
+node_metadata['node_dbxrefs'] = codeReplacements(node_metadata['node_dbxrefs'])
 node_metadata.loc[(node_metadata.node_dbxrefs == 'NONE'),'node_dbxrefs'] = np.NaN
 
 # CodeID
-node_metadata['node_id'] = node_metadata['node_id'].str.replace('_', ' ').str.split('/').str[-1]
-node_metadata['node_id'] = node_metadata['node_id'].apply(codeReplacements)
+node_metadata['node_id'] = node_metadata['node_id'].str.replace('#', ' ').str.replace('_', ' ').str.split('/').str[-1]
+node_metadata['node_id'] = codeReplacements(node_metadata['node_id'])
 
 # Unwrap Series
 node_metadata['node_synonyms'] = node_metadata['node_synonyms'].str.split('|')
@@ -239,19 +246,11 @@ for index, rows in node_metadata.iterrows():
             addedone = True
 
 
-# ### What SAB will relationships in this OWL be assigned to? The greatest number of node_ids by SAB. If not that, then we have OWL-import issues.
-
-# In[17]:
-
-
-OWL_SAB = node_metadata['SAB'].value_counts().idxmax()
-
-
 # ### Join CUI from node_metadata to each edgelist subject and object
 
 # #### Assemble CUI-CUIs (no prior-existance-check required), (:START_ID, :END_ID", :TYPE, SAB)
 
-# In[18]:
+# In[17]:
 
 
 # merge subject and object with their CUIs and drop the codes and add the SAB
@@ -272,25 +271,27 @@ edgelist['SAB'] = OWL_SAB
 
 # #### Write CUI-CUIs (':START_ID', ':END_ID', ':TYPE', 'SAB') and done with edgelist
 
-# In[19]:
+# In[18]:
 
 
 # TWO WRITES commented out during development
 
 # forward ones
 edgelist.columns = [':START_ID',':TYPE',':END_ID','inverse','SAB']
-edgelist[[':START_ID', ':END_ID', ':TYPE', 'SAB']].to_csv(csv_path('CUI-CUIs.csv'), mode='a', header=False, index=False)
+write1 = edgelist[[':START_ID', ':END_ID', ':TYPE', 'SAB']].dropna().drop_duplicates().reset_index(drop=True)
+write1.to_csv(csv_path('CUI-CUIs.csv'), mode='a', header=False, index=False)
 
 #reverse ones
 edgelist.columns = [':END_ID','relation_label',':START_ID',':TYPE','SAB']
-edgelist[[':START_ID', ':END_ID', ':TYPE', 'SAB']].to_csv(csv_path('CUI-CUIs.csv'), mode='a', header=False, index=False)
+write2 = edgelist[[':START_ID', ':END_ID', ':TYPE', 'SAB']].dropna().drop_duplicates().reset_index(drop=True)
+write2.to_csv(csv_path('CUI-CUIs.csv'), mode='a', header=False, index=False)
 
 # del edgelist
 
 
 # #### Write CODEs (CodeID:ID,SAB,CODE)
 
-# In[20]:
+# In[19]:
 
 
 newcodes = node_metadata[['node_id','SAB','CODE','CUI_CODEs']]
@@ -299,6 +300,7 @@ newcodes = newcodes.drop(columns=['CUI_CODEs'])
 newcodes = newcodes.rename({'node_id': 'CodeID:ID'}, axis=1).reset_index(drop=True)
 
 # write/append - commented out during development
+newcodes = newcodes.dropna().drop_duplicates().reset_index(drop=True)
 newcodes.to_csv(csv_path('CODEs.csv'), mode='a', header=False, index=False)
 
 # del newcodes
@@ -306,7 +308,7 @@ newcodes.to_csv(csv_path('CODEs.csv'), mode='a', header=False, index=False)
 
 # #### Write CUIs (CUI:ID)
 
-# In[21]:
+# In[20]:
 
 
 newCUIs = node_metadata[['cuis','CUI']]
@@ -315,6 +317,7 @@ newCUIs = newCUIs.drop(columns=['cuis'])
 newCUIs = newCUIs.rename({'CUI': 'CUI:ID'}, axis=1).reset_index(drop=True)
 
 # write/append - commented out during development
+newCUIs = newCUIs.dropna().drop_duplicates().reset_index(drop=True)
 newCUIs.to_csv(csv_path('CUIs.csv'), mode='a', header=False, index=False)
 
 # del newCUIs
@@ -322,7 +325,7 @@ newCUIs.to_csv(csv_path('CUIs.csv'), mode='a', header=False, index=False)
 
 # #### Write CUI-CODEs (:START_ID,:END_ID)
 
-# In[22]:
+# In[21]:
 
 
 newCUI_CODEs = node_metadata.explode('cuis')[['cuis','base64cui','node_id','CUI']]
@@ -340,6 +343,7 @@ newCUI_CODEs = newCUI_CODEs.drop(columns=['keep','CUI','base64cui'])
 newCUI_CODEs = newCUI_CODEs.rename({'cuis': ':START_ID','node_id': ':END_ID'}, axis=1).reset_index(drop=True)
 
 # write/append - commented out during development
+newCUI_CODEs = newCUI_CODEs.dropna().drop_duplicates().reset_index(drop=True)
 newCUI_CODEs.to_csv(csv_path('CUI-CODEs.csv'), mode='a', header=False, index=False)
 
 # del newCUI_CODEs
@@ -347,18 +351,18 @@ newCUI_CODEs.to_csv(csv_path('CUI-CODEs.csv'), mode='a', header=False, index=Fal
 
 # #### Load SUIs from csv
 
-# In[23]:
+# In[22]:
 
 
 SUIs = pd.read_csv(csv_path("SUIs.csv"))
 # SUIs supposedly unique but...
 # discovered 5 NaN names in SUIs.csv and dropped them - ASCII converstion on original UMLS-Graph-Extract??
-SUIs = SUIs.dropna().reset_index(drop=True)
+SUIs = SUIs.dropna().drop_duplicates().reset_index(drop=True)
 
 
 # #### Write SUIs (SUI:ID,name) part 1, from label - with existence check
 
-# In[24]:
+# In[23]:
 
 
 newSUIs = node_metadata.merge(SUIs, how='left', left_on='node_label', right_on='name')[['node_id','node_label','base64cui','CUI','SUI:ID','name']]
@@ -375,6 +379,7 @@ SUIs1out = newSUIs.loc[newSUIs['OLDname'].isnull()][['SUI:ID','name']]
 SUIs1out.reset_index(drop=True, inplace=True)
 
 # write out justnewSUIs - commented out during development
+SUIs1out = SUIs1out.dropna().drop_duplicates().reset_index(drop=True)
 SUIs1out.to_csv(csv_path('SUIs.csv'), mode='a', header=False, index=False)
 
 # del newSUIs
@@ -383,14 +388,15 @@ SUIs1out.to_csv(csv_path('SUIs.csv'), mode='a', header=False, index=False)
 
 # #### Write CUI-SUIs (:START_ID,:END_ID)
 
-# In[25]:
+# In[24]:
 
 
-newCUI_SUIs = newCUIs.merge(newSUIs, how='left', left_on=['CUI:ID'], right_on=['CUI'])
+newCUI_SUIs = newCUIs.merge(newSUIs, how='left', left_on='CUI:ID', right_on='CUI')
 newCUI_SUIs = newCUI_SUIs[['CUI:ID','SUI:ID']]
 newCUI_SUIs.columns = [':START:ID',':END_ID']
 
 # write/append - commented out during development
+newCUI_SUIs = newCUI_SUIs.dropna().drop_duplicates().reset_index(drop=True)
 newCUI_SUIs.to_csv(csv_path('CUI-SUIs.csv'), mode='a', header=False, index=False)
 
 # del newCUI_SUIs
@@ -398,7 +404,7 @@ newCUI_SUIs.to_csv(csv_path('CUI-SUIs.csv'), mode='a', header=False, index=False
 
 # #### Write CODE-SUIs (:END_ID,:START_ID,:TYPE,CUI) part 1, from label
 
-# In[26]:
+# In[25]:
 
 
 newCODE_SUIs = newSUIs[['SUI:ID','node_id','CUI']].copy()
@@ -406,6 +412,7 @@ newCODE_SUIs.insert(2, ':TYPE', 'PT')
 newCODE_SUIs.columns = [':END_ID',':START_ID',':TYPE','CUI']
 
 # write out newCODE_SUIs - commented out during development
+newCODE_SUIs = newCODE_SUIs.dropna().drop_duplicates().reset_index(drop=True)
 newCODE_SUIs.to_csv(csv_path('CODE-SUIs.csv'), mode='a', header=False, index=False)
 
 # del newCODE_SUIs
@@ -413,7 +420,7 @@ newCODE_SUIs.to_csv(csv_path('CODE-SUIs.csv'), mode='a', header=False, index=Fal
 
 # #### Write SUIs (SUI:ID,name) part 2, from synonyms - with existence check
 
-# In[27]:
+# In[26]:
 
 
 # explode the synonyms, remove NaN, and join with original SUIs plus SUIs1out
@@ -434,6 +441,7 @@ SUIs2out = newSUIs.loc[newSUIs['OLDname'].isnull()][['SUI:ID','name']]
 SUIs2out.reset_index(drop=True, inplace=True)
 
 # write out - commented out during development
+SUIs2out = SUIs2out.dropna().drop_duplicates().reset_index(drop=True)
 SUIs2out.to_csv(csv_path('SUIs.csv'), mode='a', header=False, index=False)
 
 # del newSUIs
@@ -442,7 +450,7 @@ SUIs2out.to_csv(csv_path('SUIs.csv'), mode='a', header=False, index=False)
 
 # #### Write CODE-SUIs (:END_ID,:START_ID,:TYPE,CUI) part 2, from synonyms
 
-# In[28]:
+# In[27]:
 
 
 newCODE_SUIs = newSUIs[['SUI:ID','node_id','CUI']].copy()
@@ -450,6 +458,7 @@ newCODE_SUIs.insert(2, ':TYPE', 'SY')
 newCODE_SUIs.columns = [':END_ID',':START_ID',':TYPE','CUI']
 
 # write out newCODE_SUIs - commented out during development
+newCODE_SUIs = newCODE_SUIs.dropna().drop_duplicates().reset_index(drop=True)
 newCODE_SUIs.to_csv(csv_path('CODE-SUIs.csv'), mode='a', header=False, index=False)
 
 # del newCODE_SUIs

@@ -9,7 +9,7 @@ import time
 import re
 import subprocess
 from datetime import timedelta
-
+# TODO: make these optional parameters and print them out when --verbose
 OWLNETS_SCRIPT: str = './owlnets_script/__main__.py'
 VALIDATION_SCRIPT: str = './blackbox_validation/__main__.py'
 UMLS_GRAPH_SCRIPT: str = './Jonathan/OWLNETS-UMLS-GRAPH.py'
@@ -41,7 +41,7 @@ CHEBI_OWL_URL: str = 'http://purl.obolibrary.org/obo/chebi.owl'
 
 # BREAKS
 # http://www.obofoundry.org/ontology/pr.html
-PRO_OWL_URL: str = 'http://purl.obolibrary.org/obo/pr.owl'
+PR_OWL_URL: str = 'http://purl.obolibrary.org/obo/pr.owl'
 
 # Elapsed time 0:00:38.827207
 # http://www.obofoundry.org/ontology/pato.html
@@ -57,12 +57,14 @@ OBI_OWL_URL: str = 'http://purl.obolibrary.org/obo/obi.owl'
 # Note: currently has just AS (using ccf_part_of as the relationship), but could be a start.
 CCF_OWL_URL: str = 'https://ccf-ontology.hubmapconsortium.org/ccf.owl'
 
+# OWL FILE IS NOT THERE 8/31/21
 # http://www.ontobee.org/ontology/OGI
 OGI_OWL_URL: str = 'http://purl.obolibrary.org/obo/ogi.owl'
 
 # https://www.ebi.ac.uk/ols/ontologies/hsapdv
-HSAPVD_OWL_URL: str = 'http://purl.obolibrary.org/obo/hsapdv.owl'
+HSAPDV_OWL_URL: str = 'http://purl.obolibrary.org/obo/hsapdv.owl'
 
+# BREAKS 8/30/21
 # https://www.ebi.ac.uk/ols/ontologies/vario
 VARIO_OWL_URL: str = 'http://purl.obolibrary.org/obo/vario.owl'
 
@@ -81,9 +83,13 @@ SBO_OWL_URL: str = 'http://www.ebi.ac.uk/sbo/exports/Main/SBO_OWL.owl'
 # http://edamontology.org/page
 EDAN_OWL_URL: str = 'http://edamontology.org/EDAM.owl'
 
+# http://obofoundry.org/ontology/mp.html
+MP_OWL_URL: str = 'http://purl.obolibrary.org/obo/mp.owl'
+
 # OWL_URLS: list = [UBERON_OWL_URL, CL_OWL_URL, CHEBI_OWL_URL, PATO_OWL_URL, DOID_OWL_URL, OBI_OWL_URL, CCF_OWL_URL]
 # More stuff....
-OWL_URLS: list = [UBERON_OWL_URL, CL_OWL_URL, DOID_OWL_URL, OBI_OWL_URL, CCF_OWL_URL, CHEBI_OWL_URL]
+OWL_URLS: list = [PATO_OWL_URL, UBERON_OWL_URL, CL_BASE_OWL_URL, DOID_OWL_URL, OBI_OWL_URL, CCF_OWL_URL, CHEBI_OWL_URL]
+# OWL_URLS: list = [UBERON_OWL_URL, CL_BASE_OWL_URL, DOID_OWL_URL, OBI_OWL_URL, CCF_OWL_URL, CHEBI_OWL_URL]
 # OWL_URLS: list = [UBERON_OWL_URL, CL_OWL_URL]
 
 # TODO https://douroucouli.wordpress.com/2019/03/14/biological-knowledge-graph-modeling-design-patterns/
@@ -173,12 +179,12 @@ def file_from_uri(uri_str: str) -> str:
 
 
 def make_new_save_dir(path: str, save_dir: str) -> str:
-    max_version = 0
+    max_version: int = 0
     for filename in os.listdir(path):
         if re.match(f'^{save_dir}\.[0-9].*$', filename):
-            current_version = int(filename.split('.', 1)[1])
+            current_version: int = int(filename.split('.', 1)[1])
             max_version = max(max_version, current_version)
-    new_dir = f"{save_dir}.{max_version+1}"
+    new_dir: str = f"{save_dir}.{max_version+1}"
     new_path: str = os.path.join(path, new_dir)
     os.mkdir(new_path)
     return new_path
@@ -203,14 +209,16 @@ def lines_in_csv_files(path: str, save_path: str) -> None:
     for filename in os.listdir(path):
         if re.match(f'^.*\.csv$', filename):
             fp: str = os.path.join(path, filename)
-            lines_fp = lines_in_file(fp)
+            lines_fp: int = lines_in_file(fp)
             fp_save: str = os.path.join(save_path, filename)
-            lines_fp_save = lines_in_file(fp_save)
+            lines_fp_save: int = lines_in_file(fp_save)
             logger.info(f"Lines in files: {fp} {lines_fp}; {fp_save} {lines_fp_save}; difference: {lines_fp-lines_fp_save}")
 
 
 for owl_url in OWL_URLS:
-    print(f"Processing OWL file: {owl_url}")
+    processing_file: str = f"Processing OWL file: {owl_url}"
+    print(processing_file)
+    logger.info(processing_file)
     if args.skipPheKnowLator is not True:
         clean = ''
         if args.clean is True:
@@ -221,20 +229,25 @@ for owl_url in OWL_URLS:
         with_imports = ''
         if args.with_imports is True:
             with_imports = '--with_imports'
-        print(f"Running: {OWLNETS_SCRIPT} {clean} {force_owl_download} {with_imports} -l {base_owlnets_dir} -t {owltools_dir} -o {owl_dir} {owl_url}")
-        os.system(f"{OWLNETS_SCRIPT} {clean} -l {base_owlnets_dir} -t {owltools_dir} {owl_url}")
+        owlnets_script: str = f"{OWLNETS_SCRIPT} {clean} {force_owl_download} {with_imports} -l {base_owlnets_dir} -t {owltools_dir} -o {owl_dir} {owl_url}"
+        logger.info(f"Running: {owlnets_script}")
+        os.system(owlnets_script)
     if args.skipValidation is not True:
-        print(f"Running: {VALIDATION_SCRIPT} -o {csvs_dir} -l {base_owlnets_dir}")
-        os.system(f"{VALIDATION_SCRIPT} -o {csvs_dir} -l {base_owlnets_dir}")
+        validation_script: str = f"{VALIDATION_SCRIPT} -o {csvs_dir} -l {base_owlnets_dir}"
+        logger.info(f"Running: {validation_script}")
+        os.system(validation_script)
     save_csv_dir = copy_csv_files_to_save_dir(csvs_dir, 'save')
     logger.info(f"Saving .csv files to directory: {save_csv_dir}")
     working_file: str = file_from_uri(owl_url)
-    working_owlnets_dir: str = base_owlnets_dir + os.path.sep + working_file.rsplit('.', 1)[0]
-    os.system(f"{UMLS_GRAPH_SCRIPT} {working_owlnets_dir} {csvs_dir}")
-    # Here’s some specific guidance - the following should have numbers and the rest zero:
-    # CODEs, SUIs, CUIs, CUI-CUIs, CUI-CODEs, CUI-SUIs, CODE-SUIs
+    working_file_base: str = working_file.rsplit('.', 1)[0]
+    working_owlnets_dir: str = base_owlnets_dir + os.path.sep + working_file_base
+    owl_sab: str = working_file_base.upper()
+    if owl_sab == 'CL-BASE':
+        owl_sab = 'CL'
+    umls_graph_script: str = f"{UMLS_GRAPH_SCRIPT} {working_owlnets_dir} {csvs_dir} {owl_sab}"
+    logger.into(f"Running: {umls_graph_script}")
+    os.system(umls_graph_script)
     lines_in_csv_files(csvs_dir, save_csv_dir)
-
 
 # Add log entry for how long it took to do the processing...
 elapsed_time = time.time() - start_time

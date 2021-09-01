@@ -12,7 +12,7 @@ from datetime import timedelta
 # TODO: make these optional parameters and print them out when --verbose
 OWLNETS_SCRIPT: str = './owlnets_script/__main__.py'
 VALIDATION_SCRIPT: str = './blackbox_validation/__main__.py'
-UMLS_GRAPH_SCRIPT: str = './Jonathan/OWLNETS-UMLS-GRAPH.py'
+UMLS_GRAPH_SCRIPT: str = './Jonathan/OWLNETS-UMLS-GRAPH-6.py'
 
 # All 'Elapsed time' on a Mac Book Pro (32Gb, 2.6 GHz 6-Core Intel Core i7)
 

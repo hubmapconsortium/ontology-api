@@ -278,6 +278,13 @@ edgelist['SAB'] = OWL_SAB
 
 # forward ones
 edgelist.columns = [':START_ID',':TYPE',':END_ID','inverse','SAB']
+
+start_id = edgelist[':START_ID'].apply(lambda x: x[0] if type(x) == list else x)
+end_id = edgelist[':END_ID'].apply(lambda x: x[0] if type(x) == list else x)
+edgelist.reset_index(drop=True, inplace=True)
+edgelist.loc[:,':START_ID'] = start_id.values
+edgelist.loc[:,':END_ID'] = end_id.values
+
 write1 = edgelist[[':START_ID', ':END_ID', ':TYPE', 'SAB']].dropna().drop_duplicates().reset_index(drop=True)
 write1.to_csv(csv_path('CUI-CUIs.csv'), mode='a', header=False, index=False)
 
@@ -390,7 +397,13 @@ SUIs1out.to_csv(csv_path('SUIs.csv'), mode='a', header=False, index=False)
 
 # In[24]:
 
+start_id = edgelist[':START_ID'].apply(lambda x: x[0] if type(x) == list else x)
+end_id = edgelist[':END_ID'].apply(lambda x: x[0] if type(x) == list else x)
+edgelist.reset_index(drop=True, inplace=True)
+edgelist.loc[:,':START_ID'] = start_id.values
+edgelist.loc[:,':END_ID'] = end_id.values
 
+import pdb; pdb.set_trace()
 newCUI_SUIs = newCUIs.merge(newSUIs, how='left', left_on='CUI:ID', right_on='CUI')
 newCUI_SUIs = newCUI_SUIs[['CUI:ID','SUI:ID']]
 newCUI_SUIs.columns = [':START:ID',':END_ID']

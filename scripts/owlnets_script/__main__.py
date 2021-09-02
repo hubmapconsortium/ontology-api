@@ -61,6 +61,8 @@ parser.add_argument("-w", "--with_imports", action="store_true",
                     help='process OWL file even if imports are found, otherwise give up with an error')
 parser.add_argument("-r", "--robot", action="store_true",
                     help='apply robot to owl_url incorporating the includes and exit')
+parser.add_argument("-v", "--verbose", action="store_true",
+                    help='increase output verbosity')
 args = parser.parse_args()
 
 log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
@@ -158,6 +160,24 @@ def scan_xml_tree_for_imports(tree: etree.ElementTree) -> list:
     return resource_uris
 
 
+def search_owl_file_for_imports(owl_filename: str) -> None:
+    parser = etree.HTMLParser()
+    tree: etree.ElementTree = etree.parse(owl_filename, parser)
+    imports: list = scan_xml_tree_for_imports(tree)
+    if len(imports) != 0:
+        logger.info(f"Found the following imports were found in the OWL file {uri} : {', '.join(imports)}")
+        if args.with_imports is not True:
+            exit_msg = f"Imports found in OWL file {uri}. Exiting"
+            logger.info(exit_msg)
+            print(exit_msg)
+            exit(1)
+    else:
+        msg = f"No imports were found in OWL file {uri}"
+        logger.info(msg)
+        if args.verbose:
+            print(msg)
+
+
 def log_files_and_sizes(dir: str) -> None:
     for file in os.listdir(dir):
         generated_file: str = os.path.join(dir, file)
@@ -208,22 +228,6 @@ start_time = time.time()
 print(f"Processing '{uri}'")
 logger.info(f"Processing '{uri}'")
 
-# # While 'etree.parse' will read HTTP URIs is will not read HTTPS URIs. In some cases the HTTP is redirected to
-# # a HTTPS and so we need to use 'urlopen' which handles all cases.
-# with urlopen(uri) as f:
-#     parser = etree.HTMLParser()
-#     tree: etree.ElementTree = etree.parse(f, parser)
-#     imports: list = scan_xml_tree_for_imports(tree)
-#     if len(imports) != 0:
-#         logger.info(f"Found the following imports were found in the OWL file {uri} : {', '.join(imports)}")
-#         if args.with_imports is not True:
-#             exit_msg = f"Imports found in OWL file {uri}. Exiting"
-#             logger.info(exit_msg)
-#             print(exit_msg)
-#             exit(1)
-#     else:
-#         logger.info(f"No imports were found in OWL file {uri}")
-
 # This should remove imports if any. Currently it's a one shot deal and exits.
 # TODO: In the future the output of this can be fed into the pipeline so that the processing contains no imports.
 if args.robot is True:
@@ -266,8 +270,15 @@ owl_file: str = owl_dir + os.path.sep + working_file
 
 if compare_file_md5(owl_file) is False or args.force_owl_download is True:
     download_owl(uri, owl_dir)
-if compare_file_md5(owl_file) is True:
-    parse_loc = owl_file
+# At this point we have either downloaded the .owl file because the MD5 that we found for it was wrong,
+# or we were told to force the download. If the MD5 is wrong at this point, we punt!
+if compare_file_md5(owl_file) is False:
+    err_msg: str = f"MD5 for OWL file does not match?! Terminating."
+    logger.error(err_msg)
+    print(err_msg)
+    exit(1)
+
+search_owl_file_for_imports(owl_file)
 
 graph = Graph().parse(parse_loc, format='xml')
 

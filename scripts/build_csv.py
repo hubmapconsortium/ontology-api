@@ -12,7 +12,7 @@ from datetime import timedelta
 # TODO: make these optional parameters and print them out when --verbose
 OWLNETS_SCRIPT: str = './owlnets_script/__main__.py'
 VALIDATION_SCRIPT: str = './blackbox_validation/__main__.py'
-UMLS_GRAPH_SCRIPT: str = './Jonathan/OWLNETS-UMLS-GRAPH-6.py'
+UMLS_GRAPH_SCRIPT: str = './Jonathan/OWLNETS-UMLS-GRAPH-7.py'
 
 # All 'Elapsed time' on a Mac Book Pro (32Gb, 2.6 GHz 6-Core Intel Core i7)
 
@@ -57,9 +57,8 @@ OBI_OWL_URL: str = 'http://purl.obolibrary.org/obo/obi.owl'
 # Note: currently has just AS (using ccf_part_of as the relationship), but could be a start.
 CCF_OWL_URL: str = 'https://ccf-ontology.hubmapconsortium.org/ccf.owl'
 
-# OWL FILE IS NOT THERE 8/31/21
-# http://www.ontobee.org/ontology/OGI
-OGI_OWL_URL: str = 'http://purl.obolibrary.org/obo/ogi.owl'
+# https://bioportal.bioontology.org/ontologies/OGI
+OGI_OWL_URL: str = 'https://data.bioontology.org/ontologies/OGI/submissions/18/download?apikey=8b5b7825-538d-40e0-9e9e-5ab9274a9aeb'
 
 # https://www.ebi.ac.uk/ols/ontologies/hsapdv
 HSAPDV_OWL_URL: str = 'http://purl.obolibrary.org/obo/hsapdv.owl'
@@ -88,9 +87,10 @@ MP_OWL_URL: str = 'http://purl.obolibrary.org/obo/mp.owl'
 
 # OWL_URLS: list = [UBERON_OWL_URL, CL_OWL_URL, CHEBI_OWL_URL, PATO_OWL_URL, DOID_OWL_URL, OBI_OWL_URL, CCF_OWL_URL]
 # More stuff....
-OWL_URLS: list = [PATO_OWL_URL, UBERON_OWL_URL, CL_BASE_OWL_URL, DOID_OWL_URL, OBI_OWL_URL, CCF_OWL_URL, CHEBI_OWL_URL]
+# OWL_URLS: list = [PATO_OWL_URL, UBERON_OWL_URL, CL_OWL_URL, DOID_OWL_URL, CCF_OWL_URL, CHEBI_OWL_URL]
 # OWL_URLS: list = [UBERON_OWL_URL, CL_BASE_OWL_URL, DOID_OWL_URL, OBI_OWL_URL, CCF_OWL_URL, CHEBI_OWL_URL]
 # OWL_URLS: list = [UBERON_OWL_URL, CL_OWL_URL]
+OWL_URLS: list = [CCF_OWL_URL, CHEBI_OWL_URL]
 
 # TODO https://douroucouli.wordpress.com/2019/03/14/biological-knowledge-graph-modeling-design-patterns/
 

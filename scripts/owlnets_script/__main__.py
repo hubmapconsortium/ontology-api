@@ -321,8 +321,8 @@ logger.info('Add the class metadata to the master metadata dictionary')
 entity_metadata = {'nodes': {}, 'relations': {}}
 for cls in tqdm(ont_classes):
     # get class metadata - synonyms and dbxrefs
-    syns = '|'.join([k for k, v in ont_synonyms[0].items() if v == str(cls)])
-    dbxrefs = '|'.join([k for k, v in ont_dbxrefs[0].items() if v == str(cls)])
+    syns = '|'.join([k for k, v in ont_synonyms[0].items() if str(cls) in v])
+    dbxrefs = '|'.join([k for k, v in ont_dbxrefs[0].items() if str(cls) in v])
 
     # extract metadata
     if '_' in str(cls): namespace = re.findall(r'^(.*?)(?=\W|_)', str(cls).split('/')[-1])[0].upper()

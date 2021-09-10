@@ -108,7 +108,7 @@ parser = argparse.ArgumentParser(
     description='Build .csv files from .owl files using PheKnowLator and Jonathan''s script',
     formatter_class=RawTextArgumentDefaultsHelpFormatter)
 parser.add_argument("-u", '--umls_csvs_dir', type=str, default='../neo4j/import/current',
-                    help='the directory containing the UMLS Graph Extract .csv files modified by Jonathan''s script')
+                    help='directory containing the UMLS Graph Extract .csv files modified by Jonathan''s script')
 parser.add_argument("-l", "--owlnets_dir", type=str, default='./owlnets_output',
                     help='directory containing the owlnets directories from a run of PheKnowLator'
                          ' which is used by Jonathan''s script')

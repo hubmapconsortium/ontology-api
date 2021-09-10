@@ -17,6 +17,7 @@ if [[ -d ${VENV} ]] ; then
 else
     echo "*** Installing python3 venv to ${VENV}"
     python3 -m venv ${VENV}
+    python3 -m pip install --upgrade pip
     source ${VENV}/bin/activate
     pip install -r requirements.txt
     brew install wget

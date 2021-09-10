@@ -12,7 +12,7 @@ from datetime import timedelta
 # TODO: make these optional parameters and print them out when --verbose
 OWLNETS_SCRIPT: str = './owlnets_script/__main__.py'
 VALIDATION_SCRIPT: str = './blackbox_validation/__main__.py'
-UMLS_GRAPH_SCRIPT: str = './Jonathan/OWLNETS-UMLS-GRAPH-7.py'
+UMLS_GRAPH_SCRIPT: str = './Jonathan/OWLNETS-UMLS-GRAPH-9.py'
 
 # All 'Elapsed time' on a Mac Book Pro (32Gb, 2.6 GHz 6-Core Intel Core i7)
 
@@ -53,6 +53,10 @@ DOID_OWL_URL: str = 'http://purl.obolibrary.org/obo/doid.owl'
 # Elapsed time 0:00:14.051567
 OBI_OWL_URL: str = 'http://purl.obolibrary.org/obo/obi.owl'
 
+# Jonathan C. Silverstein  2:03 PM Sept 8, 2021
+# please add this to the list to run - just in from Indiana: First version of the ASCT+B tables as OWL
+CCFASCTB_OWL_URL: str = 'https://ccf-ontology.hubmapconsortium.org/ccf-asctb.owl'
+
 # Elapsed time 0:00:09.053144
 # Note: currently has just AS (using ccf_part_of as the relationship), but could be a start.
 CCF_OWL_URL: str = 'https://ccf-ontology.hubmapconsortium.org/ccf.owl'
@@ -85,12 +89,9 @@ EDAN_OWL_URL: str = 'http://edamontology.org/EDAM.owl'
 # http://obofoundry.org/ontology/mp.html
 MP_OWL_URL: str = 'http://purl.obolibrary.org/obo/mp.owl'
 
-# OWL_URLS: list = [UBERON_OWL_URL, CL_OWL_URL, CHEBI_OWL_URL, PATO_OWL_URL, DOID_OWL_URL, OBI_OWL_URL, CCF_OWL_URL]
-# More stuff....
+
 # OWL_URLS: list = [PATO_OWL_URL, UBERON_OWL_URL, CL_OWL_URL, DOID_OWL_URL, CCF_OWL_URL, CHEBI_OWL_URL]
-# OWL_URLS: list = [UBERON_OWL_URL, CL_BASE_OWL_URL, DOID_OWL_URL, OBI_OWL_URL, CCF_OWL_URL, CHEBI_OWL_URL]
-# OWL_URLS: list = [UBERON_OWL_URL, CL_OWL_URL]
-OWL_URLS: list = [CCF_OWL_URL, CHEBI_OWL_URL]
+OWL_URLS: list = [PATO_OWL_URL, UBERON_OWL_URL, CL_OWL_URL]
 
 # TODO https://douroucouli.wordpress.com/2019/03/14/biological-knowledge-graph-modeling-design-patterns/
 

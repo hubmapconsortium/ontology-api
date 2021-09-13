@@ -91,7 +91,8 @@ MP_OWL_URL: str = 'http://purl.obolibrary.org/obo/mp.owl'
 
 
 # OWL_URLS: list = [PATO_OWL_URL, UBERON_OWL_URL, CL_OWL_URL, DOID_OWL_URL, CCF_OWL_URL, CHEBI_OWL_URL]
-OWL_URLS: list = [PATO_OWL_URL, UBERON_OWL_URL, CL_OWL_URL]
+# OWL_URLS: list = [PATO_OWL_URL, UBERON_OWL_URL, CL_OWL_URL]
+OWL_URLS: list = [PATO_OWL_URL, UBERON_OWL_URL, CL_OWL_URL, CCF_OWL_URL]
 
 # TODO https://douroucouli.wordpress.com/2019/03/14/biological-knowledge-graph-modeling-design-patterns/
 

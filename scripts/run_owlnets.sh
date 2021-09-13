@@ -14,8 +14,11 @@ $OWLNETS_SCRIPT -c -v http://edamontology.org/EDAM.owl
 $OWLNETS_SCRIPT -c -v http://purl.obolibrary.org/obo/doid.owl
 $OWLNETS_SCRIPT -c -v http://purl.obolibrary.org/obo/cl/cl-base.owl
 $OWLNETS_SCRIPT -c -v http://purl.obolibrary.org/obo/cl.owl
-$OWLNETS_SCRIPT -c -v http://purl.obolibrary.org/obo/chebi.owl
 $OWLNETS_SCRIPT -c -v http://brg.ai.sri.com/CCO/downloads/cco.owl
 $OWLNETS_SCRIPT -c -v https://ccf-ontology.hubmapconsortium.org/ccf.owl
 $OWLNETS_SCRIPT -c -v https://ccf-ontology.hubmapconsortium.org/ccf-asctb.owl
+$OWLNETS_SCRIPT -c -v http://purl.obolibrary.org/obo/pr.owl
+$OWLNETS_SCRIPT -c -v http://purl.obolibrary.org/obo/vario.owl
+# 'chebi' is at the end because it takes forever to run....
+$OWLNETS_SCRIPT -c -v http://purl.obolibrary.org/obo/chebi.owl
 echo "*** Done!"

@@ -17,6 +17,7 @@ from urllib.request import urlopen
 import subprocess
 import hashlib
 from typing import Dict
+import pandas as pd
 
 # Setup and running the script...
 #
@@ -57,6 +58,8 @@ parser.add_argument("-c", "--clean", action="store_true",
                     help='clean the owlnets_output directory of previous output files before run')
 parser.add_argument("-d", "--force_owl_download", action="store_true",
                     help='force downloading of the .owl file before processing')
+parser.add_argument("-i", "--ignore_owl_md5", action="store_true",
+                    help='ignore differences between .owl MD5 and saved MD5')
 parser.add_argument("-w", "--with_imports", action="store_true",
                     help='process OWL file even if imports are found, otherwise give up with an error')
 parser.add_argument("-D", "--delete_definitions", action="store_true",
@@ -72,6 +75,11 @@ logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
 uri = args.owl_url
+
+
+def print_and_logger_info(message: str) -> None:
+    print(message)
+    logger.info(message)
 
 
 def file_from_uri(uri_str: str) -> str:
@@ -93,7 +101,8 @@ def download_owltools(loc: str) -> None:
     if os.WEXITSTATUS(cmd) != 0:
         logger.info('Download owltools and update permissions')
         # move into pkt_kg/libs/ directory
-        cwd = os.getcwd()
+        cwd: src = os.getcwd()
+
         os.system(f"mkdir -p {loc}")
         os.chdir(loc)
 
@@ -172,8 +181,7 @@ def search_owl_file_for_imports(owl_filename: str) -> None:
         logger.info(f"Found the following imports were found in the OWL file {uri} : {', '.join(imports)}")
         if args.with_imports is not True:
             exit_msg = f"Imports found in OWL file {uri}. Exiting"
-            logger.info(exit_msg)
-            print(exit_msg)
+            print_and_logger_info(exit_msg)
             exit(1)
     else:
         msg = f"No imports were found in OWL file {uri}"
@@ -189,6 +197,24 @@ def log_files_and_sizes(dir: str) -> None:
         logger.info(f"Generated file '{generated_file}' size {size:,}")
 
 
+def look_for_none_in_node_metadata_file(dir: str) -> None:
+    file: str = dir + os.path.sep + 'OWLNETS_node_metadata.txt'
+    print(f'Searching {file}')
+    data = pd.read_csv(file, sep='\t')
+
+    # TODO: We will potentially find ontologies without synonyms.
+    message: str = f"Total columns in {file}: {len(data['node_synonyms'])}"
+    print_and_logger_info(message)
+    node_synonyms_not_None = data[data['node_synonyms'].str.contains('None')==False]
+    message: str = f"Columns in {file} where node_synonyms is not None: {len(node_synonyms_not_None)}"
+    print_and_logger_info(message)
+    node_dbxrefs_not_None = data[data['node_dbxrefs'].str.contains('None')==False]
+    message: str = f"Columns in {file} where node_dbxrefs is not None: {len(node_dbxrefs_not_None)}"
+    print_and_logger_info(message)
+    both_not_None = node_synonyms_not_None[node_synonyms_not_None['node_dbxrefs'].str.contains('None')==False]
+    print(f"Columns where node_synonyms && node_dbxrefs is not None: {len(both_not_None)}")
+
+
 def robot_merge(owl_url: str) -> None:
     logger.info(f"Running robot merge on '{uri}'")
     loc = f'.{os.sep}robot'
@@ -201,7 +227,7 @@ def robot_merge(owl_url: str) -> None:
     java_home: str = os.getenv('JAVA_HOME')
     jdk: str = file_from_path(java_home)
     if not re.match(r'^jdk-.*\.jdk$', jdk):
-        print(f'Environment variable JAVA_HOME={java_home} does not appear to point to a valid JDK?')
+        print_and_logger_info(f'Environment variable JAVA_HOME={java_home} does not appear to point to a valid JDK?')
         exit(1)
 
     cwd = os.getcwd()
@@ -254,7 +280,7 @@ logger.info(f"Processing '{uri}'")
 if args.robot is True:
     robot_merge(uri)
     elapsed_time = time.time() - start_time
-    logger.info('Done! Elapsed time %s', "{:0>8}".format(str(timedelta(seconds=elapsed_time))))
+    print_and_logger_info('Done! Elapsed time %s', "{:0>8}".format(str(timedelta(seconds=elapsed_time))))
     exit(0)
 
 download_owltools(args.owltools_dir)
@@ -284,31 +310,30 @@ if args.clean is True:
 
 
 logger.info('Loading ontology')
-# Parse an XML document from a URL or an InputSource.
+# ALWAYS parse a local copy of the .owl file (uri).
 # NOTE: Sometimes, with large documents (eg., chebi) the uri parse hangs, so here we download the document first
 # Another problem is with chebi, there is a redirect which Graph.parse(uri, ...) may not handle.
-parse_loc: str = uri
 owl_dir: str = args.owl_dir + os.path.sep + uri_dir
 owl_file: str = owl_dir + os.path.sep + working_file
 
-if compare_file_md5(owl_file) is False or args.force_owl_download is True:
+if args.force_owl_download is True:
     if args.verbose:
-        print(f"Downloading .owl file to {owl_file}")
+        print_and_logger_info(f"Downloading .owl file to {owl_file} (force .owl download specified)")
     download_owl(uri, owl_dir)
-else:
+elif args.ignore_owl_md5 is True:
     if args.verbose:
-        print(f"Using .owl file at {owl_file}")
-# At this point we have either downloaded the .owl file because the MD5 that we found for it was wrong,
-# or we were told to force the download. If the MD5 is wrong at this point, we punt!
-if compare_file_md5(owl_file) is False:
-    err_msg: str = f"MD5 for OWL file does not match?! Terminating."
-    logger.error(err_msg)
-    print(err_msg)
-    exit(1)
+        print_and_logger_info(f"Ignoring .owl file {owl_file} MD5")
+elif compare_file_md5(owl_file) is False:
+    if args.verbose:
+        print_and_logger_info(f"Downloading .owl file to {owl_file} (MD5 of .owl file does not match)")
+    download_owl(uri, owl_dir)
+
+if args.verbose:
+    print_and_logger_info(f"Using .owl file at {owl_file}")
 
 search_owl_file_for_imports(owl_file)
 
-graph = Graph().parse(parse_loc, format='xml')
+graph = Graph().parse(owl_file, format='xml')
 
 logger.info('Extract Node Metadata')
 ont_classes = pkt.utils.gets_ontology_classes(graph)
@@ -496,6 +521,7 @@ with open(relation_filename, 'w') as out:
             logger.error(f"entity_metadata['relations'][{x}] not found in: {entity_metadata['relations']}")
 
 log_files_and_sizes(working_dir)
+look_for_none_in_node_metadata_file(working_dir)
 
 # Add log entry for how long it took to do the processing...
 elapsed_time = time.time() - start_time

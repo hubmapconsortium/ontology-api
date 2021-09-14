@@ -35,5 +35,15 @@ def look_for_none(uri: str) -> None:
     look_for_none_in_node_metadata_file(working_dir + os.path.sep + node_metadata_file)
 
 
-look_for_none_in_file(sys.argv[1])
+none_total = 0
+field = 'node_label'
+files = sys.argv[1:]
+for file in files:
+    data = pd.read_csv(file, sep='\t')
+    field_None = data[data[field].str.contains('None')==True]
+    print(f"Columns where \'{field}\' in {file} is None: {len(field_None)}")
+    none_total += len(field_None)
+print(f"Total of {none_total} None entries for field \'{field}\' in files: {files}")
+
+#look_for_none_in_file(sys.argv[1])
 print('Done!')

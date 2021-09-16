@@ -8,8 +8,9 @@ Copy the data (.csv) files to neo4j deployment machine (host).
 ```buildoutcfg
 $ cd ~/Documents/Git/ontology-api/neo4j/import/current
 $ mkdir -p tmp/current; cp *.csv tmp/current
-$ pushd tmp; tar zcfv ../current.tgz .
+$ (cd tmp; tar zcfv ../current.tgz .)
 $ scp -i ~/.ssh/id_rsa_e2c.pem current.tgz cpk36@neo4j.dev.hubmapconsortium.org:/tmp
+$ rm -rf ~/tmp
 ```
 
 Go to the host and update from the repository.
@@ -66,6 +67,8 @@ Imported:
 Peak memory usage: 1.289GiB
 There were bad entries which were skipped and logged into /usr/src/app/neo4j/bin/import.report
 ...
+Successfully built 0ace526b088f
+Successfully tagged ontology-api_ontology-neo4j:latest
 ```
 
 Determine that there are two new images, one for the neo4j server and another for the neo4j-constraints setting process.

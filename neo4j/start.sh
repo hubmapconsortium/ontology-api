@@ -4,17 +4,15 @@
 NEO4J=/usr/src/app/neo4j
 
 # Get the neo4j password and URI from system environment variable
-NEO4J_PASSWORD=${NEO4J_PASSWORD}
-NEO4J_URI=${NEO4J_URI}
 NEO4J_USER=${NEO4J_USER}
+NEO4J_PASSWORD=${NEO4J_PASSWORD}
 
 echo "NEO4J_USER: $NEO4J_USER"
 echo "NEO4J_PASSWORD: $NEO4J_PASSWORD"
-echo "NEO4J_URI: $NEO4J_URI"
 
 # Run a simple query which (if it succeeds) tells us that the Neo4j is running...
 function test_cypher_query {
-    echo 'match (n) return count(n);' | cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" -a "${NEO4J_URI}" >/dev/null 2>&1
+    echo 'match (n) return count(n);' | cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" >/dev/null 2>&1
 }
 
 # Set the initial password of the initial admin user ('neo4j')
@@ -23,7 +21,7 @@ function test_cypher_query {
 echo "Setting the neo4j password as the value of NEO4J_PASSWORD environment variable: $NEO4J_PASSWORD"
 $NEO4J/bin/neo4j-admin set-initial-password $NEO4J_PASSWORD
 
-echo "Start the neo4j server in the background ..."
+echo "Start the neo4j server in the background..."
 $NEO4J/bin/neo4j start
 
 # Spin here till the neo4j cypher-shell successfully responds...
@@ -35,7 +33,7 @@ done
 
 echo "Creating the constraints using Cypher queries..."
 # https://neo4j.com/docs/operations-manual/current/tools/cypher-shell/
-cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" -a "${NEO4J_URI}" --format verbose --fail-at-end --debug -f "/usr/src/app/set_constraints.cypher"
+cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" --format verbose --fail-at-end --debug -f "/usr/src/app/set_constraints.cypher"
 
 echo "Stopping neo4j server..."
 # https://neo4j.com/developer/kb/how-to-properly-shutdown-a-neo4j-database/

@@ -9,6 +9,9 @@ COPY set_constraints.cypher .
 
 RUN chmod +x start.sh
 
+# Export the path for running cypher-shell in load_constraints.sh
+ENV PATH=/usr/src/app/neo4j/bin:$PATH
+
 # Set the environment variable for all subsequent instructions in the build stage
 ENV IMPORT=/usr/src/app/neo4j/import
 

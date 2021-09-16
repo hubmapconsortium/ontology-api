@@ -22,8 +22,10 @@ The Oelnets files are written to the '/owlnets_output/***ontology***' directory.
 
 ## Owlnets files to csv files
 
-The Owlnets files are converted to .csv (comma delimited) files by the script located in './Jonathan/OWLNETS-UMLS-GRAPH.py'. This script takes it's input from the './owlnets_output' files, and writes to the '../neo4j/import/current' directory. It's changes are cumulative, so when starting a run a new batch of UMLS files needs to be placed there. The script that coordinates the running of this process will copy the current .csv files to a numbered save directory (e.g., 'save.1') so that all iterations can be examined. In the end, it is only the final set of .csv files that is used as a basis for the neo4j graph.
+The Owlnets files are converted to .csv (comma delimited) files by the script located in './Jonathan/OWLNETS-UMLS-GRAPH.py'. This script takes it's input from the './owlnets_output' files, and a base set of [UMLS](https://www.nlm.nih.gov/research/umls/index.html) (.csv files) files. It writes to the '../neo4j/import/current' directory. It's changes are designed to be cumulative between runs, so when starting a run a freshly downloaded set of UMLS files should be placed there. The script that coordinates the running of this process will copy the current .csv files to a numbered save directory (e.g., 'save.1') so that the results of all iterations can be examined. In the end, it is only the final set of .csv files that is used as a basis for the neo4j graph.
 
 ## Coordination
 
 The process is coordinated via the 'build_csv.sh' file which (after setting up a python environment) will run the build_csh.py file. The python virtual environment is placed in the './venv' directory using the './requirements.txt' file.
+
+A prerequisite for running this file is that python3 be installed. It is also configured to run on a MAC currently.

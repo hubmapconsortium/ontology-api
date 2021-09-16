@@ -3,11 +3,14 @@ FROM hubmap/neo4j-image:4.2.5
 # Change directory
 WORKDIR /usr/src/app
 
-# Set the environment variable for all subsequent instructions in the build stage
-ENV IMPORT=/usr/src/app/neo4j/import
-
 # Copy files from host to image
 COPY start.sh .
+COPY set_constraints.cypher .
+
+RUN chmod +x start.sh
+
+# Set the environment variable for all subsequent instructions in the build stage
+ENV IMPORT=/usr/src/app/neo4j/import
 
 # Load the .csv files to populate neo4j before starting it up.
 # This will take some time, but the data will be there when the constraints are run

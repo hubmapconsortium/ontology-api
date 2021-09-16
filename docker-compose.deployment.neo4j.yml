@@ -7,8 +7,11 @@ services:
     container_name: ontology-neo4j
     build: neo4j
     environment:
+      - NEO4J_USER=${NEO4J_USER:-neo4j}
       # Used for setting the initial neo4j password, defaut to HappyG0at
       - NEO4J_PASSWORD=${NEO4J_PASSWORD:-HappyG0at}
+      # Used for connecting to ontology-neo4j contaienr, defaut to bolt://ontology-neo4j:7687
+      - NEO4J_URI=${NEO4J_URI:-bolt://ontology-neo4j:7687}
       # Allow the JVM to read cgroup limits
       # -XX:+UseContainerSupport is enabled by default on linux machines,
       # this feature was introduced in java10 then backported to Java-8u191, the base image comes with OpenJDK(build 1.8.0_232-b09)
@@ -46,23 +49,6 @@ services:
           memory: 8G
     networks:
       - ontology-neo4j-network
-
-  neo4j-constraints:
-    container_name: neo4j-constraints
-    build: neo4j-constraints
-    environment:
-      # Used for connecting to ontology-neo4j contaienr, defaut to HappyG0at
-      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-HappyG0at}
-      # Used for connecting to ontology-neo4j contaienr, defaut to bolt://ontology-neo4j:7687
-      - NEO4J_URI=${NEO4J_URI:-bolt://ontology-neo4j:7687}
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-    networks:
-      - ontology-neo4j-network
-    depends_on:
-      - ontology-neo4j
 
 # Named volume
 volumes:

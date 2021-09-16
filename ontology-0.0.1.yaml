@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Ontology API
+  title: HuBMAP Ontology API
   description: This document describes the Ontology API
   version: 0.0.1
 servers:

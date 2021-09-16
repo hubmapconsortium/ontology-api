@@ -17,7 +17,7 @@ Go to the host and update from the repository.
 $ ssh -i ~/.ssh/id_rsa_e2c.pem cpk36@neo4j.dev.hubmapconsortium.org
 $ sudo /bin/su - centos
 $ cd hubmap/ontology-api
-# NOTE: this is a Git reposntory so make sure that you are in the right branch...
+# NOTE: this is a Git reposntory https://github.com/hubmapconsortium/ontology-api.git so make sure that you are in the right branch...
 $ git pull
 ```
 

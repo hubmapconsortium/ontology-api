@@ -28,3 +28,38 @@ Have to decide what to do about that - one approach is to recognize we’re taki
 ```buildoutcfg
 MATCH (a:Code{SAB:“CL”}) RETURN Count(a)
 ```
+
+Code for checking how many CUI do not have Semantic (not an acceptance requirement that it be zero - generally run before and after running below approaches to demonstrate number of Semantics assigned programmatically:
+```buildoutcfg
+MATCH (b:Concept) WHERE SIZE((b)-->(:Semantic)) = 0 RETURN COUNT(b)
+```
+
+### Code for adding Semantic via graph propogation
+
+Candidate is the two commands below
+ 
+Code for adding Semantic via graph propogation (candidate is the two commands below): 
+
+```buildoutcfg
+MATCH (b:Concept) WHERE SIZE((b)-->(:Semantic)) = 0
+CALL { WITH b
+MATCH p=((b)-[:isa*1..2]->(c:Concept)-->(d:Semantic)) 
+RETURN LENGTH(p), d.STN, b AS Cncpt, d AS Smntc ORDER BY LENGTH(p), d.STN DESCENDING LIMIT 1 }
+CREATE (Cncpt)-[:STY]->(Smntc);
+```
+
+Run above repeating until 0 new relationships written (using the "rerun" button on graphical bolt interface), then run below only once.
+
+Explanation of repeating: Above could in theory be done as a longer variable length query rather than repeat, but longer doesn't complete in reasonable time - the variable length longer results in a huge memory-intensive computation - repeating two segments at a time ran less than one minute each and only a few repeats were needed to saturate to zero more relationships created - so repeating is best approach with modest analysis. Also note that its less precise and certainly not "valid" to run below more than once - below allows up and down directions and part_of to catch some "stragglers".
+
+```buildoutcfg
+MATCH (b:Concept) WHERE SIZE((b)-->(:Semantic)) = 0
+CALL { WITH b
+MATCH p=((b)-[:isa|part_of*1..2]-(c:Concept)-->(d:Semantic)) 
+RETURN LENGTH(p), d.STN, b AS Cncpt, d AS Smntc ORDER BY LENGTH(p), d.STN DESCENDING LIMIT 1 }
+CREATE (Cncpt)-[:STY]->(Smntc);
+```
+
+## Not yet addressed
+
+Fix where new CUI-SUIs and new CODE-SUIs times two would match an OLD SUI not a new SUI (and therefore in current code don't get written - because they don't match a new SUI)  - does this alone explain 2439 CUIs with no Pref_term and similar numbers of Codes with no PT? - i think it does so needs fix and then re-test.

@@ -38,7 +38,9 @@ echo "Creating the constraints using Cypher queries..."
 # https://neo4j.com/docs/operations-manual/current/tools/cypher-shell/
 ${NEO4J}/bin/cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" --format verbose --fail-at-end --debug -f "/usr/src/app/set_constraints.cypher"
 
-sleep 5m
+SLEEP_TIME=2m
+echo "Sleeping for $SLEEP_TIME to allow the indexes to be built before going to read_only mode..."
+sleep $SLEEP_TIME
 
 echo "Stopping neo4j server..."
 # https://neo4j.com/developer/kb/how-to-properly-shutdown-a-neo4j-database/

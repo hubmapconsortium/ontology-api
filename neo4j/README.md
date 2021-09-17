@@ -124,7 +124,7 @@ a43206d75fde   ontology-api_neo4j-constraints   "./load_constraints.…"   5 hou
 0b23257cc291   ontology-api_ontology-neo4j      "/usr/src/app/start.…"   5 hours ago   Up 5 hours (healthy)     0.0.0.0:7477->7474/tcp, :::7477->7474/tcp, 0.0.0.0:7688->7687\
 /tcp, :::7688->7687/tcp   ontology-neo4j
 
-$ docker logs a43206d75fde
+$ docker logs -f a43206d75fde
 NEO4J_PASSWORD: HappyG0at
 NEO4J_URI: bolt://ontology-neo4j:7687
 ....

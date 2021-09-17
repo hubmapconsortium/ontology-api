@@ -37,8 +37,8 @@ ${NEO4J}/bin/cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" --format ver
 
 echo "Stopping neo4j server..."
 # https://neo4j.com/developer/kb/how-to-properly-shutdown-a-neo4j-database/
-if [[ ! `$NEO4J/bin/neo4j stop` ]]; then
-  while [[ `$NEO4J/bin/neo4j status` ]];
+if [[ ! `${NEO4J}/bin/neo4j stop` ]]; then
+  while [[ `${NEO4J}/bin/neo4j status` ]]; do
     echo "Neo4j stop waiting..."
     sleep 1
   done;

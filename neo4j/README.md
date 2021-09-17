@@ -58,6 +58,7 @@ ontology-api_ontology-neo4j-data
 Rebuild the container.
 ```buildoutcfg
 $ docker-compose -f docker-compose.deployment.neo4j.yml build --no-cache
+Building ontology-neo4j
 ...
 IMPORT DONE in 2m 23s 351ms.
 Imported:

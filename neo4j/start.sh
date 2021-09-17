@@ -12,7 +12,7 @@ echo "NEO4J_PASSWORD: $NEO4J_PASSWORD"
 
 # Run a simple query which (if it succeeds) tells us that the Neo4j is running...
 function test_cypher_query {
-    echo 'match (n) return count(n);' | cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" >/dev/null 2>&1
+    echo 'match (n) return count(n);' | ${NEO4J}/bin/cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" >/dev/null 2>&1
 }
 
 # Set the initial password of the initial admin user ('neo4j')
@@ -27,20 +27,20 @@ $NEO4J/bin/neo4j start
 # Spin here till the neo4j cypher-shell successfully responds...
 echo "Waiting for server to begin fielding Cypher queries..."
 until test_cypher_query ; do
-    echo '.'
+    echo 'Cypher Query available waiting...'
     sleep 1
 done
 
 echo "Creating the constraints using Cypher queries..."
 # https://neo4j.com/docs/operations-manual/current/tools/cypher-shell/
-cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" --format verbose --fail-at-end --debug -f "/usr/src/app/set_constraints.cypher"
+${NEO4J}/bin/cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" --format verbose --fail-at-end --debug -f "/usr/src/app/set_constraints.cypher"
 
 echo "Stopping neo4j server..."
 # https://neo4j.com/developer/kb/how-to-properly-shutdown-a-neo4j-database/
-if [[! "${bin/neo4j stop}"]]; then
-  while [["${bin/neo4j status}"]];
+if [[ ! `$NEO4J/bin/neo4j stop` ]]; then
+  while [[ `$NEO4J/bin/neo4j status` ]];
+    echo "Neo4j stop waiting..."
     sleep 1
-    echo "Still waiting..."
   done;
 fi
 

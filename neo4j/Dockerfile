@@ -1,4 +1,5 @@
 FROM hubmap/neo4j-image:4.2.5
+# https://github.com/hubmapconsortium/neo4j-docker/blob/master/neo4j-image/Dockerfile
 
 # Change directory
 WORKDIR /usr/src/app

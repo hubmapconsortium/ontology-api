@@ -3,6 +3,9 @@
 # Neo4j installation directory.
 NEO4J=/usr/src/app/neo4j
 
+# Set JAVA_HOME
+export JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:/bin/java::")
+
 # Get the neo4j password and URI from system environment variable
 NEO4J_USER=${NEO4J_USER}
 NEO4J_PASSWORD=${NEO4J_PASSWORD}

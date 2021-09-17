@@ -42,7 +42,7 @@ SLEEP_TIME=2m
 echo "Sleeping for $SLEEP_TIME to allow the indexes to be built before going to read_only mode..."
 sleep $SLEEP_TIME
 
-echo "Stopping neo4j server..."
+echo "Stopping neo4j server to go into read_only mode..."
 # https://neo4j.com/developer/kb/how-to-properly-shutdown-a-neo4j-database/
 if [[ ! `${NEO4J}/bin/neo4j stop` ]]; then
   while [[ `${NEO4J}/bin/neo4j status` ]]; do
@@ -55,6 +55,6 @@ echo "Only allow read operations from this Neo4j instance..."
 # https://neo4j.com/docs/operations-manual/current/configuration/neo4j-conf/#neo4j-conf
 echo "dbms.read_only=true" >> ${NEO4J}/conf/neo4j.conf
 
-echo "Restarting neo4j server..."
+echo "Restarting neo4j server in read_only mode..."
 # Docker requires your command to keep running in the foreground. Otherwise, it thinks that your applications stops and shutdown the container.
 $NEO4J/bin/neo4j console

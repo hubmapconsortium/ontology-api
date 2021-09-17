@@ -38,6 +38,8 @@ echo "Creating the constraints using Cypher queries..."
 # https://neo4j.com/docs/operations-manual/current/tools/cypher-shell/
 ${NEO4J}/bin/cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" --format verbose --fail-at-end --debug -f "/usr/src/app/set_constraints.cypher"
 
+sleep 5m
+
 echo "Stopping neo4j server..."
 # https://neo4j.com/developer/kb/how-to-properly-shutdown-a-neo4j-database/
 if [[ ! `${NEO4J}/bin/neo4j stop` ]]; then

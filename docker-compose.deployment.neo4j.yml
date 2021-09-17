@@ -32,8 +32,6 @@ services:
       timeout: 10s
       retries: 10
     volumes:
-      # Mount the neo4j configuration file to container
-      - "./neo4j/neo4j.conf:/usr/src/app/neo4j/conf/neo4j.conf"
       # Logging mount
       - "./neo4j/logs:/usr/src/app/neo4j/logs"
       # Data mount using named voulme

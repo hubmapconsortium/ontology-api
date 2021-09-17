@@ -7,6 +7,7 @@ WORKDIR /usr/src/app
 # Copy files from host to image
 COPY start.sh .
 COPY set_constraints.cypher .
+COPY neo4j.conf /usr/src/app/neo4j/conf
 
 RUN chmod +x start.sh
 

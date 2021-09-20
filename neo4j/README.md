@@ -38,7 +38,7 @@ CONTAINER ID   IMAGE                         COMMAND                  CREATED   
 c49e97df99ec   ontology-api_ontology-neo4j   "/usr/src/app/start.…"   11 hours ago   Up 11 hours (healthy)   0.0.0.0:7477->7474/tcp, :::7477->7474/tcp, 0.0.0.0:7688->7687/tcp, :::7688->7687/tcp   ontology-neo4j
 ```
 
-Stop the deployed server, and notice that there is also an associated volume which needs to be deleted.
+Stop the container, and notice that there is also an associated volume which needs to be deleted.
 ```buildoutcfg
 $ docker-compose -f docker-compose.deployment.neo4j.yml down
 NOTE: After this the 'ontology-api_ontology-neo4j' will not show up when running 'docker ps'
@@ -72,7 +72,7 @@ Successfully built 0ace526b088f
 Successfully tagged ontology-api_ontology-neo4j:latest
 ```
 
-Determine that there is a new images for the neo4j server.
+Determine that there is a new image.
 ```buildoutcfg
 $ docker images
 REPOSITORY                       TAG       IMAGE ID       CREATED          SIZE
@@ -96,12 +96,14 @@ CONTAINER ID   IMAGE                         COMMAND                  CREATED   
 ...
 ```
 
-Look at the logs for the server.
+Look at the logs for the container.
 ```buildoutcfg
 $ docker logs -f 60e02ed00622
 ```
 
-At this point you can check to see if you can hit the server from the web interface
+## Checking
+
+At this point you can check to see if you can hit the neo4j server from the web interface
 ```buildoutcfg
 http://neo4j.dev.hubmapconsortium.org:7477/browser/
 ```
@@ -117,5 +119,7 @@ MATCH (c:Code) where ID(c)=13824345 DELETE c
 ERROR SessionExpired
 No longer possibe to write to server at	neo4j.dev.hubmapconsortium.org:7688
 ```
+
+Notice that you cannot modify the neo4j database because it has been deployed in read_only mode.
 
 You are done! :-)

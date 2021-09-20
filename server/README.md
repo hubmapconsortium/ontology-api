@@ -41,10 +41,6 @@ tox
 To run the server on a Docker container, please execute the following from the root directory:
 
 ```bash
-# build the image
-docker-compose build --no-cache
-
-# REPLACED BY DOCKER-COMPOSE....
 # building the image
 docker build --no-cache -t openapi_server .
 

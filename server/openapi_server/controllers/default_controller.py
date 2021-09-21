@@ -12,8 +12,8 @@ from openapi_server.models.semantic_stn import SemanticStn  # noqa: E501
 from openapi_server.models.sty_tui_stn import StyTuiStn  # noqa: E501
 from openapi_server.models.termtype_code import TermtypeCode  # noqa: E501
 from openapi_server.models.termtype_term import TermtypeTerm  # noqa: E501
+from openapi_server.managers.neo4j_manager import Neo4jManager
 from openapi_server import util
-from openapi_server.controllers.neo4j_manager import Neo4jManager
 
 neo4jManager = Neo4jManager()
 

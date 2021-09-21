@@ -10,8 +10,12 @@ services:
     init: true
     # Specifying a restart policy to avoid downtime
     restart: always
-    ports:
-      - 8080:8080
+    environment:
+      - HOST_GID=${HOST_GID:-1000}
+      - HOST_UID=${HOST_UID:-1000}
+    volumes:
+      # Mount the logging to container
+      - "./server/log:/usr/src/app/log"
     networks:
       - gateway_hubmap
 

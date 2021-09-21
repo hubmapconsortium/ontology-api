@@ -23,4 +23,4 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 # Finally, we run uWSGI with the ini file
-CMD [ "uwsgi", "--ini", "/usr/src/app/src/uwsgi.ini" ]
+CMD [ "uwsgi", "--ini", "/usr/src/app/uwsgi.ini" ]

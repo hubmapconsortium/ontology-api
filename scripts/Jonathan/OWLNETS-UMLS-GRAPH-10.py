@@ -11,14 +11,23 @@
 
 
 import sys
-import pandas as pd 
+import pandas as pd
 import numpy as np
 import base64
 import json
 import os
 
+
+def owlnets_path(file: str) -> str:
+    return os.path.join(sys.argv[1], file)
+
+
+def csv_path(file: str) -> str:
+    return os.path.join(sys.argv[2], file)
+
+
 # Asssignnment of SAB for CUI-CUI relationships (edgelist) - typically use file name before .owl in CAPS
-OWL_SAB = 'CL'
+OWL_SAB = sys.argv[3].upper()
 
 pd.set_option('display.max_colwidth', None)
 
@@ -28,7 +37,7 @@ pd.set_option('display.max_colwidth', None)
 # In[2]:
 
 
-node_metadata = pd.read_csv("OWLNETS_node_metadata.txt", sep='\t')
+node_metadata = pd.read_csv(owlnets_path("OWLNETS_node_metadata.txt"), sep='\t')
 node_metadata = node_metadata.replace({'None':np.nan})
 node_metadata = node_metadata.dropna(subset=['node_id']).drop_duplicates(subset='node_id').reset_index(drop=True)
 
@@ -36,7 +45,7 @@ node_metadata = node_metadata.dropna(subset=['node_id']).drop_duplicates(subset=
 # In[3]:
 
 
-relations = pd.read_csv("OWLNETS_relations.txt", sep='\t')
+relations = pd.read_csv(owlnets_path("OWLNETS_relations.txt"), sep='\t')
 relations = relations.replace({'None':np.nan})
 relations = relations.dropna(subset=['relation_id']).drop_duplicates(subset='relation_id').reset_index(drop=True)
 # handle relations with no label by inserting part after # - may warrant more robust solution or a hard stop
@@ -46,7 +55,7 @@ relations.loc[relations['relation_label'].isnull(), 'relation_label'] = relation
 # In[4]:
 
 
-edgelist = pd.read_csv("OWLNETS_edgelist.txt", sep='\t')
+edgelist = pd.read_csv(owlnets_path("OWLNETS_edgelist.txt"), sep='\t')
 edgelist = edgelist.replace({'None':np.nan})
 edgelist = edgelist.dropna().drop_duplicates().reset_index(drop=True)
 
@@ -172,7 +181,7 @@ del explode_dbxrefs['nodeXrefCodes']
 # In[13]:
 
 
-CUI_CODEs = pd.read_csv("CUI-CODEs.csv")
+CUI_CODEs = pd.read_csv(csv_path("CUI-CODEs.csv"))
 CUI_CODEs = CUI_CODEs.dropna().drop_duplicates().reset_index(drop=True)
 
 
@@ -200,7 +209,7 @@ del node_xref_cui
 del explode_dbxrefs
 
 
-# ### Add column for base64 CUIs 
+# ### Add column for base64 CUIs
 
 # In[16]:
 
@@ -221,7 +230,7 @@ node_metadata['CUI'] = ''
 
 # join list across row
 node_metadata['cuis'] = node_metadata[['nodeCUIs', 'CUI_CODEs', 'XrefCUIs', 'base64cui']].values.tolist()
-    
+
 # remove nan, flatten, and remove duplicates - retains order of elements which is key to consistency
 node_metadata['cuis'] = node_metadata['cuis'].apply(lambda x: [i for i in x if i == i])
 node_metadata['cuis'] = node_metadata['cuis'].apply(lambda x: [i for row in x for i in row])
@@ -277,11 +286,11 @@ edgelist['SAB'] = OWL_SAB
 
 # forward ones
 edgelist.columns = [':START_ID',':TYPE',':END_ID','inverse','SAB']
-edgelist[[':START_ID', ':END_ID', ':TYPE', 'SAB']].to_csv('CUI-CUIs.csv', mode='a', header=False, index=False)
+edgelist[[':START_ID', ':END_ID', ':TYPE', 'SAB']].to_csv(csv_path('CUI-CUIs.csv'), mode='a', header=False, index=False)
 
 #reverse ones
 edgelist.columns = [':END_ID','relation_label',':START_ID',':TYPE','SAB']
-edgelist[[':START_ID', ':END_ID', ':TYPE', 'SAB']].to_csv('CUI-CUIs.csv', mode='a', header=False, index=False)
+edgelist[[':START_ID', ':END_ID', ':TYPE', 'SAB']].to_csv(csv_path('CUI-CUIs.csv'), mode='a', header=False, index=False)
 
 del edgelist
 
@@ -298,7 +307,7 @@ newCODEs = newCODEs.rename({'node_id': 'CodeID:ID'}, axis=1)
 
 newCODEs = newCODEs.dropna().drop_duplicates().reset_index(drop=True)
 # write/append - comment out during development
-newCODEs.to_csv('CODEs.csv', mode='a', header=False, index=False)
+newCODEs.to_csv(csv_path('CODEs.csv'), mode='a', header=False, index=False)
 
 del newCODEs
 
@@ -321,7 +330,7 @@ newCUIs.reset_index(drop=True, inplace=True)
 
 newCUIs = newCUIs.dropna().drop_duplicates().reset_index(drop=True)
 # write/append - comment out during development
-newCUIs.to_csv('CUIs.csv', mode='a', header=False, index=False)
+newCUIs.to_csv(csv_path('CUIs.csv'), mode='a', header=False, index=False)
 
 # del newCUIs - do not delete here because we need newCUIs list later
 # del CUIs
@@ -350,7 +359,7 @@ newCUI_CODEs = df.loc[df._merge=='left_only',df.columns!='_merge']
 newCUI_CODEs = newCUI_CODEs.dropna().drop_duplicates().reset_index(drop=True)
 
 # write/append - comment out during development
-newCUI_CODEs.to_csv('CUI-CODEs.csv', mode='a', header=False, index=False)
+newCUI_CODEs.to_csv(csv_path('CUI-CODEs.csv'), mode='a', header=False, index=False)
 
 del newCUI_CODEsCUI
 del newCUI_CODEscuis
@@ -363,7 +372,7 @@ del newCUI_CODEs
 # In[23]:
 
 
-SUIs = pd.read_csv("SUIs.csv")
+SUIs = pd.read_csv(csv_path("SUIs.csv"))
 # SUIs supposedly unique but...discovered 5 NaN names in SUIs.csv and drop them here
 # ?? from ASCII converstion for Oracle to Pandas conversion on original UMLS-Graph-Extracts ??
 SUIs = SUIs.dropna().drop_duplicates().reset_index(drop=True)
@@ -378,7 +387,7 @@ newSUIs = node_metadata.merge(SUIs, how='left', left_on='node_label', right_on='
 
 # for Term.name that don't join with node_label update the SUI:ID with base64 of node_label
 newSUIs.loc[(newSUIs['name'] != newSUIs['node_label']), 'SUI:ID'] = newSUIs[newSUIs['name'] != newSUIs['node_label']]['node_label'].apply(base64it).str[0]
-        
+
 # change field names and isolate non-matched ones (don't exist in SUIs file)
 newSUIs.columns = ['node_id','name','CUI','SUI:ID','OLDname']
 newSUIs = newSUIs[newSUIs['OLDname'].isnull()][['node_id','name','CUI','SUI:ID']]
@@ -389,7 +398,7 @@ newSUIs = newSUIs[['SUI:ID','name']]
 SUIs = pd.concat([SUIs,newSUIs], axis=0).reset_index(drop=True)
 
 # write out newSUIs - comment out during development
-newSUIs.to_csv('SUIs.csv', mode='a', header=False, index=False)
+newSUIs.to_csv(csv_path('SUIs.csv'), mode='a', header=False, index=False)
 
 # del newSUIs - not here because we use this dataframe name later
 
@@ -408,7 +417,7 @@ newCUI_SUIs = newCUI_SUIs.merge(SUIs, how='left', left_on='node_label', right_on
 newCUI_SUIs.columns = [':START:ID',':END_ID']
 
 # write/append - comment out during development
-newCUI_SUIs.to_csv('CUI-SUIs.csv', mode='a', header=False, index=False)
+newCUI_SUIs.to_csv(csv_path('CUI-SUIs.csv'), mode='a', header=False, index=False)
 
 #del newCUIs
 #del newCUI_SUIs
@@ -419,7 +428,7 @@ newCUI_SUIs.to_csv('CUI-SUIs.csv', mode='a', header=False, index=False)
 # In[26]:
 
 
-CODE_SUIs = pd.read_csv("CODE-SUIs.csv")
+CODE_SUIs = pd.read_csv(csv_path("CODE-SUIs.csv"))
 CODE_SUIs = CODE_SUIs[((CODE_SUIs[':TYPE'] == 'PT') | (CODE_SUIs[':TYPE'] == 'SY'))]
 CODE_SUIs = CODE_SUIs.dropna().drop_duplicates().reset_index(drop=True)
 
@@ -442,7 +451,7 @@ newCODE_SUIs = df.loc[df._merge=='left_only',df.columns!='_merge']
 newCODE_SUIs.reset_index(drop=True, inplace=True)
 
 # write out newCODE_SUIs - comment out during development
-newCODE_SUIs.to_csv('CODE-SUIs.csv', mode='a', header=False, index=False)
+newCODE_SUIs.to_csv(csv_path('CODE-SUIs.csv'), mode='a', header=False, index=False)
 
 # del newCODE_SUIs - will use this variable again later (though its overwrite)
 
@@ -457,7 +466,7 @@ explode_syns = node_metadata.explode('node_synonyms')[['node_id','node_synonyms'
 newSUIs = explode_syns.merge(SUIs, how='left', left_on='node_synonyms', right_on='name')[['node_id','node_synonyms','CUI','SUI:ID','name']]
 
 # for Term.name that don't join with node_synonyms update the SUI:ID with base64 of node_synonyms
-newSUIs.loc[(newSUIs['name'] != newSUIs['node_synonyms']), 'SUI:ID'] = newSUIs[newSUIs['name'] != newSUIs['node_synonyms']]['node_synonyms'].apply(base64it).str[0]        
+newSUIs.loc[(newSUIs['name'] != newSUIs['node_synonyms']), 'SUI:ID'] = newSUIs[newSUIs['name'] != newSUIs['node_synonyms']]['node_synonyms'].apply(base64it).str[0]
 
 # change field names and isolate non-matched ones (don't exist in SUIs file)
 newSUIs.columns = ['node_id','name','CUI','SUI:ID','OLDname']
@@ -469,9 +478,9 @@ newSUIs = newSUIs[['SUI:ID','name']]
 SUIs = pd.concat([SUIs,newSUIs], axis=0).reset_index(drop=True)
 
 # write out newSUIs - comment out during development
-newSUIs.to_csv('SUIs.csv', mode='a', header=False, index=False)
+newSUIs.to_csv(csv_path('SUIs.csv'), mode='a', header=False, index=False)
 
-del newSUIs 
+del newSUIs
 # del explode_syns
 
 
@@ -490,7 +499,7 @@ newCODE_SUIs = df.loc[df._merge=='left_only',df.columns!='_merge']
 newCODE_SUIs.reset_index(drop=True, inplace=True)
 
 # write out newCODE_SUIs - comment out during development
-newCODE_SUIs.to_csv('CODE-SUIs.csv', mode='a', header=False, index=False)
+newCODE_SUIs.to_csv(csv_path('CODE-SUIs.csv'), mode='a', header=False, index=False)
 
 del newCODE_SUIs
 
@@ -500,8 +509,8 @@ del newCODE_SUIs
 # In[30]:
 
 
-DEFs = pd.read_csv("DEFs.csv")
-DEFrel = pd.read_csv("DEFrel.csv").rename(columns={':START_ID':'CUI', ':END_ID':'ATUI:ID'})
+DEFs = pd.read_csv(csv_path("DEFs.csv"))
+DEFrel = pd.read_csv(csv_path("DEFrel.csv")).rename(columns={':START_ID':'CUI', ':END_ID':'ATUI:ID'})
 DEF_REL = DEFs.merge(DEFrel, how='inner', on='ATUI:ID')[['SAB','DEF','CUI']].dropna().drop_duplicates().reset_index(drop=True)
 newDEF_REL = node_metadata[['SAB','node_definition','CUI']].rename(columns={'node_definition':'DEF'})
 
@@ -516,10 +525,10 @@ newDEF_REL['ATUI:ID'] = newDEF_REL['ATUI:ID'].apply(base64it).str[0]
 newDEF_REL = newDEF_REL[['ATUI:ID','SAB','DEF','CUI']].dropna().drop_duplicates().reset_index(drop=True)
 
 # Write newDEFs
-newDEF_REL[['ATUI:ID','SAB','DEF']].to_csv('DEFs.csv', mode='a', header=False, index=False)
+newDEF_REL[['ATUI:ID','SAB','DEF']].to_csv(csv_path('DEFs.csv'), mode='a', header=False, index=False)
 
 # Write newDEFrel
-newDEF_REL[['ATUI:ID','CUI']].rename(columns={'ATUI:ID':':END_ID', 'CUI':':START_ID'}).to_csv('DEFrel.csv', mode='a', header=False, index=False)
+newDEF_REL[['ATUI:ID','CUI']].rename(columns={'ATUI:ID':':END_ID', 'CUI':':START_ID'}).to_csv(csv_path('DEFrel.csv'), mode='a', header=False, index=False)
 
 del DEFs
 del DEFrel

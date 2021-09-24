@@ -251,7 +251,7 @@ for owl_url in OWL_URLS:
     # TODO: Figure out a better way to do this than hard coding it....
     if owl_sab == 'CL-BASE':
         owl_sab = 'CL'
-    elif oel_sab == 'CCF-ASCTB':
+    elif owl_sab == 'CCF-ASCTB':
         owl_sab = 'CCF'
     umls_graph_script: str = f"{UMLS_GRAPH_SCRIPT} {working_owlnets_dir} {csvs_dir} {owl_sab}"
     logger.info(f"Running: {umls_graph_script}")

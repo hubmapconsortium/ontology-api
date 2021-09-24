@@ -12,7 +12,7 @@ from datetime import timedelta
 # TODO: make these optional parameters and print them out when --verbose
 OWLNETS_SCRIPT: str = './owlnets_script/__main__.py'
 VALIDATION_SCRIPT: str = './blackbox_validation/__main__.py'
-UMLS_GRAPH_SCRIPT: str = './Jonathan/OWLNETS-UMLS-GRAPH-9.py'
+UMLS_GRAPH_SCRIPT: str = './Jonathan/OWLNETS-UMLS-GRAPH-10.py'
 
 # All 'Elapsed time' on a Mac Book Pro (32Gb, 2.6 GHz 6-Core Intel Core i7)
 
@@ -84,15 +84,19 @@ MI_OWL_URL: str = 'http://purl.obolibrary.org/obo/mi.owl'
 SBO_OWL_URL: str = 'http://www.ebi.ac.uk/sbo/exports/Main/SBO_OWL.owl'
 
 # http://edamontology.org/page
-EDAN_OWL_URL: str = 'http://edamontology.org/EDAM.owl'
+EDAM_OWL_URL: str = 'http://edamontology.org/EDAM.owl'
 
 # http://obofoundry.org/ontology/mp.html
 MP_OWL_URL: str = 'http://purl.obolibrary.org/obo/mp.owl'
 
 
-# OWL_URLS: list = [PATO_OWL_URL, UBERON_OWL_URL, CL_OWL_URL, DOID_OWL_URL, CCF_OWL_URL, CHEBI_OWL_URL]
-# OWL_URLS: list = [PATO_OWL_URL, UBERON_OWL_URL, CL_OWL_URL]
-OWL_URLS: list = [PATO_OWL_URL, UBERON_OWL_URL, CL_OWL_URL, CCF_OWL_URL]
+# note: 9/24/21 cl-base, and ccf will not be in the list.
+# Jonathan C. Silverstein  11:52 AM 9/24/21
+# pato, uberon, cl, doid, ccf-asctb (as ccf), obi, edam, cco, hsapdv, mi, mp, SBO_OWL, chebi
+OWL_URLS: list = [
+    PATO_OWL_URL, UBERON_OWL_URL, CL_OWL_URL, DOID_OWL_URL, CCFASCTB_OWL_URL, OBI_OWL_URL, EDAM_OWL_URL, CCO_OWL_URL,
+    HSAPDV_OWL_URL, MI_OWL_URL, MP_OWL_URL, SBO_OWL_URL, CHEBI_OWL_URL
+]
 
 # TODO https://douroucouli.wordpress.com/2019/03/14/biological-knowledge-graph-modeling-design-patterns/
 
@@ -244,8 +248,11 @@ for owl_url in OWL_URLS:
     working_file_base: str = working_file.rsplit('.', 1)[0]
     working_owlnets_dir: str = base_owlnets_dir + os.path.sep + working_file_base
     owl_sab: str = working_file_base.upper()
+    # TODO: Figure out a better way to do this than hard coding it....
     if owl_sab == 'CL-BASE':
         owl_sab = 'CL'
+    elif oel_sab == 'CCF-ASCTB':
+        owl_sab = 'CCF'
     umls_graph_script: str = f"{UMLS_GRAPH_SCRIPT} {working_owlnets_dir} {csvs_dir} {owl_sab}"
     logger.info(f"Running: {umls_graph_script}")
     os.system(umls_graph_script)

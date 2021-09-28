@@ -100,9 +100,12 @@ MP_OWL_URL: str = 'http://purl.obolibrary.org/obo/mp.owl'
 # - and we can show Tiffany that she is passing those unintentional “white space characters” from OWL files that she
 # should be replacing with spaces
 # pato, uberon, cl, doid, ccf-asctb (as ccf), obi, edam, cco, hsapdv, mp, SBO_OWL, chebi
+#
+# Jonathan 2 PM 9/28/21
+# remove mp, mi, and cco till we address: OWLNETS files with no labels, and OWLNETS files that are non-conformant TSVs
 OWL_URLS: list = [
-    PATO_OWL_URL, UBERON_OWL_URL, CL_OWL_URL, DOID_OWL_URL, CCFASCTB_OWL_URL, OBI_OWL_URL, EDAM_OWL_URL, CCO_OWL_URL,
-    HSAPDV_OWL_URL, MP_OWL_URL, SBO_OWL_URL, CHEBI_OWL_URL
+    PATO_OWL_URL, UBERON_OWL_URL, CL_OWL_URL, DOID_OWL_URL, CCFASCTB_OWL_URL, OBI_OWL_URL, EDAM_OWL_URL,
+    HSAPDV_OWL_URL, SBO_OWL_URL, CHEBI_OWL_URL
 ]
 
 # TODO https://douroucouli.wordpress.com/2019/03/14/biological-knowledge-graph-modeling-design-patterns/

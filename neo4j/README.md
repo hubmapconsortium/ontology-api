@@ -28,7 +28,6 @@ $ pushd neo4j/import
 $ rm -rf current
 $ tar zxfv /tmp/current.tgz
 $ popd
-$ rm /tmp/current.tgz
 ```
 
 The neo4j container should be running.
@@ -55,17 +54,18 @@ ontology-api_ontology-neo4j   latest    5944de80ab13   2 hours ago    9.3GB
 $ docker rmi 5944de80ab13
 ```
 
-Rebuild the container.
+Rebuild the container. The warning about 'bad entries' is normal.
 ```buildoutcfg
 $ docker-compose -f docker-compose.deployment.neo4j.yml build --no-cache
 Building ontology-neo4j
+Sending build context to Docker daemon  3.252GB
 ...
-IMPORT DONE in 2m 23s 351ms.
+IMPORT DONE in 2m 12s 946ms. 
 Imported:
-  19991810 nodes
-  51537255 relationships
-  77104970 properties
-Peak memory usage: 1.289GiB
+  20355207 nodes
+  51956018 relationships
+  78267224 properties
+Peak memory usage: 1.292GiB
 There were bad entries which were skipped and logged into /usr/src/app/neo4j/bin/import.report
 ...
 Successfully built 0ace526b088f
@@ -96,30 +96,37 @@ CONTAINER ID   IMAGE                         COMMAND                  CREATED   
 ...
 ```
 
-Look at the logs for the container.
+Look at the logs for the container. You should see it waiting for "Cypher Query available", and then it will create constraints using Cypher queries. After this it will sleep for a minute of two, shurdown, change the database to read_only and then restart the database.
 ```buildoutcfg
 $ docker logs -f 60e02ed00622
 ```
 
+Optionally, remove the database files from /tmp.
+```buildoutcfg
+$ exit
+$ rm /tmp/current.tgz
+$ exit
+logout
+Connection to neo4j.dev.hubmapconsortium.org closed.
+```
+
 ## Checking
 
-At this point you can check to see if you can hit the neo4j server from the web interface
+At this point you can check to see if you can hit the neo4j server from the web interface. Change the "Connect URL" port to 7688.
 ```buildoutcfg
 http://neo4j.dev.hubmapconsortium.org:7477/browser/
 ```
 
-Find a code:
+Find a code, then click on the code to get the &lt;id&gt;.
 ```buildoutcfg
-MATCH (c:Code) where ID(c)=13824345 RETURN c
+MATCH (c:Code) RETURN c LIMIT 1
 ```
 
-Try to delete the code:
+Try to delete the code using the &lt;id&gt; as follows. You should see the following error message because you cannot modify the neo4j database since it has been deployed in read_only mode.
 ```buildoutcfg
 MATCH (c:Code) where ID(c)=13824345 DELETE c
 ERROR SessionExpired
 No longer possibe to write to server at	neo4j.dev.hubmapconsortium.org:7688
 ```
-
-Notice that you cannot modify the neo4j database because it has been deployed in read_only mode.
 
 You are done! :-)

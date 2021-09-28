@@ -12,7 +12,7 @@ from datetime import timedelta
 # TODO: make these optional parameters and print them out when --verbose
 OWLNETS_SCRIPT: str = './owlnets_script/__main__.py'
 VALIDATION_SCRIPT: str = './blackbox_validation/__main__.py'
-UMLS_GRAPH_SCRIPT: str = './Jonathan/OWLNETS-UMLS-GRAPH-10.py'
+UMLS_GRAPH_SCRIPT: str = './Jonathan/OWLNETS-UMLS-GRAPH-11.py'
 
 # All 'Elapsed time' on a Mac Book Pro (32Gb, 2.6 GHz 6-Core Intel Core i7)
 
@@ -93,9 +93,16 @@ MP_OWL_URL: str = 'http://purl.obolibrary.org/obo/mp.owl'
 # note: 9/24/21 cl-base, and ccf will not be in the list.
 # Jonathan C. Silverstein  11:52 AM 9/24/21
 # pato, uberon, cl, doid, ccf-asctb (as ccf), obi, edam, cco, hsapdv, mi, mp, SBO_OWL, chebi
+#
+# Jonathan C. Silverstein  2:24 PM 9/27/21
+# The MI bug is an extraneous paragraph mark in the file - so it doesn’t meet the TSV standard
+# MI could come back on the list if a “global replace of paragraph character with space character” in the file fixes it
+# - and we can show Tiffany that she is passing those unintentional “white space characters” from OWL files that she
+# should be replacing with spaces
+# pato, uberon, cl, doid, ccf-asctb (as ccf), obi, edam, cco, hsapdv, mp, SBO_OWL, chebi
 OWL_URLS: list = [
     PATO_OWL_URL, UBERON_OWL_URL, CL_OWL_URL, DOID_OWL_URL, CCFASCTB_OWL_URL, OBI_OWL_URL, EDAM_OWL_URL, CCO_OWL_URL,
-    HSAPDV_OWL_URL, MI_OWL_URL, MP_OWL_URL, SBO_OWL_URL, CHEBI_OWL_URL
+    HSAPDV_OWL_URL, MP_OWL_URL, SBO_OWL_URL, CHEBI_OWL_URL
 ]
 
 # TODO https://douroucouli.wordpress.com/2019/03/14/biological-knowledge-graph-modeling-design-patterns/
@@ -253,6 +260,8 @@ for owl_url in OWL_URLS:
         owl_sab = 'CL'
     elif owl_sab == 'CCF-ASCTB':
         owl_sab = 'CCF'
+    elif owl_sab == 'SBO_OWL':
+        owl_sab = 'SBO'
     umls_graph_script: str = f"{UMLS_GRAPH_SCRIPT} {working_owlnets_dir} {csvs_dir} {owl_sab}"
     logger.info(f"Running: {umls_graph_script}")
     os.system(umls_graph_script)

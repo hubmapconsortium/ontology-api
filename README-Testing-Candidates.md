@@ -60,6 +60,8 @@ RETURN LENGTH(p), d.STN, b AS Cncpt, d AS Smntc ORDER BY LENGTH(p), d.STN DESCEN
 CREATE (Cncpt)-[:STY]->(Smntc);
 ```
 
-## Not yet addressed
+List all the unique SABs of Codes.
 
-Fix where new CUI-SUIs and new CODE-SUIs times two would match an OLD SUI not a new SUI (and therefore in current code don't get written - because they don't match a new SUI)  - does this alone explain 2439 CUIs with no Pref_term and similar numbers of Codes with no PT? - i think it does so needs fix and then re-test.
+```buildoutcfg
+match (a:Code) return distinct a.SAB order by a.SAB
+```

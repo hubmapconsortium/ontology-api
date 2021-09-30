@@ -12,7 +12,7 @@ from datetime import timedelta
 # TODO: make these optional parameters and print them out when --verbose
 OWLNETS_SCRIPT: str = './owlnets_script/__main__.py'
 VALIDATION_SCRIPT: str = './blackbox_validation/__main__.py'
-UMLS_GRAPH_SCRIPT: str = './Jonathan/OWLNETS-UMLS-GRAPH-11.py'
+UMLS_GRAPH_SCRIPT: str = './Jonathan/OWLNETS-UMLS-GRAPH-12.py'
 
 # All 'Elapsed time' on a Mac Book Pro (32Gb, 2.6 GHz 6-Core Intel Core i7)
 
@@ -104,8 +104,9 @@ MP_OWL_URL: str = 'http://purl.obolibrary.org/obo/mp.owl'
 # Jonathan 2 PM 9/28/21
 # remove mp, mi, and cco till we address: OWLNETS files with no labels, and OWLNETS files that are non-conformant TSVs
 OWL_URLS: list = [
-    PATO_OWL_URL, UBERON_OWL_URL, CL_OWL_URL, DOID_OWL_URL, CCFASCTB_OWL_URL, OBI_OWL_URL, EDAM_OWL_URL,
-    HSAPDV_OWL_URL, SBO_OWL_URL, CHEBI_OWL_URL
+    PATO_OWL_URL, UBERON_OWL_URL, CL_OWL_URL, DOID_OWL_URL, OBI_OWL_URL, EDAM_OWL_URL,
+    HSAPDV_OWL_URL, SBO_OWL_URL, MP_OWL_URL, MI_OWL_URL, CHEBI_OWL_URL
+    #, VARIO_OWL_URL, OGI_OWL_URL, ORDO_OWL_URL
 ]
 
 # TODO https://douroucouli.wordpress.com/2019/03/14/biological-knowledge-graph-modeling-design-patterns/

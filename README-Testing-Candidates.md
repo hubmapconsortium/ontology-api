@@ -11,23 +11,27 @@ To see if not equal 1 is zero or more than 1. If there are none of those then it
 MATCH (a:Concept) WHERE size((a)-[:PREF_TERM]->(:Term))=0 RETURN COUNT(a)
 ```
 
-## Substituting each new SAB being introduced
+## Substituting each new SAB being introduced, check the chain from CUI through code to preferred term
 
-For CL the match isn’t perfect but it's perfect match for UBERON and PATO (possibly an issue with missing node_label).
-
-```buildoutcfg
-MATCH p=((a:Concept)-->(b:Code{SAB:“CL”})-[c:PT]->(:Term)) WHERE a.CUI = c.CUI RETURN COUNT(p),COUNT(DISTINCT b)
-```
-
-## Count total Codes in an SAB
-
-The results should all match up with the three counts similar - they do for SNOMEDCT_US (which is pure UMLS) but they don’t precisely for UBERON, CL, or PATO so again they amount to the sum total of those in node_metadata without Labels.
-
-Have to decide what to do about that - one approach is to recognize we’re taking as much information as we’re given so we build anyway even if no Labels whereas the other approach is to not allow an addition to the graph unless it has a Label.
+For some ontologies the match isn’t perfect but it's close (possibly an issue with missing node_label).
 
 ```buildoutcfg
-MATCH (a:Code{SAB:“CL”}) RETURN Count(a)
+MATCH p=((a:Concept)-->(b:Code{SAB:'PATO'})-[c:PT]->(:Term)) WHERE a.CUI = c.CUI RETURN COUNT(p),COUNT(DISTINCT b)
 ```
+
+## Count total Codes in all SABs at once
+
+The results should all match up similar to the above counts - difference is the total of those in node_metadata without Labels. Have to decide what to do about that - one approach is to recognize we’re taking as much information as we’re given so we build anyway even if no Labels whereas the other approach is to not allow an addition to the graph unless it has a Label.
+
+```buildoutcfg
+MATCH (r:Code) RETURN DISTINCT r.SAB, COUNT(r) ORDER BY r.SAB
+```
+
+## Count total CUI-CUI relationships by all SABs at once
+```buildoutcfg
+MATCH (:Concept)-[r]->(:Concept) RETURN DISTINCT r.SAB, COUNT(r) ORDER BY r.SAB
+```
+
 
 Code for checking how many CUI do not have Semantic (not an acceptance requirement that it be zero - generally run before and after running below approaches to demonstrate number of Semantics assigned programmatically:
 ```buildoutcfg

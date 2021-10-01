@@ -1,10 +1,10 @@
 openapi: 3.0.3
 info:
-  title: Ontology API
+  title: HuBMAP Ontology API
   description: This document describes the Ontology API
   version: 0.0.1
 servers:
-  - url: http://localhost:8080
+  - url: https://ontology-api.dev.hubmapconsortium.org/
 paths:
   /codes/{code_id}/codes:
     get:

@@ -1,16 +1,26 @@
-FROM python:3.8-alpine
+# Parent image
+FROM hubmap/api-base-image:latest
 
-RUN mkdir -p /usr/src/app
+LABEL description="HuBMAP Ontology API Service"
+
+# Change to directory that contains the Dockerfile
 WORKDIR /usr/src/app
 
-COPY requirements.txt /usr/src/app/
+# Copy from host to image
+COPY . .
 
-RUN pip3 install --no-cache-dir -r requirements.txt
+# Install dependencies with pip (pip3 also works)
+RUN pip install -r requirements.txt
 
-COPY . /usr/src/app
+# The EXPOSE instruction informs Docker that the container listens on the specified network ports at runtime. 
+# EXPOSE does not make the ports of the container accessible to the host.
+EXPOSE 5000
 
-EXPOSE 8080
+# Set an entrypoint
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-ENTRYPOINT ["python3"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
-CMD ["-m", "openapi_server"]
+# Finally, we run uWSGI with the ini file
+CMD [ "uwsgi", "--ini", "/usr/src/app/uwsgi.ini" ]

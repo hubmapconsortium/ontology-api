@@ -45,3 +45,7 @@ To locate the mountpoint on the host file system, run:
 ````
 docker volume inspect ontology-api_ontology-neo4j-data
 ````
+
+## Publish OpenAPI file on SmartApi
+
+There is a HubMap account on SmartApi that allows you to publish OpenAPI specked files after you set this up. Once done the file will be automatically updated upon checkin.

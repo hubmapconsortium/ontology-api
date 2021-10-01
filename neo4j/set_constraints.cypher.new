@@ -1,0 +1,19 @@
+MATCH (n:Term) WHERE size((n)--())=0 DELETE (n);
+CREATE CONSTRAINT ON (n:Semantic) ASSERT n.TUI IS UNIQUE;
+CREATE CONSTRAINT ON (n:Semantic) ASSERT n.STN IS UNIQUE;
+CREATE CONSTRAINT ON (n:Semantic) ASSERT n.DEF IS UNIQUE;
+CREATE CONSTRAINT ON (n:Semantic) ASSERT n.name IS UNIQUE;
+CREATE CONSTRAINT ON (n:Concept) ASSERT n.CUI IS UNIQUE;
+CREATE CONSTRAINT ON (n:Code) ASSERT n.CodeID IS UNIQUE;
+CREATE INDEX FOR (n:Code) ON (n.SAB);
+CREATE INDEX FOR (n:Code) ON (n.CODE);
+CREATE CONSTRAINT ON (n:Term) ASSERT n.SUI IS UNIQUE;
+CREATE INDEX FOR (n:Term) ON (n.name);
+CREATE CONSTRAINT ON (n:Definition) ASSERT n.ATUI IS UNIQUE;
+CREATE INDEX FOR (n:Definition) ON (n.SAB);
+CREATE INDEX FOR (n:Definition) ON (n.DEF);
+CALL db.index.fulltext.createNodeIndex("Term_name",["Term"],["name"]);
+# TODO: These are optional and should be considered after the end of August deadline....
+MATCH (a:Code)<--(b:Concept) WHERE a.SAB IN [‘UBERON’,‘CL’] AND SIZE((b)-->(:Semantic)) = 0 CALL { WITH b MATCH p=((b)-[:subclass_of*1..4]->(c:Concept)-->(d:Semantic)) RETURN LENGTH(p), d.STN, b AS Cncpt, d AS Smntc ORDER BY LENGTH(p), d.STN DESCENDING LIMIT 1 } CREATE (Cncpt)-[:STY]->(Smntc);
+MATCH (a:Code)<--(b:Concept) WHERE a.SAB IN [‘UBERON’,‘CL’] AND SIZE((b)-->(:Semantic)) = 0 CALL { WITH b MATCH p=((b)-[:subclass_of|part_of*1..2]-(c:Concept)-->(d:Semantic)) RETURN LENGTH(p), d.STN, b AS Cncpt, d AS Smntc ORDER BY LENGTH(p), d.STN DESCENDING LIMIT 1 } CREATE (Cncpt)-[:STY]->(Smntc);
+MATCH (a:Code)<—-(b:Concept) WHERE a.SAB IN [‘CL’,‘UBERON’] AND SIZE((b)-->(:Semantic)) = 0 RETURN COUNT(DISTINCT b)

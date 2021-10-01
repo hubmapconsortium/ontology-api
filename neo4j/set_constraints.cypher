@@ -12,6 +12,4 @@ CREATE INDEX FOR (n:Term) ON (n.name);
 CREATE CONSTRAINT ON (n:Definition) ASSERT n.ATUI IS UNIQUE;
 CREATE INDEX FOR (n:Definition) ON (n.SAB);
 CREATE INDEX FOR (n:Definition) ON (n.DEF);
-CREATE CONSTRAINT ON (n:NDC) ASSERT n.ATUI IS UNIQUE;
-CREATE CONSTRAINT ON (n:NDC) ASSERT n.NDC IS UNIQUE;
 CALL db.index.fulltext.createNodeIndex("Term_name",["Term"],["name"]);

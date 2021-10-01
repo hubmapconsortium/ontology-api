@@ -1,10 +1,20 @@
 .idea
+.DS_Store
 server.bak/
 venv/
 **/*.bak
 \#*\#
 **~
 neo4j/import*
+neo4j/data/
+scripts/builds/logs/*.log
+scripts/resources/
+scripts/pkt_kg/
+scripts/owlnets_output*
+scripts/owl
+scripts/venv
+scripts/.python-version
+scripts/robot
 
 # log files in any path
 **/*.log

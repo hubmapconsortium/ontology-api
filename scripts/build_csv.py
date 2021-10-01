@@ -9,86 +9,15 @@ import time
 import re
 import subprocess
 from datetime import timedelta
+import json
+
 # TODO: make these optional parameters and print them out when --verbose
 OWLNETS_SCRIPT: str = './owlnets_script/__main__.py'
 VALIDATION_SCRIPT: str = './blackbox_validation/__main__.py'
 UMLS_GRAPH_SCRIPT: str = './Jonathan/OWLNETS-UMLS-GRAPH-12.py'
 
-# All 'Elapsed time' on a Mac Book Pro (32Gb, 2.6 GHz 6-Core Intel Core i7)
-
-# Elapsed time 0:08:03.189532
-# https://uberon.github.io/downloads.html
-# This one contain data without references....
-UBERON_OWL_URL: str = 'http://purl.obolibrary.org/obo/uberon.owl'
 # This one needs processing (see https://robot.obolibrary.org/merge ) to include references...
 # UBERON_EXT_OWL_URL: str = 'http://purl.obolibrary.org/obo/uberon/ext.owl'
-
-# This should get relationships and inverses and the RO code where we want the name...
-# http://www.obofoundry.org/ontology/ro.html
-# RO_URL: str = 'http://purl.obolibrary.org/obo/ro.owl'
-
-# http://www.obofoundry.org/ontology/cl.html
-# Elapsed time 0:00:21.838220
-# Complete CL but with no imports or external axioms (Should be using this one but Jonathan's code breaks wih it at the moment)
-CL_BASE_OWL_URL: str = 'http://purl.obolibrary.org/obo/cl/cl-base.owl'
-# Elapsed time 0:02:55.045686
-# Complete ontology, plus inter-ontology axioms, and imports modules
-CL_OWL_URL: str = 'http://purl.obolibrary.org/obo/cl.owl'
-
-# Elapsed time 17:23:51.998208
-# http://www.obofoundry.org/ontology/chebi.html
-CHEBI_OWL_URL: str = 'http://purl.obolibrary.org/obo/chebi.owl'
-
-# BREAKS
-# http://www.obofoundry.org/ontology/pr.html
-PR_OWL_URL: str = 'http://purl.obolibrary.org/obo/pr.owl'
-
-# Elapsed time 0:00:38.827207
-# http://www.obofoundry.org/ontology/pato.html
-PATO_OWL_URL: str = 'http://purl.obolibrary.org/obo/pato.owl'
-
-# Elapsed time 0:02:44.425941
-DOID_OWL_URL: str = 'http://purl.obolibrary.org/obo/doid.owl'
-
-# Elapsed time 0:00:14.051567
-OBI_OWL_URL: str = 'http://purl.obolibrary.org/obo/obi.owl'
-
-# Jonathan C. Silverstein  2:03 PM Sept 8, 2021
-# please add this to the list to run - just in from Indiana: First version of the ASCT+B tables as OWL
-CCFASCTB_OWL_URL: str = 'https://ccf-ontology.hubmapconsortium.org/ccf-asctb.owl'
-
-# Elapsed time 0:00:09.053144
-# Note: currently has just AS (using ccf_part_of as the relationship), but could be a start.
-CCF_OWL_URL: str = 'https://ccf-ontology.hubmapconsortium.org/ccf.owl'
-
-# https://bioportal.bioontology.org/ontologies/OGI
-OGI_OWL_URL: str = 'https://data.bioontology.org/ontologies/OGI/submissions/18/download?apikey=8b5b7825-538d-40e0-9e9e-5ab9274a9aeb'
-
-# https://www.ebi.ac.uk/ols/ontologies/hsapdv
-HSAPDV_OWL_URL: str = 'http://purl.obolibrary.org/obo/hsapdv.owl'
-
-# BREAKS 8/30/21
-# https://www.ebi.ac.uk/ols/ontologies/vario
-VARIO_OWL_URL: str = 'http://purl.obolibrary.org/obo/vario.owl'
-
-# https://bioportal.bioontology.org/ontologies/ORDO
-ORDO_OWL_URL: str = 'https://data.bioontology.org/ontologies/ORDO/submissions/22/download?apikey=8b5b7825-538d-40e0-9e9e-5ab9274a9aeb'
-
-# http://brg.ai.sri.com/CCO/
-CCO_OWL_URL: str = 'http://brg.ai.sri.com/CCO/downloads/cco.owl'
-
-# https://www.ebi.ac.uk/ols/ontologies/mi
-MI_OWL_URL: str = 'http://purl.obolibrary.org/obo/mi.owl'
-
-# https://www.ebi.ac.uk/sbo/main/
-SBO_OWL_URL: str = 'http://www.ebi.ac.uk/sbo/exports/Main/SBO_OWL.owl'
-
-# http://edamontology.org/page
-EDAM_OWL_URL: str = 'http://edamontology.org/EDAM.owl'
-
-# http://obofoundry.org/ontology/mp.html
-MP_OWL_URL: str = 'http://purl.obolibrary.org/obo/mp.owl'
-
 
 # note: 9/24/21 cl-base, and ccf will not be in the list.
 # Jonathan C. Silverstein  11:52 AM 9/24/21
@@ -103,12 +32,9 @@ MP_OWL_URL: str = 'http://purl.obolibrary.org/obo/mp.owl'
 #
 # Jonathan 2 PM 9/28/21
 # remove mp, mi, and cco till we address: OWLNETS files with no labels, and OWLNETS files that are non-conformant TSVs
-OWL_URLS: list = [
-    PATO_OWL_URL, UBERON_OWL_URL, CL_OWL_URL, DOID_OWL_URL, CCFASCTB_OWL_URL, OBI_OWL_URL, EDAM_OWL_URL,
-    HSAPDV_OWL_URL, SBO_OWL_URL, MI_OWL_URL, CHEBI_OWL_URL
-    #, MP_OWL_URL
-    #, VARIO_OWL_URL, OGI_OWL_URL, ORDO_OWL_URL
-]
+# $ ./build_csv.sh -v PATO UBERON CL DOID CCFASCTB OBI EDAM HSAPDV SBO MI CHEBI
+# Unused: MP, VARIO, OGI, ORDO
+
 
 # TODO https://douroucouli.wordpress.com/2019/03/14/biological-knowledge-graph-modeling-design-patterns/
 
@@ -124,6 +50,9 @@ class RawTextArgumentDefaultsHelpFormatter(
 parser = argparse.ArgumentParser(
     description='Build .csv files from .owl files using PheKnowLator and Jonathan''s script',
     formatter_class=RawTextArgumentDefaultsHelpFormatter)
+parser.add_argument('ontologies', nargs='*')
+parser.add_argument("-f", '--ontologies_json', type=str, default='./ontologies.json',
+                    help='file containing the ontology definitions referenced by the command line arguments')
 parser.add_argument("-u", '--umls_csvs_dir', type=str, default='../neo4j/import/current',
                     help='directory containing the UMLS Graph Extract .csv files modified by Jonathan''s script')
 parser.add_argument("-l", "--owlnets_dir", type=str, default='./owlnets_output',
@@ -154,24 +83,24 @@ log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/log
 logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
-# Both of these directories are found in the .gitignore file...
-base_owlnets_dir = args.owlnets_dir
-csvs_dir = args.umls_csvs_dir
-owltools_dir = args.owltools_dir
-owl_dir = args.owl_dir
+ontologies = json.load(open(args.ontologies_json, 'r'))
+ontology_names = [s.upper() for s in args.ontologies]
 
 if args.verbose is True:
     print('Parameters:')
     print(f" * Verbose mode")
     if args.clean is True:
         print(" * Cleaning owlnets directory")
-    print(f" * Owlnets directory: {base_owlnets_dir} (exists: {os.path.isdir(base_owlnets_dir)})")
-    print(f" * Owltools directory: {owltools_dir} (exists: {os.path.isdir(owltools_dir)})")
-    print(f" * Owl directory: {owl_dir} (exists: {os.path.isdir(owl_dir)})")
-    csvs_dir_islink = False
-    if os.path.islink(csvs_dir) is True:
-        csvs_dir_islink = os.path.realpath(csvs_dir)
-    print(f" * Directory containing the UMLS Graph Extract .csv files to process: {csvs_dir} (exitst: {os.path.isdir(csvs_dir)}) (simlink: {csvs_dir_islink})")
+    print(f" * ontologies.json file: {args.ontologies_json} (exists: {os.path.isfile(args.ontologies_json)})")
+    print(f" * Owlnets directory: {args.owlnets_dir} (exists: {os.path.isdir(args.owlnets_dir)})")
+    print(f" * Owltools directory: {args.owltools_dir} (exists: {os.path.isdir(args.owltools_dir)})")
+    print(f" * Owl directory: {args.owl_dir} (exists: {os.path.isdir(args.owl_dir)})")
+    if len(ontology_names) > 0:
+        print(f" * Ontologies to process: {', '.join(ontology_names)}")
+    umls_csvs_dir_islink = False
+    if os.path.islink(args.umls_csvs_dir) is True:
+        umls_csvs_dir_islink = os.path.realpath(args.umls_csvs_dir)
+    print(f" * Directory containing the UMLS Graph Extract .csv files to process: {args.umls_csvs_dir} (exitst: {os.path.isdir(args.umls_csvs_dir)}) (simlink: {umls_csvs_dir_islink})")
     if args.force_owl_download is True:
         print(f" * PheKnowLator will force .owl file downloads")
     if args.with_imports is True:
@@ -184,11 +113,10 @@ if args.verbose is True:
         print(' * Skipping all validation')
     print('')
 
-if args.oneOwl is not None:
-    OWL_URLS: list = [ args.oneOwl ]
 
-logger.info(f"Processing OWL files: {', '.join(OWL_URLS)}")
-start_time = time.time()
+def print_and_logger_info(message: str) -> None:
+    print(message)
+    logger.info(message)
 
 
 def file_from_uri(uri_str: str) -> str:
@@ -215,7 +143,7 @@ def copy_csv_files_to_save_dir(path: str, save_dir: str) -> str:
             fp_src: str = os.path.join(path, filename)
             fp_dst: str = os.path.join(save_path, filename)
             shutil.copyfile(fp_src, fp_dst)
-    logger.info(f"Copied {len(os.listdir(save_path))} files from {path} to {save_path}")
+    print_and_logger_info(f"Copied {len(os.listdir(save_path))} files from {path} to {save_path}")
     return save_path
 
 
@@ -230,12 +158,35 @@ def lines_in_csv_files(path: str, save_path: str) -> None:
             lines_fp: int = lines_in_file(fp)
             fp_save: str = os.path.join(save_path, filename)
             lines_fp_save: int = lines_in_file(fp_save)
-            logger.info(f"Lines in files: {fp} {lines_fp}; {fp_save} {lines_fp_save}; difference: {lines_fp-lines_fp_save}")
+            print_and_logger_info(f"Lines in files: {fp} {lines_fp}; {fp_save} {lines_fp_save}; difference: {lines_fp-lines_fp_save}")
 
 
-for owl_url in OWL_URLS:
+missing_ontology = False
+if len(ontology_names) > 0 or args.oneOwl is not None:
+    if args.oneOwl is not None:
+        ontology_names = [args.oneOwl]
+    for ontology_name in ontology_names:
+        if ontology_name not in ontologies:
+            print_and_logger_info(f"ERROR... Ontology name ''{ontology_name}'' not found in ontologies.json")
+            missing_ontology = True
+else:
+    print("ERROR: No ''ontologies'' specified on the command line? Use -h for help.")
+    exit(1)
+if missing_ontology is True:
+    print_and_logger_info(f"Exiting since some ontologies specified were not found in the ontology.json file.")
+    exit(1)
+
+start_time = time.time()
+
+print_and_logger_info(f"Processing Ontologies: {', '.join(ontology_names)}")
+
+for ontology_name in ontology_names:
+    print(f"Ontology: {ontology_name}")
+    ontology_record = ontologies[ontology_name]
+    owl_url = ontology_record['owl_url']
     processing_file: str = f"Processing OWL file: {owl_url}"
     print(processing_file)
+    exit(0)
     logger.info(processing_file)
     if args.skipPheKnowLator is not True:
         clean = ''
@@ -247,30 +198,27 @@ for owl_url in OWL_URLS:
         with_imports = ''
         if args.with_imports is True:
             with_imports = '--with_imports'
-        owlnets_script: str = f"{OWLNETS_SCRIPT} --ignore_owl_md5 {clean} {force_owl_download} {with_imports} -l {base_owlnets_dir} -t {owltools_dir} -o {owl_dir} {owl_url}"
+        owlnets_script: str = f"{OWLNETS_SCRIPT} --ignore_owl_md5 {clean} {force_owl_download} {with_imports} -l {args.owlnets_dir} -t {args.owltools_dir} -o {args.owl_dir} {owl_url}"
         logger.info(f"Running: {owlnets_script}")
         os.system(owlnets_script)
     if args.skipValidation is not True:
-        validation_script: str = f"{VALIDATION_SCRIPT} -o {csvs_dir} -l {base_owlnets_dir}"
+        validation_script: str = f"{VALIDATION_SCRIPT} -o {args.umls_csvs_dir} -l {bargs.owlnets_dir}"
         logger.info(f"Running: {validation_script}")
         os.system(validation_script)
-    save_csv_dir = copy_csv_files_to_save_dir(csvs_dir, 'save')
+    save_csv_dir = copy_csv_files_to_save_dir(args.umls_csvs_dir, 'save')
     logger.info(f"Saving .csv files to directory: {save_csv_dir}")
     working_file: str = file_from_uri(owl_url)
     working_file_base: str = working_file.rsplit('.', 1)[0]
-    working_owlnets_dir: str = base_owlnets_dir + os.path.sep + working_file_base
-    owl_sab: str = working_file_base.upper()
-    # TODO: Figure out a better way to do this than hard coding it....
-    if owl_sab == 'CL-BASE':
-        owl_sab = 'CL'
-    elif owl_sab == 'CCF-ASCTB':
-        owl_sab = 'CCF'
-    elif owl_sab == 'SBO_OWL':
-        owl_sab = 'SBO'
-    umls_graph_script: str = f"{UMLS_GRAPH_SCRIPT} {working_owlnets_dir} {csvs_dir} {owl_sab}"
+    working_owlnets_dir: str = args.owlnets_dir + os.path.sep + working_file_base
+
+    owl_sab: str = ontology_name
+    if 'sab' in ontologies:
+        owl_sab: str = ontologies['sab']
+
+    umls_graph_script: str = f"{UMLS_GRAPH_SCRIPT} {working_owlnets_dir} {args.umls_csvs_dir} {owl_sab}"
     logger.info(f"Running: {umls_graph_script}")
     os.system(umls_graph_script)
-    lines_in_csv_files(csvs_dir, save_csv_dir)
+    lines_in_csv_files(args.umls_csvs_dir, save_csv_dir)
 
 # Add log entry for how long it took to do the processing...
 elapsed_time = time.time() - start_time

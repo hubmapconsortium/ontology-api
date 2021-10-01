@@ -8,9 +8,10 @@ Copy the data (.csv) files to neo4j deployment machine (host).
 ```buildoutcfg
 $ cd ~/Documents/Git/ontology-api/neo4j/import/current
 $ mkdir -p tmp/current; cp *.csv tmp/current
-$ (cd tmp; tar zcfv ../current.tgz .)
-$ scp -i ~/.ssh/id_rsa_e2c.pem current.tgz cpk36@neo4j.dev.hubmapconsortium.org:/tmp
-$ rm -rf ~/tmp
+$ CSV_TIMESTAMP=$(date +"%Y%m%d_%H%M")
+$ (cd ./tmp; tar zcfv ../../current_${CSV_TIMESTAMP}.tgz .)
+$ scp -i ~/.ssh/id_rsa_e2c.pem ../current_${CSV_TIMESTAMP}.tgz cpk36@neo4j.dev.hubmapconsortium.org:/tmp
+$ rm -rf ./tmp
 ```
 
 Go to the host and update from the repository.
@@ -26,7 +27,7 @@ Delete the old database import files (.csv) and install the new ones.
 ```buildoutcfg
 $ pushd neo4j/import
 $ rm -rf current
-$ tar zxfv /tmp/current.tgz
+$ tar zxfv /tmp/current_&lt;CSV_TIMESTAMP&gt;.tgz
 $ popd
 ```
 
@@ -40,6 +41,9 @@ c49e97df99ec   ontology-api_ontology-neo4j   "/usr/src/app/start.…"   11 hours
 Stop the container, and notice that there is also an associated volume which needs to be deleted.
 ```buildoutcfg
 $ docker-compose -f docker-compose.deployment.neo4j.yml down
+Stopping ontology-neo4j ... done
+Removing ontology-neo4j ... done
+Removing network ontology-api_ontology-neo4j-network
 NOTE: After this the 'ontology-api_ontology-neo4j' will not show up when running 'docker ps'
 $ docker volume rm ontology-api_ontology-neo4j-data
 ontology-api_ontology-neo4j-data
@@ -144,7 +148,7 @@ Picked up _JAVA_OPTIONS: -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
 Optionally, remove the database files from /tmp.
 ```buildoutcfg
 $ exit
-$ rm /tmp/current.tgz
+$ rm /tmp/current_&lt;CSV_TIMESTAMP&gt;.tgz
 $ exit
 logout
 Connection to neo4j.dev.hubmapconsortium.org closed.

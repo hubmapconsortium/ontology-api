@@ -74,7 +74,17 @@ edgelist = edgelist[edgelist['subject'] != edgelist['object']].reset_index(drop=
 
 
 def codeReplacements(x):
-   return x.str.replace('NCIT ', 'NCI ', regex=False).str.replace('MESH ', 'MSH ', regex=False).str.replace('GO ', 'GO GO:', regex=False).str.replace('NCBITaxon ', 'NCBI ', regex=False).str.replace('.*UMLS.*\s', 'UMLS ', regex=True).str.replace('.*SNOMED.*\s', 'SNOMEDCT_US ', regex=True).str.replace('HP ', 'HPO HP:', regex=False).str.replace('^fma','FMA ', regex=True)
+    return x.str.replace('NCIT ', 'NCI ', regex=False).str.replace('MESH ', 'MSH ', regex=False)\
+        .str.replace('GO ', 'GO GO:', regex=False)\
+        .str.replace('NCBITaxon ', 'NCBI ', regex=False)\
+        .str.replace('.*UMLS.*\s', 'UMLS ', regex=True)\
+        .str.replace('.*SNOMED.*\s', 'SNOMEDCT_US ', regex=True)\
+        .str.replace('HP ', 'HPO HP:', regex=False)\
+        .str.replace('^fma', 'FMA ', regex=True)\
+        .str.replace('Hugo.owl HGNC ', 'HGNC ', regex=False)\
+        .str.replace('HGNC ', 'HGNC HGNC:', regex=False)\
+        .str.replace('gene symbol report?hgnc id=', 'HGNC HGNC:', regex=False)
+   #return x.str.replace('NCIT ', 'NCI ', regex=False).str.replace('MESH ', 'MSH ', regex=False).str.replace('GO ', 'GO GO:', regex=False).str.replace('NCBITaxon ', 'NCBI ', regex=False).str.replace('.*UMLS.*\s', 'UMLS ', regex=True).str.replace('.*SNOMED.*\s', 'SNOMEDCT_US ', regex=True).str.replace('HP ', 'HPO HP:', regex=False).str.replace('^fma','FMA ', regex=True)
 
 
 # ### Join relation_label in edgelist, convert subClassOf to isa and space to _, CodeID formatting

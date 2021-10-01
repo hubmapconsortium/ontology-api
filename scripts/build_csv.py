@@ -104,8 +104,9 @@ MP_OWL_URL: str = 'http://purl.obolibrary.org/obo/mp.owl'
 # Jonathan 2 PM 9/28/21
 # remove mp, mi, and cco till we address: OWLNETS files with no labels, and OWLNETS files that are non-conformant TSVs
 OWL_URLS: list = [
-    PATO_OWL_URL, UBERON_OWL_URL, CL_OWL_URL, DOID_OWL_URL, OBI_OWL_URL, EDAM_OWL_URL,
-    HSAPDV_OWL_URL, SBO_OWL_URL, MP_OWL_URL, MI_OWL_URL, CHEBI_OWL_URL
+    PATO_OWL_URL, UBERON_OWL_URL, CL_OWL_URL, DOID_OWL_URL, CCFASCTB_OWL_URL, OBI_OWL_URL, EDAM_OWL_URL,
+    HSAPDV_OWL_URL, SBO_OWL_URL, MI_OWL_URL, CHEBI_OWL_URL
+    #, MP_OWL_URL
     #, VARIO_OWL_URL, OGI_OWL_URL, ORDO_OWL_URL
 ]
 
@@ -246,7 +247,7 @@ for owl_url in OWL_URLS:
         with_imports = ''
         if args.with_imports is True:
             with_imports = '--with_imports'
-        owlnets_script: str = f"{OWLNETS_SCRIPT} {clean} {force_owl_download} {with_imports} -l {base_owlnets_dir} -t {owltools_dir} -o {owl_dir} {owl_url}"
+        owlnets_script: str = f"{OWLNETS_SCRIPT} --ignore_owl_md5 {clean} {force_owl_download} {with_imports} -l {base_owlnets_dir} -t {owltools_dir} -o {owl_dir} {owl_url}"
         logger.info(f"Running: {owlnets_script}")
         os.system(owlnets_script)
     if args.skipValidation is not True:

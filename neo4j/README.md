@@ -99,6 +99,46 @@ CONTAINER ID   IMAGE                         COMMAND                  CREATED   
 Look at the logs for the container. You should see it waiting for "Cypher Query available", and then it will create constraints using Cypher queries. After this it will sleep for a minute of two, shurdown, change the database to read_only and then restart the database.
 ```buildoutcfg
 $ docker logs -f 60e02ed00622
+...
+Starting Neo4j.
+Started neo4j (pid 135). It is available at http://localhost:7474/
+There may be a short delay until the server is ready.
+See /usr/src/app/neo4j/logs/neo4j.log for current status.
+Waiting for server to begin fielding Cypher queries...
+Cypher Query available waiting...
+Cypher Query available waiting...
+...
+Creating the constraints using Cypher queries...
+Picked up _JAVA_OPTIONS: -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+0 rows available after 11644 ms, consumed after another 0 ms
+Deleted 527771 nodes
+0 rows available after 720 ms, consumed after another 0 ms
+Added 1 constraints
+...
+Sleeping for 2m to allow the indexes to be built before going to read_only mode...
+Stopping neo4j server to go into read_only mode...
+Only allow read operations from this Neo4j instance...
+Restarting neo4j server in read_only mode...
+Directories in use:
+  home:         /usr/src/app/neo4j
+  config:       /usr/src/app/neo4j/conf
+  logs:         /usr/src/app/neo4j/logs
+  plugins:      /usr/src/app/neo4j/plugins
+  import:       /usr/src/app/neo4j/import
+  data:         /usr/src/app/neo4j/data
+  certificates: /usr/src/app/neo4j/certificates
+  run:          /usr/src/app/neo4j/run
+Starting Neo4j.
+Picked up _JAVA_OPTIONS: -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+2021-09-30 21:00:26.867+0000 INFO  Starting...
+2021-09-30 21:00:28.974+0000 INFO  ======== Neo4j 4.2.5 ========
+2021-09-30 21:00:36.669+0000 INFO  Performing postInitialization step for component 'security-users' with version 2 and status CURRENT
+2021-09-30 21:00:36.670+0000 INFO  Updating the initial password in component 'security-users'  
+2021-09-30 21:00:42.552+0000 INFO  Called db.clearQueryCaches(): Query cache already empty.
+2021-09-30 21:00:42.621+0000 INFO  Bolt enabled on 0.0.0.0:7687.
+2021-09-30 21:00:43.625+0000 INFO  Remote interface available at http://localhost:7474/
+2021-09-30 21:00:43.626+0000 INFO  Started.
+^C
 ```
 
 Optionally, remove the database files from /tmp.

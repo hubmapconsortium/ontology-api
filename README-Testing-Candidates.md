@@ -27,9 +27,9 @@ The results should all match up similar to the above counts - difference is the 
 MATCH (r:Code) RETURN DISTINCT r.SAB, COUNT(r) ORDER BY r.SAB
 ```
 
-## Count total CUI-CUI relationships by all SABs at once
+## Count unidirectional (div 2) CUI-CUI relationships by all SABs at once
 ```buildoutcfg
-MATCH (:Concept)-[r]->(:Concept) RETURN DISTINCT r.SAB, COUNT(r) ORDER BY r.SAB
+MATCH (:Concept)-[r]->(:Concept) RETURN r.SAB, COUNT(r)/2 ORDER BY r.SAB
 ```
 
 

@@ -24,7 +24,7 @@ MATCH p=((a:Concept)-->(b:Code{SAB:'PATO'})-[c:PT]->(:Term)) WHERE a.CUI = c.CUI
 The results should all match up similar to the above counts - difference is the total of those in node_metadata without Labels. Have to decide what to do about that - one approach is to recognize we’re taking as much information as we’re given so we build anyway even if no Labels whereas the other approach is to not allow an addition to the graph unless it has a Label.
 
 ```buildoutcfg
-MATCH (r:Code) RETURN DISTINCT r.SAB, COUNT(r) ORDER BY r.SAB
+MATCH (r:Code) RETURN r.SAB, COUNT(r) ORDER BY r.SAB
 ```
 
 ## Count unidirectional (div 2) CUI-CUI relationships by all SABs at once

@@ -1,10 +1,10 @@
 openapi: 3.0.3
 info:
-  description: This document describes the Ontology API
-  title: Ontology API
-  version: 0.0.1
+  description: This document describes the HubMAP Ontology API
+  title: HuBMAP Ontology API
+  version: 0.1.0
 servers:
-- url: http://localhost:8080
+- url: https://ontology-api.dev.hubmapconsortium.org/
 paths:
   /codes/{code_id}/codes:
     get:
@@ -102,7 +102,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/TermtypeTerm'
                 type: array
-          description: A JSON array of {Concept, Prefterm} dictionaries
+          description: A JSON array of {TermType, Term} dictionaries
       summary: Returns a list of {TermType, Term} dictionaries associated with the
         code_id
       x-openapi-router-controller: openapi_server.controllers.default_controller
@@ -177,7 +177,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/SabDefinition'
                 type: array
-          description: A JSON array of {Sab, Relationship, Concept, Prefterm} dictionaries
+          description: A JSON array of {Sab, Definition} dictionaries
       summary: Returns a list of {Sab, Definition} dictionaries associated with the
         concept_id
       x-openapi-router-controller: openapi_server.controllers.default_controller
@@ -228,8 +228,89 @@ paths:
                   example: Breast Cancer
                   type: string
                 type: array
-          description: A JSON array of terms associated with the concept
+          description: A JSON array of terms associated with the concept_id
       summary: Returns a list of Terms associated with the concept_id
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /fullCapacityParameterizedTerm/{term}:
+    get:
+      operationId: full_capacity_paremeterized_term_get
+      parameters:
+      - description: The term
+        explode: false
+        in: path
+        name: term
+        required: true
+        schema:
+          example: CCF UBERON_0013702
+          type: string
+        style: simple
+      - description: One or more SABs to search
+        explode: true
+        in: query
+        name: sab
+        required: false
+        schema:
+          default: []
+          items:
+            example: MEDLINEPLUS,MSH,MEDCIN
+            type: string
+          type: array
+          uniqueItems: true
+        style: form
+      - description: One or more TTYs to search
+        explode: true
+        in: query
+        name: tty
+        required: false
+        schema:
+          default: []
+          items:
+            example: PEP,PT
+            type: string
+          type: array
+          uniqueItems: true
+        style: form
+      - description: One or more semanticss to search
+        explode: true
+        in: query
+        name: semantic
+        required: false
+        schema:
+          default: []
+          items:
+            example: Neoplastic&20Process
+            type: string
+          type: array
+          uniqueItems: true
+        style: form
+      - description: True contains term. False equals term
+        explode: true
+        in: query
+        name: contains
+        required: false
+        schema:
+          default: false
+          type: boolean
+        style: form
+      - description: True case sensitive. False case insensitive
+        explode: true
+        in: query
+        name: case
+        required: false
+        schema:
+          default: false
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/FullCapacityTerm'
+                type: array
+          description: A JSON array of FullCapacityTerm objects
+      summary: Returns information associated with the term
       x-openapi-router-controller: openapi_server.controllers.default_controller
   /semantics/{semantic_id}/semantics:
     get:
@@ -563,4 +644,39 @@ components:
           title: term
           type: string
       title: SabCodeTerm
+      type: object
+    FullCapacityTerm:
+      example:
+        perfterm: Carcinoma of Male Breast
+        semantic: Neoplastic Process
+        code: MEDCIN 339752
+        concept: C0238033
+        tty: PT
+        term: Carcinoma of male breast
+      properties:
+        term:
+          example: Carcinoma of male breast
+          title: term
+          type: string
+        tty:
+          example: PT
+          title: tty
+          type: string
+        code:
+          example: MEDCIN 339752
+          title: code
+          type: string
+        concept:
+          example: C0238033
+          title: concept
+          type: string
+        perfterm:
+          example: Carcinoma of Male Breast
+          title: perfterm
+          type: string
+        semantic:
+          example: Neoplastic Process
+          title: semantic
+          type: string
+      title: FullCapacityTerm
       type: object

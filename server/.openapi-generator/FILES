@@ -1,6 +1,5 @@
 .dockerignore
 .gitignore
-.openapi-generator-ignore
 .travis.yml
 Dockerfile
 README.md
@@ -16,6 +15,7 @@ openapi_server/models/base_model_.py
 openapi_server/models/concept_code.py
 openapi_server/models/concept_detail.py
 openapi_server/models/concept_term.py
+openapi_server/models/full_capacity_term.py
 openapi_server/models/qqst.py
 openapi_server/models/sab_code_term.py
 openapi_server/models/sab_definition.py
@@ -26,7 +26,6 @@ openapi_server/models/termtype_code.py
 openapi_server/models/termtype_term.py
 openapi_server/openapi/openapi.yaml
 openapi_server/test/__init__.py
-openapi_server/test/test_default_controller.py
 openapi_server/typing_utils.py
 openapi_server/util.py
 requirements.txt

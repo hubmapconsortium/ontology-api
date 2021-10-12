@@ -4,6 +4,7 @@ import six
 from openapi_server.models.concept_code import ConceptCode  # noqa: E501
 from openapi_server.models.concept_detail import ConceptDetail  # noqa: E501
 from openapi_server.models.concept_term import ConceptTerm  # noqa: E501
+from openapi_server.models.full_capacity_term import FullCapacityTerm  # noqa: E501
 from openapi_server.models.qqst import QQST  # noqa: E501
 from openapi_server.models.sab_code_term import SabCodeTerm  # noqa: E501
 from openapi_server.models.sab_definition import SabDefinition  # noqa: E501
@@ -134,6 +135,28 @@ def concepts_concept_id_terms_get(concept_id: str) -> [str]:  # noqa: E501
     """
     return neo4jManager.concepts_concept_id_terms_get(concept_id)
 
+
+def full_capacity_paremeterized_term_get(term, sab=[], tty=[], semantic=[], contains=False, case=False):  # noqa: E501
+    """Returns information associated with the term
+
+     # noqa: E501
+
+    :param term: The term
+    :type term: str
+    :param sab: One or more SABs to search
+    :type sab: List[str]
+    :param tty: One or more TTYs to search
+    :type tty: List[str]
+    :param semantic: One or more semanticss to search
+    :type semantic: List[str]
+    :param contains: True contains term. False equals term
+    :type contains: bool
+    :param case: True case sensitive. False case insensitive
+    :type case: bool
+
+    :rtype: List[FullCapacityTerm]
+    """
+    return neo4jManager.full_capacity_paremeterized_term_get(term, sab, tty, semantic, contains, case)
 
 def semantics_semantic_id_semantics_get(semantic_id: str) -> [QQST]:  # noqa: E501
     """Returns a list of {queryTUI, querySTN ,semantic, TUI_STN} dictionaries associated with the concept_id

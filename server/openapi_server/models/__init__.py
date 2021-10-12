@@ -6,6 +6,7 @@ from __future__ import absolute_import
 from openapi_server.models.concept_code import ConceptCode
 from openapi_server.models.concept_detail import ConceptDetail
 from openapi_server.models.concept_term import ConceptTerm
+from openapi_server.models.full_capacity_term import FullCapacityTerm
 from openapi_server.models.qqst import QQST
 from openapi_server.models.sab_code_term import SabCodeTerm
 from openapi_server.models.sab_definition import SabDefinition

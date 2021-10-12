@@ -1,5 +1,6 @@
 import neo4j
 import configparser
+from typing import List
 
 from openapi_server.models.concept_code import ConceptCode
 from openapi_server.models.concept_detail import ConceptDetail
@@ -12,6 +13,7 @@ from openapi_server.models.sty_tui_stn import StyTuiStn
 from openapi_server.models.termtype_code import TermtypeCode
 from openapi_server.models.termtype_term import TermtypeTerm
 from openapi_server.models.concept_term import ConceptTerm
+from openapi_server.models.full_capacity_term import FullCapacityTerm
 
 
 class Neo4jManager(object):
@@ -263,3 +265,49 @@ class Neo4jManager(object):
                 except KeyError:
                     pass
         return conceptTerms
+
+    def full_capacity_paremeterized_term_get(self,
+                                             term: str, sab: List[str], tty: List[str], semantic: List[str],
+                                             contains: bool, case: bool)\
+            -> List[FullCapacityTerm]:
+
+        print(f"term: '{term}'")
+        print(f"sab: {sab}")
+        print(f"tty: {tty}")
+        print(f"semantic: {semantic}")
+        print(f"contains: {contains}; case: {case}")
+
+        fullCapacityTerms: List[FullCapacityTerm] = []
+        query = "WITH $term AS query" \
+                "  CALL apoc.when($CASE = 'true'," \
+                "    'MATCH (node:Term) WHERE node.name CONTAINS query RETURN node'," \
+                "    'CALL db.index.fulltext.queryNodes(\"Term_name\", \"\"+query+\"\") YIELD node RETURN node'," \
+                "    {query:query})" \
+                "  YIELD value" \
+                "  WITH query,value.node AS node" \
+                "  MATCH (node)" \
+                "    CALL apoc.when($CONTAINS = 'true'," \
+                "      'WHERE toLower(node.name) CONTAINS toLower(query) RETURN node'," \
+                "      'WHERE toLower(node.name) = toLower(query) RETURN node'," \
+                "      {query:query, node:node})" \
+                "    YIELD value" \
+                "  WITH node" \
+                "  OPTIONAL MATCH (node)<-[r]-(:Code)<-[:CODE]-(d:Concept)" \
+                "  WHERE r.CUI = d.CUI" \
+                "    OPTIONAL MATCH (node)<-[:PREF_TERM]-(d:Concept)" \
+                "    WITH d" \
+                "    MATCH (d:Concept)-[:PREF_TERM]->(e:Term), (f:Semantic)<-[:STY]-(d:Concept)-[:CODE]->(a:Code)-[s]->(b:Term)" \
+                "    WHERE s.CUI = d.CUI AND (a.SAB IN $SAB OR $SAB = []) AND (Type(s) IN $TTY OR $TTY = []) AND (f.name IN $semantic OR $semantic = [])" \
+                "  RETURN DISTINCT b.name as term, Type(s) as TTY, a.CodeID AS code, d.CUI AS concept, e.name AS prefterm, f.name AS semantic"
+        with self.driver.session() as session:
+            recds: neo4j.Result =\
+                session.run(query, term=term, SAB=sab, TTY=tty, semantic=semantic, CONTAINS=contains, CASE=case)
+            for record in recds:
+                try:
+                    fullCapacityTerm: FullCapacityTerm =\
+                        FullCapacityTerm(record.get('term'), record.get('TTY'), record.get('code'), record.get('concept'),
+                                         record.get('prefterm'), record.get('semantic'))
+                    fullCapacityTerms.append(fullCapacityTerm)
+                except KeyError:
+                    pass
+        return fullCapacityTerms

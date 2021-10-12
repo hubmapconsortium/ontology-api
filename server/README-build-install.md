@@ -52,6 +52,7 @@ At this point you can shut down the server, remove the old image, rebuild it, an
 $ docker images
 REPOSITORY                  TAG                 IMAGE ID            CREATED             SIZE
 ontology-api_ontology-api   latest              24b1f748f10f        31 minutes ago      77.6MB
+...
 $ docker-compose -f docker-compose.deployment.api.yml down
 
 # Remove the old image
@@ -65,6 +66,15 @@ $ docker-compose -f docker-compose.deployment.api.yml up -d
 
 # Verify that it is running
 $ docker ps
-CONTAINER ID        IMAGE                        COMMAND                  CREATED            STATUS                 PORTS                                                                                   NAMES
-a1f08abfafcc        ontology-api_ontology-api    "python3 -m openapi_…"   1 minutes ago      Up 1 minutes           0.0.0.0:8080->8080/tcp
+CONTAINER ID        IMAGE                        COMMAND                  CREATED             STATUS                 PORTS           NAMES
+95ff4678fab4        ontology-api_ontology-api    "/usr/local/bin/entr…"   8 seconds ago       Up 8 seconds           5000/tcp        ontology-api
+```
+
+Disconnect from the server
+```bash
+$ exit
+logout
+[cpk36@ip-172-31-91-142 ~]$ exit
+logout
+Connection to ingest.dev.hubmapconsortium.org closed.
 ```

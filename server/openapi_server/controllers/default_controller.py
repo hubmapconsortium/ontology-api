@@ -1,7 +1,7 @@
 import connexion
 import six
 
-from openapi_server.models.concept_code import ConceptCode  # noqa: E501
+from openapi_server.models.codes_codes_obj import CodesCodesObj  # noqa: E501
 from openapi_server.models.concept_detail import ConceptDetail  # noqa: E501
 from openapi_server.models.concept_term import ConceptTerm  # noqa: E501
 from openapi_server.models.full_capacity_term import FullCapacityTerm  # noqa: E501
@@ -18,21 +18,22 @@ from openapi_server import util
 
 neo4jManager = Neo4jManager()
 
-
-def codes_code_id_codes_get(code_id: str) -> [ConceptCode]:  # noqa: E501
-    """Returns a list of {Concept, Code} dictionaries associated with the code_id
+def codes_code_id_codes_get(code_id, sab=None):  # noqa: E501
+    """Returns a list of {Concept, Code, Sab} dictionaries associated with the code_id optionally restricted to SAB
 
      # noqa: E501
 
     :param code_id: The code identifier
     :type code_id: str
+    :param sab: One or more SABs to search
+    :type sab: List[str]
 
-    :rtype: List[ConceptCode]
+    :rtype: List[CodesCodesObj]
     """
-    return neo4jManager.codes_code_id_codes_get(code_id)
+    return neo4jManager.codes_code_id_codes_get(code_id, sab)
 
 
-def codes_code_id_concepts_get(code_id: str) -> [ConceptDetail]:  # noqa: E501
+def codes_code_id_concepts_get(code_id):  # noqa: E501
     """Returns a list of {Concept, Prefterm} dictionaries associated with the code_id
 
      # noqa: E501
@@ -45,7 +46,7 @@ def codes_code_id_concepts_get(code_id: str) -> [ConceptDetail]:  # noqa: E501
     return neo4jManager.codes_code_id_concepts_get(code_id)
 
 
-def codes_code_id_description_get(code_id: str) -> [SabCodeTerm]:  # noqa: E501
+def codes_code_id_description_get(code_id):  # noqa: E501
     """Returns a list of {SAB, Code, Term} dictionaries associated with the code_id
 
      # noqa: E501
@@ -58,7 +59,7 @@ def codes_code_id_description_get(code_id: str) -> [SabCodeTerm]:  # noqa: E501
     return neo4jManager.codes_code_id_description_get(code_id)
 
 
-def codes_code_id_terms_get(code_id: str) -> [TermtypeTerm]:  # noqa: E501
+def codes_code_id_terms_get(code_id):  # noqa: E501
     """Returns a list of {TermType, Term} dictionaries associated with the code_id
 
      # noqa: E501
@@ -71,7 +72,7 @@ def codes_code_id_terms_get(code_id: str) -> [TermtypeTerm]:  # noqa: E501
     return neo4jManager.codes_code_id_terms_get(code_id)
 
 
-def concepts_concept_id_codes_get(concept_id: str) -> [str]:  # noqa: E501
+def concepts_concept_id_codes_get(concept_id):  # noqa: E501
     """Returns a distinct list of codes associated with the concept_id
 
      # noqa: E501
@@ -84,7 +85,7 @@ def concepts_concept_id_codes_get(concept_id: str) -> [str]:  # noqa: E501
     return neo4jManager.concepts_concept_id_codes_get(concept_id)
 
 
-def concepts_concept_id_concepts_get(concept_id: str) -> [SabRelationshipConceptPrefterm]:  # noqa: E501
+def concepts_concept_id_concepts_get(concept_id):  # noqa: E501
     """Returns a list of {Sab, Relationship, Concept, Prefterm} dictionaries associated with the concept_id
 
      # noqa: E501
@@ -97,7 +98,7 @@ def concepts_concept_id_concepts_get(concept_id: str) -> [SabRelationshipConcept
     return neo4jManager.concepts_concept_id_concepts_get(concept_id)
 
 
-def concepts_concept_id_definitions_get(concept_id: str) -> [SabDefinition]:  # noqa: E501
+def concepts_concept_id_definitions_get(concept_id):  # noqa: E501
     """Returns a list of {Sab, Definition} dictionaries associated with the concept_id
 
      # noqa: E501
@@ -110,7 +111,7 @@ def concepts_concept_id_definitions_get(concept_id: str) -> [SabDefinition]:  # 
     return neo4jManager.concepts_concept_id_definitions_get(concept_id)
 
 
-def concepts_concept_id_semantics_get(concept_id: str) -> [StyTuiStn]:  # noqa: E501
+def concepts_concept_id_semantics_get(concept_id):  # noqa: E501
     """Returns a list of {Sty, Tui, Stn} dictionaries associated with the concept_id
 
      # noqa: E501
@@ -123,7 +124,7 @@ def concepts_concept_id_semantics_get(concept_id: str) -> [StyTuiStn]:  # noqa: 
     return neo4jManager.concepts_concept_id_semantics_get(concept_id)
 
 
-def concepts_concept_id_terms_get(concept_id: str) -> [str]:  # noqa: E501
+def concepts_concept_id_terms_get(concept_id):  # noqa: E501
     """Returns a list of Terms associated with the concept_id
 
      # noqa: E501
@@ -135,8 +136,7 @@ def concepts_concept_id_terms_get(concept_id: str) -> [str]:  # noqa: E501
     """
     return neo4jManager.concepts_concept_id_terms_get(concept_id)
 
-
-def full_capacity_paremeterized_term_get(term, sab=[], tty=[], semantic=[], contains=False, case=False):  # noqa: E501
+def full_capacity_paremeterized_term_get(term, sab=None, tty=None, semantic=None, contains=None, case=None):  # noqa: E501
     """Returns information associated with the term
 
      # noqa: E501
@@ -158,7 +158,8 @@ def full_capacity_paremeterized_term_get(term, sab=[], tty=[], semantic=[], cont
     """
     return neo4jManager.full_capacity_paremeterized_term_get(term, sab, tty, semantic, contains, case)
 
-def semantics_semantic_id_semantics_get(semantic_id: str) -> [QQST]:  # noqa: E501
+
+def semantics_semantic_id_semantics_get(semantic_id):  # noqa: E501
     """Returns a list of {queryTUI, querySTN ,semantic, TUI_STN} dictionaries associated with the concept_id
 
      # noqa: E501
@@ -171,7 +172,7 @@ def semantics_semantic_id_semantics_get(semantic_id: str) -> [QQST]:  # noqa: E5
     return neo4jManager.semantics_semantic_id_semantics_get(semantic_id)
 
 
-def terms_term_id_codes_get(term_id: str) -> [TermtypeCode]:  # noqa: E501
+def terms_term_id_codes_get(term_id):  # noqa: E501
     """Returns a list of {TermType, Code} dictionaries associated with the term_id
 
      # noqa: E501
@@ -184,7 +185,7 @@ def terms_term_id_codes_get(term_id: str) -> [TermtypeCode]:  # noqa: E501
     return neo4jManager.terms_term_id_codes_get(term_id)
 
 
-def terms_term_id_concepts_get(term_id: str) -> [str]:  # noqa: E501
+def terms_term_id_concepts_get(term_id):  # noqa: E501
     """Returns a list of Terms associated with the concept_id
 
      # noqa: E501
@@ -197,7 +198,7 @@ def terms_term_id_concepts_get(term_id: str) -> [str]:  # noqa: E501
     return neo4jManager.terms_term_id_concepts_get(term_id)
 
 
-def terms_term_id_concepts_terms_get(term_id: str) -> [ConceptTerm]:  # noqa: E501
+def terms_term_id_concepts_terms_get(term_id):  # noqa: E501
     """Returns a list of {Concept, Term} dictionaries associated with the term_id
 
      # noqa: E501
@@ -210,7 +211,7 @@ def terms_term_id_concepts_terms_get(term_id: str) -> [ConceptTerm]:  # noqa: E5
     return neo4jManager.terms_term_id_concepts_terms_get(term_id)
 
 
-def tui_tui_id_semantics_get(tui_id: str) -> [SemanticStn]:  # noqa: E501
+def tui_tui_id_semantics_get(tui_id):  # noqa: E501
     """Returns a list of {semantic, STN} dictionaries associated with the tui_id
 
      # noqa: E501

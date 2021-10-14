@@ -3,7 +3,7 @@
 # flake8: noqa
 from __future__ import absolute_import
 # import models into model package
-from openapi_server.models.concept_code import ConceptCode
+from openapi_server.models.codes_codes_obj import CodesCodesObj
 from openapi_server.models.concept_detail import ConceptDetail
 from openapi_server.models.concept_term import ConceptTerm
 from openapi_server.models.full_capacity_term import FullCapacityTerm

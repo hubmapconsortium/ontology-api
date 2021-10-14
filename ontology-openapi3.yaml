@@ -8,7 +8,7 @@ servers:
 paths:
   /codes/{code_id}/codes:
     get:
-      summary: Returns a list of {Concept, Code} dictionaries associated with the code_id
+      summary: Returns a list of {Concept, Code, Sab} dictionaries associated with the code_id optionally restricted to SAB
       operationId: codes_code_id_codes_get
       parameters:
         - name: code_id
@@ -18,15 +18,26 @@ paths:
           schema:
             type: string
             example: SNOMEDCT_US 254837009
+        - name: sab
+          in: query
+          required: false
+          description: One or more SABs to search
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+              example: MEDLINEPLUS,MSH,MEDCIN
+            default: []
       responses:
         '200':
-          description: A JSON array of {Concept, Code} dictionaries
+          description: A JSON array of dictionaries
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ConceptCode'
+                  $ref: '#/components/schemas/CodesCodesObj'
   /codes/{code_id}/concepts:
     get:
       operationId: codes_code_id_concepts_get
@@ -48,6 +59,27 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ConceptDetail'
+  /codes/{code_id}/description:
+    get:
+      operationId: codes_code_id_description_get
+      summary: Returns a list of {SAB, Code, Term} dictionaries associated with the code_id
+      parameters:
+        - name: code_id
+          in: path
+          required: true
+          description: The code identifier
+          schema:
+            type: string
+            example: CCF UBERON_0013702
+      responses:
+        '200':
+          description: A JSON array of {SAB, Code, Term} dictionaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SabCodeTerm'
   /codes/{code_id}/terms:
     get:
       operationId: codes_code_id_terms_get
@@ -282,27 +314,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ConceptTerm'
-  /codes/{code_id}/description:
-    get:
-      operationId: codes_code_id_description_get
-      summary: Returns a list of {SAB, Code, Term} dictionaries associated with the code_id
-      parameters:
-        - name: code_id
-          in: path
-          required: true
-          description: The code identifier
-          schema:
-            type: string
-            example: CCF UBERON_0013702
-      responses:
-        '200':
-          description: A JSON array of {SAB, Code, Term} dictionaries
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SabCodeTerm'
   /fullCapacityParameterizedTerm/{term}:
     get:
       operationId: full_capacity_paremeterized_term_get
@@ -382,7 +393,7 @@ components:
         perfterm:
           type: string
           example: Malignant neoplasm of breast
-    ConceptCode: # Schema name
+    CodesCodesObj: # Schema name
       type: object
       properties:
         concept:
@@ -391,6 +402,9 @@ components:
         code:
           type: string
           example: CCS 2.5
+        SAB:
+          type: string
+          example: CCF
     TermtypeTerm: # Schema name
       type: object
       properties:

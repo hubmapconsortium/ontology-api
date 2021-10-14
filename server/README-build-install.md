@@ -78,3 +78,20 @@ logout
 logout
 Connection to ingest.dev.hubmapconsortium.org closed.
 ```
+
+## Setting permissions on the endpoints
+
+The [hubmapconsortium/gateway](https://github.com/hubmapconsortium/gateway/) defines the protection on endpoints
+for: dev, test, start, and prod. Currently there is no protection set on the endpoints and so they should be marked as follows:
+```bash
+{
+  "ontology-api.dev.hubmapconsortium.org": [
+   {
+      "method": "GET",
+      "endpoint": "/fullCapacityParameterizedTerm/<*>",
+      "auth": false
+    }
+  ]
+}
+```
+

@@ -12,7 +12,7 @@ openapi_server/controllers/security_controller_.py
 openapi_server/encoder.py
 openapi_server/models/__init__.py
 openapi_server/models/base_model_.py
-openapi_server/models/concept_code.py
+openapi_server/models/codes_codes_obj.py
 openapi_server/models/concept_detail.py
 openapi_server/models/concept_term.py
 openapi_server/models/full_capacity_term.py

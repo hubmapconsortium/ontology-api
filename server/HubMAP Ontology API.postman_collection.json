@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "7d82577a-bac5-4fb7-b1a4-c6a7453e94c4",
-		"name": "Ontology",
+		"name": "HubMAP Ontology API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -216,6 +216,25 @@
 		},
 		{
 			"name": "codes_code_id_codes_get",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{ontology_url}}/codes/SNOMEDCT_US%20254837009/codes",
+					"host": [
+						"{{ontology_url}}"
+					],
+					"path": [
+						"codes",
+						"SNOMEDCT_US%20254837009",
+						"codes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "codes_code_id_codes_get SAB",
 			"request": {
 				"method": "GET",
 				"header": [],

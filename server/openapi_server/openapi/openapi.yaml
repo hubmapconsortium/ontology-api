@@ -19,17 +19,30 @@ paths:
           example: SNOMEDCT_US 254837009
           type: string
         style: simple
+      - description: One or more SABs to search
+        explode: true
+        in: query
+        name: sab
+        required: false
+        schema:
+          default: []
+          items:
+            example: MEDLINEPLUS,MSH,MEDCIN
+            type: string
+          type: array
+          uniqueItems: true
+        style: form
       responses:
         "200":
           content:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/ConceptCode'
+                  $ref: '#/components/schemas/CodesCodesObj'
                 type: array
-          description: A JSON array of {Concept, Code} dictionaries
-      summary: Returns a list of {Concept, Code} dictionaries associated with the
-        code_id
+          description: A JSON array of dictionaries
+      summary: Returns a list of {Concept, Code, Sab} dictionaries associated with
+        the code_id optionally restricted to SAB
       x-openapi-router-controller: openapi_server.controllers.default_controller
   /codes/{code_id}/concepts:
     get:
@@ -241,7 +254,7 @@ paths:
         name: term
         required: true
         schema:
-          example: CCF UBERON_0013702
+          example: Male Breast Cancer
           type: string
         style: simple
       - description: One or more SABs to search
@@ -278,7 +291,7 @@ paths:
         schema:
           default: []
           items:
-            example: Neoplastic&20Process
+            example: Neoplastic Process
             type: string
           type: array
           uniqueItems: true
@@ -454,9 +467,10 @@ components:
           type: string
       title: ConceptDetail
       type: object
-    ConceptCode:
+    CodesCodesObj:
       example:
         code: CCS 2.5
+        SAB: CCF
         concept: C0006142
       properties:
         concept:
@@ -467,7 +481,11 @@ components:
           example: CCS 2.5
           title: code
           type: string
-      title: ConceptCode
+        SAB:
+          example: CCF
+          title: SAB
+          type: string
+      title: CodesCodesObj
       type: object
     TermtypeTerm:
       example:

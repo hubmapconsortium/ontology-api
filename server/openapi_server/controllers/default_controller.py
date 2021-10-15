@@ -13,10 +13,12 @@ from openapi_server.models.semantic_stn import SemanticStn  # noqa: E501
 from openapi_server.models.sty_tui_stn import StyTuiStn  # noqa: E501
 from openapi_server.models.termtype_code import TermtypeCode  # noqa: E501
 from openapi_server.models.termtype_term import TermtypeTerm  # noqa: E501
-from openapi_server.managers.neo4j_manager import Neo4jManager
 from openapi_server import util
+from openapi_server.managers.neo4j_manager import Neo4jManager
+
 
 neo4jManager = Neo4jManager()
+
 
 def codes_code_id_codes_get(code_id, sab=None):  # noqa: E501
     """Returns a list of {Concept, Code, Sab} dictionaries associated with the code_id optionally restricted to SAB
@@ -72,17 +74,19 @@ def codes_code_id_terms_get(code_id):  # noqa: E501
     return neo4jManager.codes_code_id_terms_get(code_id)
 
 
-def concepts_concept_id_codes_get(concept_id):  # noqa: E501
+def concepts_concept_id_codes_get(concept_id, sab=None):  # noqa: E501
     """Returns a distinct list of codes associated with the concept_id
 
      # noqa: E501
 
     :param concept_id: The concept identifier
     :type concept_id: str
+    :param sab: One or more SABs to search
+    :type sab: List[str]
 
     :rtype: List[str]
     """
-    return neo4jManager.concepts_concept_id_codes_get(concept_id)
+    return neo4jManager.concepts_concept_id_codes_get(concept_id, sab)
 
 
 def concepts_concept_id_concepts_get(concept_id):  # noqa: E501
@@ -135,6 +139,7 @@ def concepts_concept_id_terms_get(concept_id):  # noqa: E501
     :rtype: List[str]
     """
     return neo4jManager.concepts_concept_id_terms_get(concept_id)
+
 
 def full_capacity_paremeterized_term_get(term, sab=None, tty=None, semantic=None, contains=None, case=None):  # noqa: E501
     """Returns information associated with the term

@@ -10,6 +10,7 @@ SERVER_DIR=server
 #    mv $SERVER_DIR ${SERVER_DIR}.${BACKUP_EXT}
 #fi
 openapi-generator generate -i ontology-openapi3.yaml -g python-flask -o $SERVER_DIR
+(cd $SERVER_DIR; ./update_controller_and_manager.py)
 
 git checkout -- server/Dockerfile
 git checkout -- server/requirements.txt

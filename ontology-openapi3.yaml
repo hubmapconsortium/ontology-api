@@ -113,6 +113,17 @@ paths:
           schema:
             type: string
             example: C0678222
+        - name: sab
+          in: query
+          required: false
+          description: One or more SABs to search
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+              example: MEDLINEPLUS,MSH,MEDCIN
+            default: []
       responses:
         '200':
           description: A JSON array of codes associated with the concept

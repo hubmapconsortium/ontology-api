@@ -132,6 +132,19 @@ paths:
           example: C0678222
           type: string
         style: simple
+      - description: One or more SABs to search
+        explode: true
+        in: query
+        name: sab
+        required: false
+        schema:
+          default: []
+          items:
+            example: MEDLINEPLUS,MSH,MEDCIN
+            type: string
+          type: array
+          uniqueItems: true
+        style: form
       responses:
         "200":
           content:

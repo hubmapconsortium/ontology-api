@@ -113,15 +113,15 @@ class Neo4jManager(object):
         return termtypeTerms
 
     # https://neo4j.com/docs/api/python-driver/current/api.html#explicit-transactions
-    def concepts_concept_id_codes_get(self, concept_id: str) -> List[str]:
-        codes: [str] = []
+    def concepts_concept_id_codes_get(self, concept_id: str, sab: List[str]) -> List[str]:
+        codes: List[str] = []
         query = 'WITH [$concept_id] AS query' \
                 ' MATCH (a:Concept)-[:CODE]->(b:Code)' \
-                ' WHERE a.CUI IN query' \
-                ' RETURN DISTINCT a.CUI AS Concept, b.CodeID AS Code' \
+                ' WHERE a.CUI IN query AND (b.SAB IN $SAB OR $SAB = [])' \
+                ' RETURN DISTINCT a.CUI AS Concept, b.CodeID AS Code, b.SAB AS Sab' \
                 ' ORDER BY Concept, Code ASC'
         with self.driver.session() as session:
-            recds: neo4j.Result = session.run(query, concept_id=concept_id)
+            recds: neo4j.Result = session.run(query, concept_id=concept_id, SAB=sab)
             for record in recds:
                 try:
                     code = record.get('Code')
@@ -293,9 +293,7 @@ class Neo4jManager(object):
                     pass
         return conceptTerms
 
-    def full_capacity_paremeterized_term_get(self,
-                                             term: str, sab: List[str], tty: List[str], semantic: List[str],
-                                             contains: bool, case: bool)\
+    def full_capacity_paremeterized_term_get(self, term: str, sab: List[str], tty: List[str], semantic: List[str], contains: bool, case: bool)\
             -> List[FullCapacityTerm]:
 
         print(f"term: '{term}'; sab: {sab}; tty: {tty}; semantic: {semantic}; contains: {contains}; case: {case}")

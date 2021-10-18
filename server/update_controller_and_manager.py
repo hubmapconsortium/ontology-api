@@ -85,7 +85,8 @@ with open(args.controller, "r") as file:
         #print(f"line[{line_i}]: {lines[line_i]}")
         if lines[line_i].find('def ') == 0:
             method_name, method_args = break_method(lines[line_i])
-            methods_in_controller.append({'name': method_name, 'args': method_args, 'found': False})
+            method_args_list = method_args.split(', ')
+            methods_in_controller.append({'name': method_name, 'args': method_args_list, 'found': False})
             def_found = True
             continue
         if lines[line_i].find("    return 'do some magic!'") == 0:
@@ -146,22 +147,27 @@ with open(args.manager, "r") as file:
         if lines[line_i].find('    def ') == 0:
             #print(f"line[{line_i}]: {lines[line_i]}")
             method_name, method_args = break_method(lines[line_i])
+            p = r': *[^,]+'
+            method_args_only = re.sub(p, '', method_args, flags=re.IGNORECASE)
+            method_args_list = method_args_only.split(', ')
+            if method_args_list[0] == 'self':
+                method_args_list = method_args_list[1:]
             if args.verbose is True:
-                print(f"Method name: {method_name}")
+                print(f"Method name: {method_name}; Arguments in manager: {method_args_list}")
             try:
-                found = next(d for d in methods_in_controller if d['name'] == method_name)
+                method = next(d for d in methods_in_controller if d['name'] == method_name)
                 if args.verbose is True:
-                    print(f"Found method name in manager: {found}")
-                # if found['args'].sort() != method_args.sort():
-                #     print(f"ERROR: Not all arguments found in manager for method {method_name}. Argument in controller: {found['args']}. Arguments in manager: {method_args}")
-                #     exit(1)
-                found['found'] = True
+                    print(f"Found method in manager: {method}")
+                diff = list(set( method_args_list) - set(method['args']))
+                if len(diff) == 0:
+                    method['found'] = True
+                else:
+                    print(f"ERROR: Not all arguments found in manager for method {method_name}. Argument in controller: {method['args']}. Arguments in manager: {method_args_list}")
             except StopIteration:
                 pass
             continue
     count_methods_found = sum([1 for d in methods_in_controller if d["found"] is True])
-    if args.verbose is True:
-        print(f"Count Methods Found: {count_methods_found} count methods total {len(methods_in_controller)}")
+    print(f"Count Methods Found: {count_methods_found} count methods total {len(methods_in_controller)}")
     if count_methods_found != len(methods_in_controller):
         print(f"ERROR: Manager methods do not match controller methods by name")
         exit(1)

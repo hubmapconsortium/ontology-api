@@ -11,8 +11,8 @@ from openapi_server.models.sab_definition import SabDefinition  # noqa: E501
 from openapi_server.models.sab_relationship_concept_prefterm import SabRelationshipConceptPrefterm  # noqa: E501
 from openapi_server.models.semantic_stn import SemanticStn  # noqa: E501
 from openapi_server.models.sty_tui_stn import StyTuiStn  # noqa: E501
+from openapi_server.models.term_resp_obj import TermRespObj  # noqa: E501
 from openapi_server.models.termtype_code import TermtypeCode  # noqa: E501
-from openapi_server.models.termtype_term import TermtypeTerm  # noqa: E501
 from openapi_server import util
 from openapi_server.managers.neo4j_manager import Neo4jManager
 
@@ -21,7 +21,7 @@ neo4jManager = Neo4jManager()
 
 
 def codes_code_id_codes_get(code_id, sab=None):  # noqa: E501
-    """Returns a list of {Concept, Code, Sab} dictionaries associated with the code_id optionally restricted to SAB
+    """Returns a list of {Concept, Code, Sab} associated with the code_id optionally restricted to SAB
 
      # noqa: E501
 
@@ -36,7 +36,7 @@ def codes_code_id_codes_get(code_id, sab=None):  # noqa: E501
 
 
 def codes_code_id_concepts_get(code_id):  # noqa: E501
-    """Returns a list of {Concept, Prefterm} dictionaries associated with the code_id
+    """Returns a list of {Concept, Prefterm} associated with the code_id
 
      # noqa: E501
 
@@ -61,17 +61,23 @@ def codes_code_id_description_get(code_id):  # noqa: E501
     return neo4jManager.codes_code_id_description_get(code_id)
 
 
-def codes_code_id_terms_get(code_id):  # noqa: E501
-    """Returns a list of {TermType, Term} dictionaries associated with the code_id
+def codes_code_id_terms_get(code_id, sab=None, tty=None, rel=None):  # noqa: E501
+    """Returns a list of TermRespObjs associated with the code_id as follows Code(code_id)&lt;--ConceptI-[rel.sab]-&gt;ConceptR--&gt;Code2-[Type]-&gt;Term
 
      # noqa: E501
 
-    :param code_id: The code identifier
+    :param code_id: The code identifier which is used to identify the initial ConceptI
     :type code_id: str
+    :param sab: Restrict the ConceptI-[rel.sab]-&gt;ConceptR search to Relationships of this Sab
+    :type sab: List[str]
+    :param tty: Restrict the Code2-[Type]-&gt;Term search to one or more TTY types
+    :type tty: List[str]
+    :param rel: One or more TTYs to search
+    :type rel: List[str]
 
-    :rtype: List[TermtypeTerm]
+    :rtype: List[TermRespObj]
     """
-    return neo4jManager.codes_code_id_terms_get(code_id)
+    return neo4jManager.codes_code_id_terms_get(code_id, sab, tty, rel)
 
 
 def concepts_concept_id_codes_get(concept_id, sab=None):  # noqa: E501

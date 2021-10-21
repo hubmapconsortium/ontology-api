@@ -1,14 +1,14 @@
 openapi: 3.0.3
 info:
   title: HuBMAP Ontology API
-  description: This document describes the HubMAP Ontology API
+  description: This document describes the HuBMAP Ontology API
   version: 0.1.0
 servers:
   - url: https://ontology-api.dev.hubmapconsortium.org/
 paths:
   /codes/{code_id}/codes:
     get:
-      summary: Returns a list of {Concept, Code, Sab} dictionaries associated with the code_id optionally restricted to SAB
+      summary: Returns a list of {Concept, Code, Sab} associated with the code_id optionally restricted to SAB
       operationId: codes_code_id_codes_get
       parameters:
         - name: code_id
@@ -17,7 +17,7 @@ paths:
           description: The code identifier
           schema:
             type: string
-            example: SNOMEDCT_US 254837009
+            example: CHV 0000000540
         - name: sab
           in: query
           required: false
@@ -41,7 +41,7 @@ paths:
   /codes/{code_id}/concepts:
     get:
       operationId: codes_code_id_concepts_get
-      summary: Returns a list of {Concept, Prefterm} dictionaries associated with the code_id
+      summary: Returns a list of {Concept, Prefterm} associated with the code_id
       parameters:
         - name: code_id
           in: path
@@ -52,7 +52,7 @@ paths:
             example: SNOMEDCT_US 254837009
       responses:
         '200':
-          description: A JSON array of {Concept, Prefterm} dictionaries
+          description: A JSON array of dictionaries
           content:
             application/json:
               schema:
@@ -83,15 +83,48 @@ paths:
   /codes/{code_id}/terms:
     get:
       operationId: codes_code_id_terms_get
-      summary: Returns a list of {TermType, Term} dictionaries associated with the code_id
+      summary: Returns a list of TermRespObjs associated with the code_id as follows Code(code_id)<--ConceptI-[rel.sab]->ConceptR-->Code2-[Type]->Term
       parameters:
         - name: code_id
           in: path
           required: true
-          description: The code identifier
+          description: The code identifier which is used to identify the initial ConceptI
           schema:
             type: string
             example: SNOMEDCT_US 254837009
+        - name: sab
+          in: query
+          required: false
+          description: Restrict the ConceptI-[rel.sab]->ConceptR search to Relationships of this Sab
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+              example: MEDLINEPLUS,MSH,MEDCIN
+            default: []
+        - name: tty
+          in: query
+          required: false
+          description: Restrict the Code2-[Type]->Term search to one or more TTY types
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+              example: PEP,PT
+            default: []
+        - name: rel
+          in: query
+          required: false
+          description: One or more TTYs to search
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+              example: "*[PEP],*[PT]"
+            default: []
       responses:
         '200':
           description: A JSON array of {TermType, Term} dictionaries
@@ -100,7 +133,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/TermtypeTerm'
+                  $ref: '#/components/schemas/TermRespObj'
   /concepts/{concept_id}/codes:
     get:
       operationId: concepts_concept_id_codes_get
@@ -416,15 +449,36 @@ components:
         SAB:
           type: string
           example: CCF
-    TermtypeTerm: # Schema name
+    TermRespObj: # Schema name
       type: object
       properties:
-        termtype:
+        code_id:
           type: string
-          example: FN
+          example: CHV 0000000540
+        code_sab:
+          type: string
+          example: CHV
+        code:
+          type: string
+          example: 0000000540
+        concept:
+          type: string
+          example: C0000766
+        tty:
+          type: string
+          example: SY
         term:
           type: string
-          example: Malignant neoplasm of breast (disorder)
+          example: x-ray abnormal
+        prefterm:
+          type: string
+          example: x-ray abnormal
+        rel_type:
+          type: string
+          example: LA
+        rel_sab:
+          type: string
+          example: CHV
     SabRelationshipConceptPrefterm: # Schema name
       type: object
       properties:

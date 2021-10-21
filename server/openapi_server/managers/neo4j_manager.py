@@ -1,6 +1,7 @@
 import neo4j
 import configparser
 from typing import List
+import re
 
 from openapi_server.models.codes_codes_obj import CodesCodesObj  # noqa: E501
 from openapi_server.models.concept_detail import ConceptDetail  # noqa: E501
@@ -12,10 +13,32 @@ from openapi_server.models.sab_definition import SabDefinition  # noqa: E501
 from openapi_server.models.sab_relationship_concept_prefterm import SabRelationshipConceptPrefterm  # noqa: E501
 from openapi_server.models.semantic_stn import SemanticStn  # noqa: E501
 from openapi_server.models.sty_tui_stn import StyTuiStn  # noqa: E501
+from openapi_server.models.term_resp_obj import TermRespObj  # noqa: E501
 from openapi_server.models.termtype_code import TermtypeCode  # noqa: E501
-from openapi_server.models.termtype_term import TermtypeTerm  # noqa: E501
 
 
+def rel_str_to_array(rels: List[str]) -> List[List]:
+    rel_array: List[List] = []
+    for rel in rels:
+        m = re.match(r'([^[]+)\[([^]]+)\]', rel)
+        rel = m[1]
+        sab = m[2]
+        rel_array.append([rel, sab])
+    return rel_array
+
+
+# Each 'rel' list item is a string of the form 'Type[SAB]' which is translated into the array '[Type(t),t.SAB]'
+def parse_and_check_rel(rel: List[str]) -> List[List]:
+    rel_list: List[List] = rel_str_to_array(rel)
+    for r in rel_list:
+        if not re.match(r"\*|[a-zA-Z_]+", r[0]):
+            raise Exception(f"Invalid relation in rel optional parameter list", 400)
+        if not re.match(r"[a-zA-Z_]+", r[1]):
+            raise Exception(f"Invalid SAB in rel optional parameter list", 400)
+    return rel_list
+
+
+# https://editor.swagger.io/
 class Neo4jManager(object):
 
     def __init__(self):
@@ -95,22 +118,44 @@ class Neo4jManager(object):
                     pass
         return sabCodeTerms
 
-    def codes_code_id_terms_get(self, code_id) -> List[TermtypeTerm]:
-        termtypeTerms: List[TermtypeTerm] = []
-        query = 'WITH [$code_id] AS query' \
-                ' MATCH (a:Code)-[b]->(c:Term)' \
-                ' WHERE a.CodeID IN query' \
-                ' RETURN DISTINCT a.CodeID AS Code, Type(b) AS TermType, c.name AS Term' \
-                ' ORDER BY Code, TermType, Term'
+    def codes_code_id_terms_get(self, code_id: str, sab: List[str], tty: List[str], rel: List[List]) -> List[TermRespObj]:
+        print(f"Original; code_id: '{code_id}'; sab: {sab}; tty: {tty}; rel: {rel}")
+        try:
+            rel = parse_and_check_rel(rel)
+        except Exception as e:
+            msg, code = e.args
+            return msg, code
+        termRespObjs: List[TermRespObj] = []
+        query = "WITH $code_id AS code_id" \
+                " MATCH (:Code{CodeID:code_id})<-[:CODE]-(c:Concept)" \
+                " WITH c, $rel AS rel" \
+                " CALL apoc.when($rel = []," \
+                "  'MATCH (c)" \
+                "    RETURN c AS d, NULL AS rel_type, NULL AS rel_sab'," \
+                "  'MATCH (c)-[t]->(d)" \
+                "    WHERE [Type(t),t.SAB] IN rel OR [Type(t),\"*\"] IN rel OR [\"*\",t.SAB] IN rel" \
+                "    RETURN d, Type(t) AS rel_type, t.SAB AS rel_sab'," \
+                "  {c:c,rel:rel}" \
+                ")" \
+                " YIELD value" \
+                " WITH value.d AS d, value.rel_type AS rel_type, value.rel_sab AS rel_sab" \
+                " OPTIONAL MATCH (d:Concept)-[:PREF_TERM]->(e:Term)" \
+                " OPTIONAL MATCH (d:Concept)-[:CODE]->(f:Code)-[s]->(g:Term)" \
+                " WHERE s.CUI = d.CUI AND (f.SAB IN $sab OR $sab = []) AND (Type(s) IN $tty OR $tty = [])" \
+                " RETURN DISTINCT $code_id AS code_id, rel_type, rel_sab, f.CodeID AS code2_id, f.SAB AS code2_sab," \
+                "  f.CODE AS code2_code, Type(s) AS tty, g.name AS term, d.CUI AS concept, e.name AS prefterm"
         with self.driver.session() as session:
-            recds = session.run(query, code_id=code_id)
+            recds: neo4j.Result = session.run(query, code_id=code_id, sab=sab, tty=tty, rel=rel)
             for record in recds:
                 try:
-                    termtypeTerm: TermtypeTerm = TermtypeTerm(record.get('TermType'), record.get('Term'))
-                    termtypeTerms.append(termtypeTerm)
+                    termRespObj: TermRespObj =\
+                        TermRespObj(record.get('code2_id'), record.get('code2_sab'), record.get('code2_code'),
+                                    record.get('concept'), record.get('tty'), record.get('term'), record.get('perfterm'),
+                                    record.get('rel_type'), record.get('rel_sab'))
+                    termRespObjs.append(termRespObj)
                 except KeyError:
                     pass
-        return termtypeTerms
+        return termRespObjs
 
     # https://neo4j.com/docs/api/python-driver/current/api.html#explicit-transactions
     def concepts_concept_id_codes_get(self, concept_id: str, sab: List[str]) -> List[str]:
@@ -295,9 +340,7 @@ class Neo4jManager(object):
 
     def full_capacity_paremeterized_term_get(self, term: str, sab: List[str], tty: List[str], semantic: List[str], contains: bool, case: bool)\
             -> List[FullCapacityTerm]:
-
         print(f"term: '{term}'; sab: {sab}; tty: {tty}; semantic: {semantic}; contains: {contains}; case: {case}")
-
         fullCapacityTerms: List[FullCapacityTerm] = []
         query = "WITH $term AS query" \
                 "  CALL apoc.when($CASE = 'true'," \

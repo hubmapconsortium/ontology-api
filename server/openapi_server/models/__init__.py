@@ -13,5 +13,5 @@ from openapi_server.models.sab_definition import SabDefinition
 from openapi_server.models.sab_relationship_concept_prefterm import SabRelationshipConceptPrefterm
 from openapi_server.models.semantic_stn import SemanticStn
 from openapi_server.models.sty_tui_stn import StyTuiStn
+from openapi_server.models.term_resp_obj import TermRespObj
 from openapi_server.models.termtype_code import TermtypeCode
-from openapi_server.models.termtype_term import TermtypeTerm

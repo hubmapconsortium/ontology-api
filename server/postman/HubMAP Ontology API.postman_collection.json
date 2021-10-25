@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "7d82577a-bac5-4fb7-b1a4-c6a7453e94c4",
-		"name": "HubMAP Ontology API",
+		"name": "HuBMAP Ontology API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -95,6 +95,93 @@
 						"concepts",
 						"C0678222",
 						"terms"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "concepts_concept_id_terms_get SAB",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{ontology_url}}/concepts/C0678222/terms?sab=MEDLINEPLUS,MSH,MEDCIN",
+					"host": [
+						"{{ontology_url}}"
+					],
+					"path": [
+						"concepts",
+						"C0678222",
+						"terms"
+					],
+					"query": [
+						{
+							"key": "sab",
+							"value": "MEDLINEPLUS,MSH,MEDCIN"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "concepts_concept_id_terms_get SAB & TTY",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{ontology_url}}/concepts/C0678222/terms?sab=MEDLINEPLUS,MSH,MEDCIN&tty=PEP",
+					"host": [
+						"{{ontology_url}}"
+					],
+					"path": [
+						"concepts",
+						"C0678222",
+						"terms"
+					],
+					"query": [
+						{
+							"key": "sab",
+							"value": "MEDLINEPLUS,MSH,MEDCIN"
+						},
+						{
+							"key": "tty",
+							"value": "PEP"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "concepts_concept_id_terms_get SAB & TTY & REL",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{ontology_url}}/concepts/C0678222/terms?sab=MEDLINEPLUS,MSH,MEDCIN&tty=PM&rel=*[MSH]",
+					"host": [
+						"{{ontology_url}}"
+					],
+					"path": [
+						"concepts",
+						"C0678222",
+						"terms"
+					],
+					"query": [
+						{
+							"key": "sab",
+							"value": "MEDLINEPLUS,MSH,MEDCIN"
+						},
+						{
+							"key": "tty",
+							"value": "PM"
+						},
+						{
+							"key": "rel",
+							"value": "*[MSH]"
+						}
 					]
 				}
 			},
@@ -196,6 +283,110 @@
 			"response": []
 		},
 		{
+			"name": "terms_term_id_terms_get",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{ontology_url}}/terms/cancer/terms",
+					"host": [
+						"{{ontology_url}}"
+					],
+					"path": [
+						"terms",
+						"cancer",
+						"terms"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "terms_term_id_terms_get w options",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{ontology_url}}/terms/cancer/terms?sab=DOID&tty=PT&rel=isa[DOID],inverse_isa[*],*[SNOMEDCT_US]",
+					"host": [
+						"{{ontology_url}}"
+					],
+					"path": [
+						"terms",
+						"cancer",
+						"terms"
+					],
+					"query": [
+						{
+							"key": "sab",
+							"value": "DOID"
+						},
+						{
+							"key": "tty",
+							"value": "PT"
+						},
+						{
+							"key": "rel",
+							"value": "isa[DOID],inverse_isa[*],*[SNOMEDCT_US]"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "indexes_term_id_terms_get",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{ontology_url}}/indexes/cancer/terms",
+					"host": [
+						"{{ontology_url}}"
+					],
+					"path": [
+						"indexes",
+						"cancer",
+						"terms"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "indexes_term_id_terms_get w options",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{ontology_url}}/terms/cancer/terms?sab=DOID&tty=PT&rel=isa[DOID],inverse_isa[*],*[SNOMEDCT_US],*[*]",
+					"host": [
+						"{{ontology_url}}"
+					],
+					"path": [
+						"terms",
+						"cancer",
+						"terms"
+					],
+					"query": [
+						{
+							"key": "sab",
+							"value": "DOID"
+						},
+						{
+							"key": "tty",
+							"value": "PT"
+						},
+						{
+							"key": "rel",
+							"value": "isa[DOID],inverse_isa[*],*[SNOMEDCT_US],*[*]"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "codes_code_id_description_get",
 			"request": {
 				"method": "GET",
@@ -285,6 +476,93 @@
 						"codes",
 						"SNOMEDCT_US%20254837009",
 						"terms"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "codes_code_id_terms_get SAB",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{ontology_url}}/codes/SNOMEDCT_US%20254837009/terms?sab=CCS,LNC",
+					"host": [
+						"{{ontology_url}}"
+					],
+					"path": [
+						"codes",
+						"SNOMEDCT_US%20254837009",
+						"terms"
+					],
+					"query": [
+						{
+							"key": "sab",
+							"value": "CCS,LNC"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "codes_code_id_terms_get SAB & TTY",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{ontology_url}}/codes/SNOMEDCT_US%20254837009/terms?sab=CCS,LNC&tty=MD",
+					"host": [
+						"{{ontology_url}}"
+					],
+					"path": [
+						"codes",
+						"SNOMEDCT_US%20254837009",
+						"terms"
+					],
+					"query": [
+						{
+							"key": "sab",
+							"value": "CCS,LNC"
+						},
+						{
+							"key": "tty",
+							"value": "MD"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "codes_code_id_terms_get SAB & TTY & REL",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{ontology_url}}/codes/SNOMEDCT_US%20254837009/terms?sab=CCS,LNC&tty=MD&rel=CHD[CCS]",
+					"host": [
+						"{{ontology_url}}"
+					],
+					"path": [
+						"codes",
+						"SNOMEDCT_US%20254837009",
+						"terms"
+					],
+					"query": [
+						{
+							"key": "sab",
+							"value": "CCS,LNC"
+						},
+						{
+							"key": "tty",
+							"value": "MD"
+						},
+						{
+							"key": "rel",
+							"value": "CHD[CCS]"
+						}
 					]
 				}
 			},

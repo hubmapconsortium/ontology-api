@@ -83,12 +83,12 @@ paths:
   /codes/{code_id}/terms:
     get:
       operationId: codes_code_id_terms_get
-      summary: Returns a list of TermRespObjs associated with the code_id as follows Code(code_id)<--ConceptI-[rel.sab]->ConceptR-->Code2-[Type]->Term
+      summary: Returns a list of TermRespObjs associated with the code_id as follows Code(code_id)<--Concept-[rel.sab]->Concept-->Code-[Type]->Term
       parameters:
         - name: code_id
           in: path
           required: true
-          description: The code identifier which is used to identify the initial ConceptI
+          description: The code identifier which is used to identify the initial Concept
           schema:
             type: string
             example: SNOMEDCT_US 254837009
@@ -127,7 +127,7 @@ paths:
             default: []
       responses:
         '200':
-          description: A JSON array of {TermType, Term} dictionaries
+          description: A JSON array of TermRespObj
           content:
             application/json:
               schema:
@@ -212,25 +212,57 @@ paths:
   /concepts/{concept_id}/terms:
     get:
       operationId: concepts_concept_id_terms_get
-      summary: Returns a list of Terms associated with the concept_id
+      summary: Returns a list of TermRespObjs associated with the concept_id as follows Concept(concept_id)-[rel.sab]->Concept-->Code-[Type]->Term
       parameters:
         - name: concept_id
           in: path
           required: true
-          description: The concept identifier
+          description: The concept identifier which is used to identify the initial Concept
           schema:
             type: string
-            example: C0006142
+            example: SNOMEDCT_US 254837009
+        - name: sab
+          in: query
+          required: false
+          description: Restrict the ConceptI-[rel.sab]->ConceptR search to Relationships of this Sab
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+              example: MEDLINEPLUS,MSH,MEDCIN
+            default: []
+        - name: tty
+          in: query
+          required: false
+          description: Restrict the Code2-[Type]->Term search to one or more TTY types
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+              example: PEP,PT
+            default: []
+        - name: rel
+          in: query
+          required: false
+          description: One or more TTYs to search
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+              example: "*[PEP],*[PT]"
+            default: []
       responses:
         '200':
-          description: A JSON array of terms associated with the concept_id
+          description: A JSON array of TermRespObj
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  type: string
-                  example: Breast Cancer
+                  $ref: '#/components/schemas/TermRespObj'
   /concepts/{concept_id}/semantics:
     get:
       operationId: concepts_concept_id_semantics_get
@@ -358,6 +390,114 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ConceptTerm'
+  /terms/{term_id}/terms:
+    get:
+      operationId: terms_term_id_terms_get
+      summary: Returns a list of TermRespObjs associated with the term_id
+      parameters:
+        - name: term_id
+          in: path
+          required: true
+          description: The term identifier which is used to identify the initial Concept
+          schema:
+            type: string
+            example: cancer
+        - name: sab
+          in: query
+          required: false
+          description: Restrict the ConceptI-[rel.sab]->ConceptR search to Relationships of this Sab
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+              example: MEDLINEPLUS,MSH,MEDCIN
+            default: []
+        - name: tty
+          in: query
+          required: false
+          description: Restrict the Code2-[Type]->Term search to one or more TTY types
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+              example: PEP,PT
+            default: []
+        - name: rel
+          in: query
+          required: false
+          description: One or more TTYs to search
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+              example: "*[PEP],*[PT]"
+            default: []
+      responses:
+        '200':
+          description: A JSON array of TermRespObj
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TermRespObj'
+  /indexes/{term_id}/terms:
+    get:
+      operationId: indexes_term_id_terms_get
+      summary: Returns a list of TermRespObjs associated with the term_id
+      parameters:
+        - name: term_id
+          in: path
+          required: true
+          description: The term identifier which is used to identify the initial Concept
+          schema:
+            type: string
+            example: cancer
+        - name: sab
+          in: query
+          required: false
+          description: Restrict the ConceptI-[rel.sab]->ConceptR search to Relationships of this Sab
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+              example: MEDLINEPLUS,MSH,MEDCIN
+            default: []
+        - name: tty
+          in: query
+          required: false
+          description: Restrict the Code2-[Type]->Term search to one or more TTY types
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+              example: PEP,PT
+            default: []
+        - name: rel
+          in: query
+          required: false
+          description: One or more TTYs to search
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+              example: "*[PEP],*[PT]"
+            default: []
+      responses:
+        '200':
+          description: A JSON array of TermRespObj
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TermRespObj'
   /fullCapacityParameterizedTerm/{term}:
     get:
       operationId: full_capacity_paremeterized_term_get

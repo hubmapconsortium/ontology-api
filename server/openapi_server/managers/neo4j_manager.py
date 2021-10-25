@@ -28,12 +28,13 @@ def rel_str_to_array(rels: List[str]) -> List[List]:
 
 
 # Each 'rel' list item is a string of the form 'Type[SAB]' which is translated into the array '[Type(t),t.SAB]'
+# The Type or SAB can be a wild card '*', so '*[SAB]', 'Type[SAB]' and even '*[*]' are valid
 def parse_and_check_rel(rel: List[str]) -> List[List]:
     rel_list: List[List] = rel_str_to_array(rel)
     for r in rel_list:
         if not re.match(r"\*|[a-zA-Z_]+", r[0]):
-            raise Exception(f"Invalid relation in rel optional parameter list", 400)
-        if not re.match(r"[a-zA-Z_]+", r[1]):
+            raise Exception(f"Invalid Type in rel optional parameter list", 400)
+        if not re.match(r"\*|[a-zA-Z_]+", r[1]):
             raise Exception(f"Invalid SAB in rel optional parameter list", 400)
     return rel_list
 
@@ -118,6 +119,8 @@ class Neo4jManager(object):
                     pass
         return sabCodeTerms
 
+    # TODO: refactor this with 'concepts_concept_id_terms_get' removing code duplication
+    # The only difference in the cypher seems to be the second line in both
     def codes_code_id_terms_get(self, code_id: str, sab: List[str], tty: List[str], rel: List[List]) -> List[TermRespObj]:
         print(f"Original; code_id: '{code_id}'; sab: {sab}; tty: {tty}; rel: {rel}")
         try:
@@ -126,30 +129,30 @@ class Neo4jManager(object):
             msg, code = e.args
             return msg, code
         termRespObjs: List[TermRespObj] = []
-        query = "WITH $code_id AS code_id" \
-                " MATCH (:Code{CodeID:code_id})<-[:CODE]-(c:Concept)" \
-                " WITH c, $rel AS rel" \
-                " CALL apoc.when($rel = []," \
-                "  'MATCH (c)" \
-                "    RETURN c AS d, NULL AS rel_type, NULL AS rel_sab'," \
-                "  'MATCH (c)-[t]->(d)" \
-                "    WHERE [Type(t),t.SAB] IN rel OR [Type(t),\"*\"] IN rel OR [\"*\",t.SAB] IN rel" \
-                "    RETURN d, Type(t) AS rel_type, t.SAB AS rel_sab'," \
-                "  {c:c,rel:rel}" \
-                ")" \
-                " YIELD value" \
-                " WITH value.d AS d, value.rel_type AS rel_type, value.rel_sab AS rel_sab" \
-                " OPTIONAL MATCH (d:Concept)-[:PREF_TERM]->(e:Term)" \
-                " OPTIONAL MATCH (d:Concept)-[:CODE]->(f:Code)-[s]->(g:Term)" \
-                " WHERE s.CUI = d.CUI AND (f.SAB IN $sab OR $sab = []) AND (Type(s) IN $tty OR $tty = [])" \
-                " RETURN DISTINCT $code_id AS code_id, rel_type, rel_sab, f.CodeID AS code2_id, f.SAB AS code2_sab," \
-                "  f.CODE AS code2_code, Type(s) AS tty, g.name AS term, d.CUI AS concept, e.name AS prefterm"
+        cypher = "WITH $queryx AS queryx" \
+                 " MATCH (:Code{CodeID:queryx})<-[:CODE]-(c:Concept)" \
+                 " WITH c, $rel AS rel" \
+                 " CALL apoc.when($rel = []," \
+                 "  'MATCH (c)" \
+                 "    RETURN c AS d, NULL AS rel_type, NULL AS rel_sab'," \
+                 "  'MATCH (c)-[t]->(d)" \
+                 "    WHERE [Type(t),t.SAB] IN rel OR [Type(t),\"*\"] IN rel OR [\"*\",t.SAB] IN rel" \
+                 "    RETURN d, Type(t) AS rel_type, t.SAB AS rel_sab'," \
+                 "  {c:c,rel:rel}" \
+                 ")" \
+                 " YIELD value" \
+                 " WITH value.d AS d, value.rel_type AS rel_type, value.rel_sab AS rel_sab" \
+                 " OPTIONAL MATCH (d:Concept)-[:PREF_TERM]->(e:Term)" \
+                 " OPTIONAL MATCH (d:Concept)-[:CODE]->(f:Code)-[s]->(g:Term)" \
+                 " WHERE s.CUI = d.CUI AND (f.SAB IN $sab OR $sab = []) AND (Type(s) IN $tty OR $tty = [])" \
+                 " RETURN DISTINCT $queryx AS queryx, rel_type, rel_sab, f.CodeID AS code_id, f.SAB AS code_sab," \
+                 "  f.CODE AS code_code, Type(s) AS tty, g.name AS term, d.CUI AS concept, e.name AS prefterm"
         with self.driver.session() as session:
-            recds: neo4j.Result = session.run(query, code_id=code_id, sab=sab, tty=tty, rel=rel)
+            recds: neo4j.Result = session.run(cypher, queryx=code_id, sab=sab, tty=tty, rel=rel)
             for record in recds:
                 try:
                     termRespObj: TermRespObj =\
-                        TermRespObj(record.get('code2_id'), record.get('code2_sab'), record.get('code2_code'),
+                        TermRespObj(record.get('code_id'), record.get('code_sab'), record.get('code_code'),
                                     record.get('concept'), record.get('tty'), record.get('term'), record.get('perfterm'),
                                     record.get('rel_type'), record.get('rel_sab'))
                     termRespObjs.append(termRespObj)
@@ -212,24 +215,43 @@ class Neo4jManager(object):
                     pass
         return sabDefinitions
 
-    def concepts_concept_id_terms_get(self, concept_id: str) -> List[str]:
-        concepts: [str] = []
-        query = 'WITH [$concept_id] AS query' \
-                ' MATCH (a:Term)<-[:PREF_TERM]-(b:Concept)-[:CODE]->(c:Code)-[d]->(e:Term)' \
-                ' WHERE b.CUI IN query AND b.CUI = d.CUI' \
-                ' WITH b,COLLECT(e.name)+[a.name] AS x' \
-                ' WITH * UNWIND(x) AS Term' \
-                ' RETURN DISTINCT b.CUI AS Concept, Term' \
-                ' ORDER BY Term ASC'
+    def concepts_concept_id_terms_get(self, concept_id: str, sab: List[str], tty: List[str], rel: List[List]) -> List[TermRespObj]:
+        print(f"Original; concept_id: '{concept_id}'; sab: {sab}; tty: {tty}; rel: {rel}")
+        try:
+            rel = parse_and_check_rel(rel)
+        except Exception as e:
+            msg, code = e.args
+            return msg, code
+        termRespObjs: List[TermRespObj] = []
+        cypher = "WITH $queryx AS queryx" \
+                 " MATCH (c:Concept{CUI:queryx})" \
+                 " WITH c, $rel AS rel" \
+                 " CALL apoc.when($rel = []," \
+                 " 'MATCH (c)" \
+                 "   RETURN c AS d, NULL AS rel_type, NULL AS rel_sab'," \
+                 " 'MATCH (c)-[t]->(d)" \
+                 "   WHERE [Type(t),t.SAB] IN rel OR [Type(t),\"*\"] IN rel OR [\"*\",t.SAB] IN rel" \
+                 "   RETURN d, Type(t) AS rel_type, t.SAB AS rel_sab'," \
+                 " {c:c,rel:rel})" \
+                 " YIELD value" \
+                 " WITH value.d AS d, value.rel_type AS rel_type, value.rel_sab AS rel_sab" \
+                 " OPTIONAL MATCH (d:Concept)-[:PREF_TERM]->(e:Term)" \
+                 " OPTIONAL MATCH (d:Concept)-[:CODE]->(f:Code)-[s]->(g:Term)" \
+                 " WHERE s.CUI = d.CUI AND (f.SAB IN $sab OR $sab = []) AND (Type(s) IN $tty OR $tty = [])" \
+                 " RETURN DISTINCT $queryx AS queryx, rel_type, rel_sab, f.CodeID AS code_id, f.SAB AS code_sab," \
+                 "  f.CODE AS code_code, Type(s) AS tty, g.name AS term, d.CUI AS concept, e.name AS prefterm"
         with self.driver.session() as session:
-            recds: neo4j.Result = session.run(query, concept_id=concept_id)
+            recds: neo4j.Result = session.run(cypher, queryx=concept_id, sab=sab, tty=tty, rel=rel)
             for record in recds:
                 try:
-                    concept: str = record.get('Term')
-                    concepts.append(concept)
+                    termRespObj: TermRespObj =\
+                        TermRespObj(record.get('code_id'), record.get('code_sab'), record.get('code_code'),
+                                    record.get('concept'), record.get('tty'), record.get('term'), record.get('perfterm'),
+                                    record.get('rel_type'), record.get('rel_sab'))
+                    termRespObjs.append(termRespObj)
                 except KeyError:
                     pass
-        return concepts
+        return termRespObjs
 
     def concepts_concept_id_semantics_get(self, concept_id) -> List[StyTuiStn]:
         styTuiStns: [StyTuiStn] = []
@@ -380,3 +402,115 @@ class Neo4jManager(object):
                 except KeyError:
                     pass
         return fullCapacityTerms
+
+    def terms_term_id_terms_get(self, term_id: str, sab: List[str], tty: List[str], rel: List[List]) -> List[TermRespObj]:
+        print(f"Original; term_id: '{term_id}'; sab: {sab}; tty: {tty}; rel: {rel}")
+        try:
+            rel = parse_and_check_rel(rel)
+        except Exception as e:
+            msg, code = e.args
+            return msg, code
+        termRespObjs: List[TermRespObj] = []
+        cypher = "CALL db.index.fulltext.queryNodes(\"Term_name\", '\\\"'+$queryx+'\\\"')" \
+                 " YIELD node" \
+                 " WITH node AS matched_term" \
+                 " MATCH (matched_term)" \
+                 " WHERE size(matched_term.name) = size($queryx)" \
+                 " WITH matched_term" \
+                 " OPTIONAL MATCH (matched_term:Term)<-[relationship]-(:Code)<-[:CODE]-(concept:Concept)" \
+                 " WHERE relationship.CUI = concept.CUI" \
+                 " OPTIONAL MATCH (matched_term:Term)<-[:PREF_TERM]-(concept:Concept)" \
+                 " WITH DISTINCT toLower(matched_term.name) as matched, concept, $rel AS rel" \
+                 " CALL apoc.when(rel = []," \
+                 "  'RETURN concept AS related_concept, NULL AS rel_type, NULL AS rel_sab'," \
+                 "  'MATCH (concept)-[matched_rel]->(related_concept)" \
+                 "   WHERE any(x IN rel WHERE x IN [[Type(matched_rel),matched_rel.SAB],[Type(matched_rel),\"*\"],[\"*\",matched_rel.SAB],[\"*\",\"*\"]])" \
+                 "   RETURN related_concept, Type(matched_rel) AS rel_type, matched_rel.SAB AS rel_sab',{concept:concept,rel:rel})" \
+                 " YIELD value" \
+                 " WITH matched, value.related_concept AS related_concept, value.rel_type AS rel_type, value.rel_sab AS rel_sab" \
+                 " MATCH (code:Code)<-[:CODE]-(related_concept:Concept)-[:PREF_TERM]->(prefterm:Term)" \
+                 " WHERE (code.SAB IN $sab OR $sab = [])" \
+                 " OPTIONAL MATCH (code:Code)-[code2term]->(term:Term)" \
+                 " WHERE (code2term.CUI = related_concept.CUI) AND (Type(code2term) IN $tty OR $tty = [])" \
+                 " WITH *" \
+                 " CALL apoc.when(term IS NULL," \
+                 " 'RETURN \"PREF_TERM\" AS tty, prefterm as term'," \
+                 " 'RETURN Type(code2term) AS tty, term'," \
+                 " {term:term,prefterm:prefterm,code2term:code2term})" \
+                 " YIELD value WITH *, value.tty AS tty, value.term AS term" \
+                 " RETURN DISTINCT matched, rel_type, rel_sab, code.CodeID AS code_id, code.SAB AS code_sab," \
+                 "  code.CODE AS code_code, tty, term.name AS term, related_concept.CUI AS concept" \
+                 " ORDER BY size(term), code_id, tty DESC, rel_type, rel_sab, concept, matched"
+        # TODO: Add 'matched' to object returned???
+        with self.driver.session() as session:
+            recds: neo4j.Result = session.run(cypher, queryx=term_id, sab=sab, tty=tty, rel=rel)
+            for record in recds:
+                try:
+                    termRespObj: TermRespObj =\
+                        TermRespObj(record.get('code_id'), record.get('code_sab'), record.get('code_code'),
+                                    record.get('concept'), record.get('tty'), record.get('term'),
+                                    record.get('rel_type'), record.get('rel_sab'))
+                    termRespObjs.append(termRespObj)
+                except KeyError:
+                    pass
+        return termRespObjs
+
+    def indexes_term_id_terms_get(self, term_id: str, sab: List[str], tty: List[str], rel: List[List]) -> List[TermRespObj]:
+        print(f"Original; term_id: '{term_id}'; sab: {sab}; tty: {tty}; rel: {rel}")
+        try:
+            rel = parse_and_check_rel(rel)
+        except Exception as e:
+            msg, code = e.args
+            return msg, code
+        termRespObjs: List[TermRespObj] = []
+        cypher = "CALL db.index.fulltext.queryNodes(\"Term_name\", '\\\"'+$queryx+'\\\"')" \
+                 " YIELD node" \
+                 " WITH node AS matched_term" \
+                 " MATCH (matched_term)" \
+                 " WHERE size(matched_term.name) = size($queryx)" \
+                 " WITH matched_term" \
+                 " OPTIONAL MATCH (matched_term:Term)<-[relationship]-(:Code)<-[:CODE]-(concept:Concept)" \
+                 " WHERE relationship.CUI = concept.CUI" \
+                 " OPTIONAL MATCH (matched_term:Term)<-[:PREF_TERM]-(concept:Concept)" \
+                 " WITH COLLECT({matched:toLower(matched_term.name),concept:concept}) AS list1" \
+                 " OPTIONAL MATCH (concept:Concept{CUI:$queryx})" \
+                 " WITH list1 + COLLECT({matched:concept.CUI,concept:concept}) AS list2" \
+                 " OPTIONAL MATCH (matched_code:Code{CodeID:$queryx})<-[:CODE]-(concept:Concept)" \
+                 " WITH list2 + COLLECT({matched:matched_code.CodeID,concept:concept}) AS list3" \
+                 " UNWIND list3 AS rows" \
+                 " WITH DISTINCT rows.matched AS matched, rows.concept as concept, $rel as rel" \
+                 " CALL apoc.when(rel = []," \
+                 "  'RETURN concept AS related_concept, NULL AS rel_type, NULL AS rel_sab'," \
+                 "  'MATCH (concept)-[matched_rel]->(related_concept)" \
+                 "   WHERE any(x IN rel WHERE x IN [[Type(matched_rel),matched_rel.SAB],[Type(matched_rel),\"*\"],[\"*\",matched_rel.SAB],[\"*\",\"*\"]])" \
+                 "  RETURN related_concept, Type(matched_rel) AS rel_type, matched_rel.SAB AS rel_sab'," \
+                 "  {concept:concept,rel:rel})" \
+                 " YIELD value" \
+                 " WITH matched, value.related_concept AS related_concept, value.rel_type AS rel_type, value.rel_sab AS rel_sab" \
+                 " MATCH (code:Code)<-[:CODE]-(related_concept:Concept)-[:PREF_TERM]->(prefterm:Term)" \
+                 " WHERE (code.SAB IN $sab OR $sab = [])" \
+                 " OPTIONAL MATCH (code:Code)-[code2term]->(term:Term)" \
+                 " WHERE (code2term.CUI = related_concept.CUI) AND (Type(code2term) IN $tty OR $tty = [])" \
+                 " WITH *" \
+                 " CALL apoc.when(term IS NULL," \
+                 " 'RETURN \"PREF_TERM\" AS tty, prefterm as term'," \
+                 " 'RETURN Type(code2term) AS tty, term'," \
+                 " {term:term,prefterm:prefterm,code2term:code2term})" \
+                 " YIELD value" \
+                 " WITH *, value.tty AS tty, value.term AS term" \
+                 " RETURN DISTINCT matched, rel_type, rel_sab, code.CodeID AS code_id, code.SAB AS code_sab," \
+                 "  code.CODE AS code_code, tty, term.name AS term, related_concept.CUI AS concept" \
+                 " ORDER BY size(term), code_id, tty DESC, rel_type, rel_sab, concept, matched"
+        # TODO: Add 'matched' to object returned???
+        with self.driver.session() as session:
+            recds: neo4j.Result = session.run(cypher, queryx=term_id, sab=sab, tty=tty, rel=rel)
+            for record in recds:
+                try:
+                    termRespObj: TermRespObj =\
+                        TermRespObj(record.get('code_id'), record.get('code_sab'), record.get('code_code'),
+                                    record.get('concept'), record.get('tty'), record.get('term'),
+                                    record.get('rel_type'), record.get('rel_sab'))
+                    termRespObjs.append(termRespObj)
+                except KeyError:
+                    pass
+        return termRespObjs

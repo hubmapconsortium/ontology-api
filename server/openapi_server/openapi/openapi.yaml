@@ -97,7 +97,7 @@ paths:
     get:
       operationId: codes_code_id_terms_get
       parameters:
-      - description: The code identifier which is used to identify the initial ConceptI
+      - description: The code identifier which is used to identify the initial Concept
         explode: false
         in: path
         name: code_id
@@ -154,9 +154,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/TermRespObj'
                 type: array
-          description: A JSON array of {TermType, Term} dictionaries
+          description: A JSON array of TermRespObj
       summary: Returns a list of TermRespObjs associated with the code_id as follows
-        Code(code_id)<--ConceptI-[rel.sab]->ConceptR-->Code2-[Type]->Term
+        Code(code_id)<--Concept-[rel.sab]->Concept-->Code-[Type]->Term
       x-openapi-router-controller: openapi_server.controllers.default_controller
   /concepts/{concept_id}/codes:
     get:
@@ -275,26 +275,67 @@ paths:
     get:
       operationId: concepts_concept_id_terms_get
       parameters:
-      - description: The concept identifier
+      - description: The concept identifier which is used to identify the initial
+          Concept
         explode: false
         in: path
         name: concept_id
         required: true
         schema:
-          example: C0006142
+          example: SNOMEDCT_US 254837009
           type: string
         style: simple
+      - description: Restrict the ConceptI-[rel.sab]->ConceptR search to Relationships
+          of this Sab
+        explode: true
+        in: query
+        name: sab
+        required: false
+        schema:
+          default: []
+          items:
+            example: MEDLINEPLUS,MSH,MEDCIN
+            type: string
+          type: array
+          uniqueItems: true
+        style: form
+      - description: Restrict the Code2-[Type]->Term search to one or more TTY types
+        explode: true
+        in: query
+        name: tty
+        required: false
+        schema:
+          default: []
+          items:
+            example: PEP,PT
+            type: string
+          type: array
+          uniqueItems: true
+        style: form
+      - description: One or more TTYs to search
+        explode: true
+        in: query
+        name: rel
+        required: false
+        schema:
+          default: []
+          items:
+            example: '*[PEP],*[PT]'
+            type: string
+          type: array
+          uniqueItems: true
+        style: form
       responses:
         "200":
           content:
             application/json:
               schema:
                 items:
-                  example: Breast Cancer
-                  type: string
+                  $ref: '#/components/schemas/TermRespObj'
                 type: array
-          description: A JSON array of terms associated with the concept_id
-      summary: Returns a list of Terms associated with the concept_id
+          description: A JSON array of TermRespObj
+      summary: Returns a list of TermRespObjs associated with the concept_id as follows
+        Concept(concept_id)-[rel.sab]->Concept-->Code-[Type]->Term
       x-openapi-router-controller: openapi_server.controllers.default_controller
   /fullCapacityParameterizedTerm/{term}:
     get:
@@ -376,6 +417,70 @@ paths:
                 type: array
           description: A JSON array of FullCapacityTerm objects
       summary: Returns information associated with the term
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /indexes/{term_id}/terms:
+    get:
+      operationId: indexes_term_id_terms_get
+      parameters:
+      - description: The term identifier which is used to identify the initial Concept
+        explode: false
+        in: path
+        name: term_id
+        required: true
+        schema:
+          example: cancer
+          type: string
+        style: simple
+      - description: Restrict the ConceptI-[rel.sab]->ConceptR search to Relationships
+          of this Sab
+        explode: true
+        in: query
+        name: sab
+        required: false
+        schema:
+          default: []
+          items:
+            example: MEDLINEPLUS,MSH,MEDCIN
+            type: string
+          type: array
+          uniqueItems: true
+        style: form
+      - description: Restrict the Code2-[Type]->Term search to one or more TTY types
+        explode: true
+        in: query
+        name: tty
+        required: false
+        schema:
+          default: []
+          items:
+            example: PEP,PT
+            type: string
+          type: array
+          uniqueItems: true
+        style: form
+      - description: One or more TTYs to search
+        explode: true
+        in: query
+        name: rel
+        required: false
+        schema:
+          default: []
+          items:
+            example: '*[PEP],*[PT]'
+            type: string
+          type: array
+          uniqueItems: true
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/TermRespObj'
+                type: array
+          description: A JSON array of TermRespObj
+      summary: Returns a list of TermRespObjs associated with the term_id
       x-openapi-router-controller: openapi_server.controllers.default_controller
   /semantics/{semantic_id}/semantics:
     get:
@@ -476,6 +581,70 @@ paths:
           description: A JSON array of {Concept, Term} dictionaries
       summary: Returns a list of {Concept, Term} dictionaries associated with the
         term_id
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /terms/{term_id}/terms:
+    get:
+      operationId: terms_term_id_terms_get
+      parameters:
+      - description: The term identifier which is used to identify the initial Concept
+        explode: false
+        in: path
+        name: term_id
+        required: true
+        schema:
+          example: cancer
+          type: string
+        style: simple
+      - description: Restrict the ConceptI-[rel.sab]->ConceptR search to Relationships
+          of this Sab
+        explode: true
+        in: query
+        name: sab
+        required: false
+        schema:
+          default: []
+          items:
+            example: MEDLINEPLUS,MSH,MEDCIN
+            type: string
+          type: array
+          uniqueItems: true
+        style: form
+      - description: Restrict the Code2-[Type]->Term search to one or more TTY types
+        explode: true
+        in: query
+        name: tty
+        required: false
+        schema:
+          default: []
+          items:
+            example: PEP,PT
+            type: string
+          type: array
+          uniqueItems: true
+        style: form
+      - description: One or more TTYs to search
+        explode: true
+        in: query
+        name: rel
+        required: false
+        schema:
+          default: []
+          items:
+            example: '*[PEP],*[PT]'
+            type: string
+          type: array
+          uniqueItems: true
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/TermRespObj'
+                type: array
+          description: A JSON array of TermRespObj
+      summary: Returns a list of TermRespObjs associated with the term_id
       x-openapi-router-controller: openapi_server.controllers.default_controller
   /tui/{tui_id}/semantics:
     get:

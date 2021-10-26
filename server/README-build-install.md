@@ -66,9 +66,12 @@ $ docker rmi -f 24b1f748f10f
 
 # Rebuild the image
 $ docker-compose -f docker-compose.deployment.api.yml build --no-cache
+Building ontology-api
+...
 
 # Startup the container
 $ docker-compose -f docker-compose.deployment.api.yml up -d
+Creating ontology-api ... done
 
 # Verify that it is running
 $ docker ps

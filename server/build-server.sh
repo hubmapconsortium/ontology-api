@@ -53,6 +53,7 @@ echo "*** Using python3 venv in ${VENV}"
 source ${VENV}/bin/activate
 
 openapi-generator generate -i ../ontology-openapi3.yaml -g python-flask -o .
+
 ./update_controller_and_manager.py
 
 touch openapi_server/__init__.py
@@ -60,7 +61,7 @@ touch openapi_server/__init__.py
 git checkout -- Dockerfile
 git checkout -- requirements.txt
 
-git add openapi_server/models/__init__.py
+git add openapi_server/models
 git add openapi_server/openapi/openapi.yaml
 git add setup.py
 

@@ -714,10 +714,10 @@ components:
         code: "540"
         concept: C0000766
         tty: SY
-        prefterm: x-ray abnormal
         rel_type: LA
         code_sab: CHV
         term: x-ray abnormal
+        matched: CHV 0000000540
         code_id: CHV 0000000540
       properties:
         code_id:
@@ -744,9 +744,9 @@ components:
           example: x-ray abnormal
           title: term
           type: string
-        prefterm:
-          example: x-ray abnormal
-          title: prefterm
+        matched:
+          example: CHV 0000000540
+          title: matched
           type: string
         rel_type:
           example: LA

@@ -15,7 +15,7 @@ class TermRespObj(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, code_id=None, code_sab=None, code=None, concept=None, tty=None, term=None, prefterm=None, rel_type=None, rel_sab=None):  # noqa: E501
+    def __init__(self, code_id=None, code_sab=None, code=None, concept=None, tty=None, term=None, matched=None, rel_type=None, rel_sab=None):  # noqa: E501
         """TermRespObj - a model defined in OpenAPI
 
         :param code_id: The code_id of this TermRespObj.  # noqa: E501
@@ -30,8 +30,8 @@ class TermRespObj(Model):
         :type tty: str
         :param term: The term of this TermRespObj.  # noqa: E501
         :type term: str
-        :param prefterm: The prefterm of this TermRespObj.  # noqa: E501
-        :type prefterm: str
+        :param matched: The matched of this TermRespObj.  # noqa: E501
+        :type matched: str
         :param rel_type: The rel_type of this TermRespObj.  # noqa: E501
         :type rel_type: str
         :param rel_sab: The rel_sab of this TermRespObj.  # noqa: E501
@@ -44,7 +44,7 @@ class TermRespObj(Model):
             'concept': str,
             'tty': str,
             'term': str,
-            'prefterm': str,
+            'matched': str,
             'rel_type': str,
             'rel_sab': str
         }
@@ -56,7 +56,7 @@ class TermRespObj(Model):
             'concept': 'concept',
             'tty': 'tty',
             'term': 'term',
-            'prefterm': 'prefterm',
+            'matched': 'matched',
             'rel_type': 'rel_type',
             'rel_sab': 'rel_sab'
         }
@@ -67,7 +67,7 @@ class TermRespObj(Model):
         self._concept = concept
         self._tty = tty
         self._term = term
-        self._prefterm = prefterm
+        self._matched = matched
         self._rel_type = rel_type
         self._rel_sab = rel_sab
 
@@ -209,25 +209,25 @@ class TermRespObj(Model):
         self._term = term
 
     @property
-    def prefterm(self):
-        """Gets the prefterm of this TermRespObj.
+    def matched(self):
+        """Gets the matched of this TermRespObj.
 
 
-        :return: The prefterm of this TermRespObj.
+        :return: The matched of this TermRespObj.
         :rtype: str
         """
-        return self._prefterm
+        return self._matched
 
-    @prefterm.setter
-    def prefterm(self, prefterm):
-        """Sets the prefterm of this TermRespObj.
+    @matched.setter
+    def matched(self, matched):
+        """Sets the matched of this TermRespObj.
 
 
-        :param prefterm: The prefterm of this TermRespObj.
-        :type prefterm: str
+        :param matched: The matched of this TermRespObj.
+        :type matched: str
         """
 
-        self._prefterm = prefterm
+        self._matched = matched
 
     @property
     def rel_type(self):

@@ -28,18 +28,19 @@ args = parser.parse_args()
 
 def break_method(line: str):
     m = re.match(r' *def ([a-z_]+)\(([^)]+)\)', line)
-    method_name = m[1]
-    method_args = m[2]
+    method_name: str = m[1]
+    method_args: str = m[2]
     p = r'=[^,)]+'
-    method_args = re.sub(p, '', method_args)
+    method_args: str = re.sub(p, '', method_args)
     # if args.verbose is True:
     #     print(f"method name: {method_name}; method args: {method_args}")
     return method_name, method_args
 
 
+print(f"Updating controller and manager for newly generated server...")
 print(f"Processing controller: {args.controller}")
 methods_in_controller: List[dict] = []
-lines = None
+lines: List[str] = []
 lines_total = None
 model_includes_in_controller = []
 with open(args.controller, "r") as file:
@@ -47,9 +48,11 @@ with open(args.controller, "r") as file:
     lines = [line.rstrip() for line in lines]
     lines_total = len(lines)
 
-    line_i = -1
+    line_i: int = -1
     last_from_i = None
     first_def_i = None
+    manager_import_found: bool = False
+    manager_import: str = 'from openapi_server.managers.neo4j_manager import Neo4jManager'
     while True:
         line_i += 1
         #print(f"line[{line_i}]: {lines[line_i]}")
@@ -57,6 +60,8 @@ with open(args.controller, "r") as file:
             if lines[line_i].find('from openapi_server.models.') == 0:
                 model_includes_in_controller.append(lines[line_i])
             last_from_i = line_i
+            if lines[line_i].find(manager_import) == 0:
+                manager_import_found = True
             continue
         if lines[line_i].find('def ') == 0:
             first_def_i = line_i
@@ -64,13 +69,13 @@ with open(args.controller, "r") as file:
     if last_from_i is None or first_def_i is None:
         print(f"ERROR: Unable to include manager")
         exit(1)
-
-    lines[last_from_i+1: last_from_i+1] = [
-        'from openapi_server.managers.neo4j_manager import Neo4jManager',
-        '',
-        '',
-        'neo4jManager = Neo4jManager()'
-    ]
+    if manager_import_found is False:
+        lines[last_from_i+1: last_from_i+1] = [
+            manager_import,
+            '',
+            '',
+            'neo4jManager = Neo4jManager()'
+        ]
 
     lines_total = len(lines)
     if args.verbose is True:
@@ -113,13 +118,13 @@ with open(f"{args.controller}", "w") as file:
 
 
 print(f"Processing manager: {args.manager}")
-lines = []
+lines: List[str] = []
 with open(args.manager, "r") as file:
     lines = file.readlines()
     lines = [line.rstrip() for line in lines]
     lines_total = len(lines)
 
-    line_i = -1
+    line_i: int = -1
     first_from_i = None
     last_from_i = None
     while True:
@@ -134,11 +139,11 @@ with open(args.manager, "r") as file:
                 break
     lines[first_from_i:last_from_i+1] = model_includes_in_controller
 
-    lines_total = len(lines)
+    lines_total: int = len(lines)
     if args.verbose is True:
         print(f"lines in manager: {lines_total}")
     line_i = -1
-    def_found = False
+    def_found: bool = False
     returns_replaced = 0
     method_name = None
     method_args = None

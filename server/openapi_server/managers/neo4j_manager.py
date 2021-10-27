@@ -16,6 +16,41 @@ from openapi_server.models.sty_tui_stn import StyTuiStn  # noqa: E501
 from openapi_server.models.term_resp_obj import TermRespObj  # noqa: E501
 from openapi_server.models.termtype_code import TermtypeCode  # noqa: E501
 
+cypher_tail: str = \
+    " CALL apoc.when(rel = []," \
+    "  'RETURN concept AS related_concept, NULL AS rel_type, NULL AS rel_sab'," \
+    "  'MATCH (concept)-[matched_rel]->(related_concept)" \
+    "   WHERE any(x IN rel WHERE x IN [[Type(matched_rel),matched_rel.SAB],[Type(matched_rel),\"*\"],[\"*\",matched_rel.SAB],[\"*\",\"*\"]])" \
+    "   RETURN related_concept, Type(matched_rel) AS rel_type, matched_rel.SAB AS rel_sab'," \
+    "  {concept:concept,rel:rel})" \
+    " YIELD value" \
+    " WITH matched, value.related_concept AS related_concept, value.rel_type AS rel_type, value.rel_sab AS rel_sab" \
+    " MATCH (code:Code)<-[:CODE]-(related_concept:Concept)-[:PREF_TERM]->(prefterm:Term)" \
+    " WHERE (code.SAB IN $sab OR $sab = [])" \
+    " OPTIONAL MATCH (code:Code)-[code2term]->(term:Term)" \
+    " WHERE (code2term.CUI = related_concept.CUI) AND (Type(code2term) IN $tty OR $tty = [])" \
+    " WITH *" \
+    " CALL apoc.when(term IS NULL," \
+    "  'RETURN \"PREF_TERM\" AS tty, prefterm as term'," \
+    "  'RETURN Type(code2term) AS tty, term'," \
+    "  {term:term,prefterm:prefterm,code2term:code2term})" \
+    " YIELD value" \
+    " WITH *, value.tty AS tty, value.term AS term" \
+    " RETURN DISTINCT matched, rel_type, rel_sab, code.CodeID AS code_id, code.SAB AS code_sab," \
+    "  code.CODE AS code_code, tty, term.name AS term, related_concept.CUI AS concept" \
+    " ORDER BY size(term), code_id, tty DESC, rel_type, rel_sab, concept, matched"
+
+cypher_head: str = \
+    "CALL db.index.fulltext.queryNodes(\"Term_name\", '\\\"'+$queryx+'\\\"')" \
+     " YIELD node" \
+     " WITH node AS matched_term" \
+     " MATCH (matched_term)" \
+     " WHERE size(matched_term.name) = size($queryx)" \
+     " WITH matched_term" \
+     " OPTIONAL MATCH (matched_term:Term)<-[relationship]-(:Code)<-[:CODE]-(concept:Concept)" \
+     " WHERE relationship.CUI = concept.CUI" \
+     " OPTIONAL MATCH (matched_term:Term)<-[:PREF_TERM]-(concept:Concept)"
+
 
 def rel_str_to_array(rels: List[str]) -> List[List]:
     rel_array: List[List] = []
@@ -79,8 +114,7 @@ class Neo4jManager(object):
                     pass
         return termRespObjs
 
-    def codes_code_id_codes_get(self, code_id: str, sab: List[str])\
-            -> List[CodesCodesObj]:
+    def codes_code_id_codes_get(self, code_id: str, sab: List[str]) -> List[CodesCodesObj]:
         codesCodesObjs: List[CodesCodesObj] = []
         query = 'WITH [$code_id] AS query' \
                 ' MATCH (a:Code)<-[:CODE]-(b:Concept)-[:CODE]->(c:Code)' \
@@ -139,37 +173,6 @@ class Neo4jManager(object):
                     pass
         return sabCodeTerms
 
-    # TODO: refactor this with 'concepts_concept_id_terms_get' removing code duplication
-    # The only difference in the cypher seems to be the second line in both
-    def codes_code_id_terms_get(self, code_id: str, sab: List[str], tty: List[str], rel: List[List]) -> List[TermRespObj]:
-        print(f"Original; code_id: '{code_id}'; sab: {sab}; tty: {tty}; rel: {rel}")
-        cypher = "MATCH (matched_code:Code)<-[:CODE]-(concept:Concept)" \
-                 " WHERE matched_code.CodeID IN [ $queryx ]" \
-                 " WITH DISTINCT matched_code.CodeID AS matched, concept, $rel AS rel" \
-                 " CALL apoc.when(rel = []," \
-                 " 'RETURN concept AS related_concept, NULL AS rel_type, NULL AS rel_sab'," \
-                 "  'MATCH (concept)-[matched_rel]->(related_concept)" \
-                 "  WHERE any(x IN rel WHERE x IN [[Type(matched_rel),matched_rel.SAB],[Type(matched_rel),\"*\"],[\"*\",matched_rel.SAB],[\"*\",\"*\"]])" \
-                 "  RETURN related_concept, Type(matched_rel) AS rel_type, matched_rel.SAB AS rel_sab'," \
-                 "  {concept:concept,rel:rel})" \
-                 " YIELD value" \
-                 " WITH matched, value.related_concept AS related_concept, value.rel_type AS rel_type, value.rel_sab AS rel_sab" \
-                 " MATCH (code:Code)<-[:CODE]-(related_concept:Concept)-[:PREF_TERM]->(prefterm:Term)" \
-                 " WHERE (code.SAB IN $sab OR $sab = [])" \
-                 " OPTIONAL MATCH (code:Code)-[code2term]->(term:Term)" \
-                 " WHERE (code2term.CUI = related_concept.CUI) AND (Type(code2term) IN $tty OR $tty = [])" \
-                 " WITH *" \
-                 " CALL apoc.when(term IS NULL," \
-                 " 'RETURN \"PREF_TERM\" AS tty, prefterm as term'," \
-                 " 'RETURN Type(code2term) AS tty, term'," \
-                 "  {term:term,prefterm:prefterm,code2term:code2term})" \
-                 " YIELD value" \
-                 " WITH *, value.tty AS tty, value.term AS term" \
-                 " RETURN DISTINCT matched, rel_type, rel_sab, code.CodeID AS code_id, code.SAB AS code_sab," \
-                 "  code.CODE AS code_code, tty, term.name AS term, related_concept.CUI AS concept" \
-                 " ORDER BY size(term), code_id, tty DESC, rel_type, rel_sab, concept, matched"
-        return self.query_terms_get(cypher, code_id, sab, tty, rel)
-
     # https://neo4j.com/docs/api/python-driver/current/api.html#explicit-transactions
     def concepts_concept_id_codes_get(self, concept_id: str, sab: List[str]) -> List[str]:
         codes: List[str] = []
@@ -224,35 +227,6 @@ class Neo4jManager(object):
                 except KeyError:
                     pass
         return sabDefinitions
-
-    def concepts_concept_id_terms_get(self, concept_id: str, sab: List[str], tty: List[str], rel: List[List]) -> List[TermRespObj]:
-        print(f"Original; concept_id: '{concept_id}'; sab: {sab}; tty: {tty}; rel: {rel}")
-        cypher = "MATCH (concept:Concept)" \
-                 " WHERE concept.CUI IN [ $queryx ]" \
-                 " WITH DISTINCT concept.CUI AS matched, concept, $rel AS rel" \
-                 " CALL apoc.when(rel = []," \
-                 "  'RETURN concept AS related_concept, NULL AS rel_type, NULL AS rel_sab'," \
-                 "  'MATCH (concept)-[matched_rel]->(related_concept)" \
-                 "   WHERE any(x IN rel WHERE x IN [[Type(matched_rel),matched_rel.SAB],[Type(matched_rel),\"*\"],[\"*\",matched_rel.SAB],[\"*\",\"*\"]])" \
-                 "   RETURN related_concept, Type(matched_rel) AS rel_type, matched_rel.SAB AS rel_sab'," \
-                 " {concept:concept,rel:rel})" \
-                 " YIELD value" \
-                 " WITH matched, value.related_concept AS related_concept, value.rel_type AS rel_type, value.rel_sab AS rel_sab" \
-                 " MATCH (code:Code)<-[:CODE]-(related_concept:Concept)-[:PREF_TERM]->(prefterm:Term)" \
-                 " WHERE (code.SAB IN $sab OR $sab = [])" \
-                 " OPTIONAL MATCH (code:Code)-[code2term]->(term:Term)" \
-                 " WHERE (code2term.CUI = related_concept.CUI) AND (Type(code2term) IN $tty OR $tty = [])" \
-                 " WITH *" \
-                 " CALL apoc.when(term IS NULL," \
-                 "  'RETURN \"PREF_TERM\" AS tty, prefterm as term'," \
-                 "  'RETURN Type(code2term) AS tty, term'," \
-                 "  {term:term,prefterm:prefterm,code2term:code2term})" \
-                 " YIELD value" \
-                 " WITH *, value.tty AS tty, value.term AS term" \
-                 " RETURN DISTINCT matched, rel_type, rel_sab, code.CodeID AS code_id, code.SAB AS code_sab," \
-                 "  code.CODE AS code_code, tty, term.name AS term, related_concept.CUI AS concept" \
-                 " ORDER BY size(term), code_id, tty DESC, rel_type, rel_sab, concept, matched"
-        return self.query_terms_get(cypher, concept_id, sab, tty, rel)
 
     def concepts_concept_id_semantics_get(self, concept_id) -> List[StyTuiStn]:
         styTuiStns: [StyTuiStn] = []
@@ -404,51 +378,32 @@ class Neo4jManager(object):
                     pass
         return fullCapacityTerms
 
+    def concepts_concept_id_terms_get(self, concept_id: str, sab: List[str], tty: List[str], rel: List[List]) -> List[TermRespObj]:
+        print(f"Original; concept_id: '{concept_id}'; sab: {sab}; tty: {tty}; rel: {rel}")
+        cypher = "MATCH (concept:Concept)" \
+                 " WHERE concept.CUI IN [ $queryx ]" \
+                 " WITH DISTINCT concept.CUI AS matched, concept, $rel AS rel" \
+                 + cypher_tail
+        return self.query_terms_get(cypher, concept_id, sab, tty, rel)
+
+    def codes_code_id_terms_get(self, code_id: str, sab: List[str], tty: List[str], rel: List[List]) -> List[TermRespObj]:
+        print(f"Original; code_id: '{code_id}'; sab: {sab}; tty: {tty}; rel: {rel}")
+        cypher = "MATCH (matched_code:Code)<-[:CODE]-(concept:Concept)" \
+                 " WHERE matched_code.CodeID IN [ $queryx ]" \
+                 " WITH DISTINCT matched_code.CodeID AS matched, concept, $rel AS rel" \
+                 + cypher_tail
+        return self.query_terms_get(cypher, code_id, sab, tty, rel)
+
     def terms_term_id_terms_get(self, term_id: str, sab: List[str], tty: List[str], rel: List[List]) -> List[TermRespObj]:
         print(f"Original; term_id: '{term_id}'; sab: {sab}; tty: {tty}; rel: {rel}")
-        cypher = "CALL db.index.fulltext.queryNodes(\"Term_name\", '\\\"'+$queryx+'\\\"')" \
-                 " YIELD node" \
-                 " WITH node AS matched_term" \
-                 " MATCH (matched_term)" \
-                 " WHERE size(matched_term.name) = size($queryx)" \
-                 " WITH matched_term" \
-                 " OPTIONAL MATCH (matched_term:Term)<-[relationship]-(:Code)<-[:CODE]-(concept:Concept)" \
-                 " WHERE relationship.CUI = concept.CUI" \
-                 " OPTIONAL MATCH (matched_term:Term)<-[:PREF_TERM]-(concept:Concept)" \
+        cypher = cypher_head + \
                  " WITH DISTINCT toLower(matched_term.name) as matched, concept, $rel AS rel" \
-                 " CALL apoc.when(rel = []," \
-                 "  'RETURN concept AS related_concept, NULL AS rel_type, NULL AS rel_sab'," \
-                 "  'MATCH (concept)-[matched_rel]->(related_concept)" \
-                 "   WHERE any(x IN rel WHERE x IN [[Type(matched_rel),matched_rel.SAB],[Type(matched_rel),\"*\"],[\"*\",matched_rel.SAB],[\"*\",\"*\"]])" \
-                 "   RETURN related_concept, Type(matched_rel) AS rel_type, matched_rel.SAB AS rel_sab',{concept:concept,rel:rel})" \
-                 " YIELD value" \
-                 " WITH matched, value.related_concept AS related_concept, value.rel_type AS rel_type, value.rel_sab AS rel_sab" \
-                 " MATCH (code:Code)<-[:CODE]-(related_concept:Concept)-[:PREF_TERM]->(prefterm:Term)" \
-                 " WHERE (code.SAB IN $sab OR $sab = [])" \
-                 " OPTIONAL MATCH (code:Code)-[code2term]->(term:Term)" \
-                 " WHERE (code2term.CUI = related_concept.CUI) AND (Type(code2term) IN $tty OR $tty = [])" \
-                 " WITH *" \
-                 " CALL apoc.when(term IS NULL," \
-                 " 'RETURN \"PREF_TERM\" AS tty, prefterm as term'," \
-                 " 'RETURN Type(code2term) AS tty, term'," \
-                 " {term:term,prefterm:prefterm,code2term:code2term})" \
-                 " YIELD value WITH *, value.tty AS tty, value.term AS term" \
-                 " RETURN DISTINCT matched, rel_type, rel_sab, code.CodeID AS code_id, code.SAB AS code_sab," \
-                 "  code.CODE AS code_code, tty, term.name AS term, related_concept.CUI AS concept" \
-                 " ORDER BY size(term), code_id, tty DESC, rel_type, rel_sab, concept, matched"
+                 + cypher_tail
         return self.query_terms_get(cypher, term_id, sab, tty, rel)
 
-    def indexes_term_id_terms_get(self, term_id: str, sab: List[str], tty: List[str], rel: List[List]) -> List[TermRespObj]:
-        print(f"Original; term_id: '{term_id}'; sab: {sab}; tty: {tty}; rel: {rel}")
-        cypher = "CALL db.index.fulltext.queryNodes(\"Term_name\", '\\\"'+$queryx+'\\\"')" \
-                 " YIELD node" \
-                 " WITH node AS matched_term" \
-                 " MATCH (matched_term)" \
-                 " WHERE size(matched_term.name) = size($queryx)" \
-                 " WITH matched_term" \
-                 " OPTIONAL MATCH (matched_term:Term)<-[relationship]-(:Code)<-[:CODE]-(concept:Concept)" \
-                 " WHERE relationship.CUI = concept.CUI" \
-                 " OPTIONAL MATCH (matched_term:Term)<-[:PREF_TERM]-(concept:Concept)" \
+    def nodes_node_id_terms_get(self, node_id: str, sab: List[str], tty: List[str], rel: List[List]) -> List[TermRespObj]:
+        print(f"Original; node_id: '{node_id}'; sab: {sab}; tty: {tty}; rel: {rel}")
+        cypher = cypher_head + \
                  " WITH COLLECT({matched:toLower(matched_term.name),concept:concept}) AS list1" \
                  " OPTIONAL MATCH (concept:Concept{CUI:$queryx})" \
                  " WITH list1 + COLLECT({matched:concept.CUI,concept:concept}) AS list2" \
@@ -456,26 +411,5 @@ class Neo4jManager(object):
                  " WITH list2 + COLLECT({matched:matched_code.CodeID,concept:concept}) AS list3" \
                  " UNWIND list3 AS rows" \
                  " WITH DISTINCT rows.matched AS matched, rows.concept as concept, $rel as rel" \
-                 " CALL apoc.when(rel = []," \
-                 "  'RETURN concept AS related_concept, NULL AS rel_type, NULL AS rel_sab'," \
-                 "  'MATCH (concept)-[matched_rel]->(related_concept)" \
-                 "   WHERE any(x IN rel WHERE x IN [[Type(matched_rel),matched_rel.SAB],[Type(matched_rel),\"*\"],[\"*\",matched_rel.SAB],[\"*\",\"*\"]])" \
-                 "   RETURN related_concept, Type(matched_rel) AS rel_type, matched_rel.SAB AS rel_sab'," \
-                 "  {concept:concept,rel:rel})" \
-                 " YIELD value" \
-                 " WITH matched, value.related_concept AS related_concept, value.rel_type AS rel_type, value.rel_sab AS rel_sab" \
-                 " MATCH (code:Code)<-[:CODE]-(related_concept:Concept)-[:PREF_TERM]->(prefterm:Term)" \
-                 " WHERE (code.SAB IN $sab OR $sab = [])" \
-                 " OPTIONAL MATCH (code:Code)-[code2term]->(term:Term)" \
-                 " WHERE (code2term.CUI = related_concept.CUI) AND (Type(code2term) IN $tty OR $tty = [])" \
-                 " WITH *" \
-                 " CALL apoc.when(term IS NULL," \
-                 "  'RETURN \"PREF_TERM\" AS tty, prefterm as term'," \
-                 "  'RETURN Type(code2term) AS tty, term'," \
-                 "  {term:term,prefterm:prefterm,code2term:code2term})" \
-                 " YIELD value" \
-                 " WITH *, value.tty AS tty, value.term AS term" \
-                 " RETURN DISTINCT matched, rel_type, rel_sab, code.CodeID AS code_id, code.SAB AS code_sab," \
-                 "  code.CODE AS code_code, tty, term.name AS term, related_concept.CUI AS concept" \
-                 " ORDER BY size(term), code_id, tty DESC, rel_type, rel_sab, concept, matched"
-        return self.query_terms_get(cypher, term_id, sab, tty, rel)
+                 + cypher_tail
+        return self.query_terms_get(cypher, node_id, sab, tty, rel)

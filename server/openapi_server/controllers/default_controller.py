@@ -176,13 +176,13 @@ def full_capacity_paremeterized_term_get(term, sab=None, tty=None, semantic=None
     return neo4jManager.full_capacity_paremeterized_term_get(term, sab, tty, semantic, contains, case)
 
 
-def indexes_term_id_terms_get(term_id, sab=None, tty=None, rel=None):  # noqa: E501
-    """Returns a list of TermRespObjs associated with the term_id
+def nodes_node_id_terms_get(node_id, sab=None, tty=None, rel=None):  # noqa: E501
+    """Returns a list of TermRespObjs associated with the node_id
 
      # noqa: E501
 
-    :param term_id: The term identifier which is used to identify the initial Concept
-    :type term_id: str
+    :param node_id: The node (either code, concept, term) identifier which is used to identify the initial Concept
+    :type node_id: str
     :param sab: Restrict the ConceptI-[rel.sab]-&gt;ConceptR search to Relationships of this Sab
     :type sab: List[str]
     :param tty: Restrict the Code2-[Type]-&gt;Term search to one or more TTY types
@@ -192,7 +192,7 @@ def indexes_term_id_terms_get(term_id, sab=None, tty=None, rel=None):  # noqa: E
 
     :rtype: List[TermRespObj]
     """
-    return neo4jManager.indexes_term_id_terms_get(term_id, sab, tty, rel)
+    return neo4jManager.nodes_node_id_terms_get(node_id, sab, tty, rel)
 
 
 def semantics_semantic_id_semantics_get(semantic_id):  # noqa: E501

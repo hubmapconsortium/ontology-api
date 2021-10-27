@@ -444,15 +444,15 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/TermRespObj'
-  /indexes/{term_id}/terms:
+  /nodes/{node_id}/terms:
     get:
-      operationId: indexes_term_id_terms_get
-      summary: Returns a list of TermRespObjs associated with the term_id
+      operationId: nodes_node_id_terms_get
+      summary: Returns a list of TermRespObjs associated with the node_id
       parameters:
-        - name: term_id
+        - name: node_id
           in: path
           required: true
-          description: The term identifier which is used to identify the initial Concept
+          description: The node (either code, concept, term) identifier which is used to identify the initial Concept
           schema:
             type: string
             example: cancer

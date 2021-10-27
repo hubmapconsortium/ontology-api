@@ -335,17 +335,17 @@
 			"response": []
 		},
 		{
-			"name": "indexes_term_id_terms_get",
+			"name": "nodes_term_id_terms_get",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{ontology_url}}/indexes/cancer/terms",
+					"raw": "{{ontology_url}}/nodes/cancer/terms",
 					"host": [
 						"{{ontology_url}}"
 					],
 					"path": [
-						"indexes",
+						"nodes",
 						"cancer",
 						"terms"
 					]
@@ -354,17 +354,17 @@
 			"response": []
 		},
 		{
-			"name": "indexes_term_id_terms_get w options",
+			"name": "nodes_term_id_terms_get w options",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{ontology_url}}/terms/cancer/terms?sab=DOID&tty=PT&rel=isa[DOID],inverse_isa[*],*[SNOMEDCT_US],*[*]",
+					"raw": "{{ontology_url}}/nodes/cancer/terms?sab=DOID&tty=PT&rel=isa[DOID],inverse_isa[*],*[SNOMEDCT_US],*[*]",
 					"host": [
 						"{{ontology_url}}"
 					],
 					"path": [
-						"terms",
+						"nodes",
 						"cancer",
 						"terms"
 					],
@@ -392,13 +392,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{ontology_url}}/codes/CCF%20UBERON_0013702/description",
+					"raw": "{{ontology_url}}/codes/DID %201612/description",
 					"host": [
 						"{{ontology_url}}"
 					],
 					"path": [
 						"codes",
-						"CCF%20UBERON_0013702",
+						"DID %201612",
 						"description"
 					]
 				}

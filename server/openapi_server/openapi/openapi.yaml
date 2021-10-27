@@ -418,14 +418,15 @@ paths:
           description: A JSON array of FullCapacityTerm objects
       summary: Returns information associated with the term
       x-openapi-router-controller: openapi_server.controllers.default_controller
-  /indexes/{term_id}/terms:
+  /nodes/{node_id}/terms:
     get:
-      operationId: indexes_term_id_terms_get
+      operationId: nodes_node_id_terms_get
       parameters:
-      - description: The term identifier which is used to identify the initial Concept
+      - description: The node (either code, concept, term) identifier which is used
+          to identify the initial Concept
         explode: false
         in: path
-        name: term_id
+        name: node_id
         required: true
         schema:
           example: cancer
@@ -480,7 +481,7 @@ paths:
                   $ref: '#/components/schemas/TermRespObj'
                 type: array
           description: A JSON array of TermRespObj
-      summary: Returns a list of TermRespObjs associated with the term_id
+      summary: Returns a list of TermRespObjs associated with the node_id
       x-openapi-router-controller: openapi_server.controllers.default_controller
   /semantics/{semantic_id}/semantics:
     get:

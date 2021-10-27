@@ -15,6 +15,7 @@ scripts/owl
 scripts/venv
 scripts/.python-version
 scripts/robot
+server/.openapi-generator
 
 # log files in any path
 **/*.log

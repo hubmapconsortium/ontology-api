@@ -1,0 +1,236 @@
+{
+	"info": {
+		"_postman_id": "14cda58e-4550-4238-8357-1bb6c95df6ba",
+		"name": "HuBMAP Ontology Dev Cypers",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "indexes/{item}/terms",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json; charset=UTF-8",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"statements\": [\n        {\n            \"statement\": \"CALL db.index.fulltext.queryNodes(\\\"Term_name\\\", '\\\\\\\"'+$query+'\\\\\\\"') YIELD node WITH node AS matched_term MATCH (matched_term) WHERE size(matched_term.name) = size($query) WITH matched_term OPTIONAL MATCH (matched_term:Term)<-[relationship]-(:Code)<-[:CODE]-(concept:Concept) WHERE relationship.CUI = concept.CUI OPTIONAL MATCH (matched_term:Term)<-[:PREF_TERM]-(concept:Concept) WITH COLLECT({matched:toLower(matched_term.name),concept:concept}) AS list1 OPTIONAL MATCH (concept:Concept{CUI:$query}) WITH list1 + COLLECT({matched:concept.CUI,concept:concept}) AS list2 OPTIONAL MATCH (matched_code:Code{CodeID:$query})<-[:CODE]-(concept:Concept) WITH list2 + COLLECT({matched:matched_code.CodeID,concept:concept}) AS list3 UNWIND list3 AS rows WITH DISTINCT rows.matched AS matched, rows.concept as concept, $rel as rel CALL apoc.when(rel = [], 'RETURN concept AS related_concept, NULL AS rel_type, NULL AS rel_sab', 'MATCH (concept)-[matched_rel]->(related_concept) WHERE any(x IN rel WHERE x IN [[Type(matched_rel),matched_rel.SAB],[Type(matched_rel),\\\"*\\\"],[\\\"*\\\",matched_rel.SAB],[\\\"*\\\",\\\"*\\\"]]) RETURN related_concept, Type(matched_rel) AS rel_type, matched_rel.SAB AS rel_sab',{concept:concept,rel:rel}) YIELD value WITH matched, value.related_concept AS related_concept, value.rel_type AS rel_type, value.rel_sab AS rel_sab  MATCH (code:Code)<-[:CODE]-(related_concept:Concept)-[:PREF_TERM]->(prefterm:Term) WHERE (code.SAB IN $sab OR $sab = []) OPTIONAL MATCH (code:Code)-[code2term]->(term:Term) WHERE (code2term.CUI = related_concept.CUI) AND (Type(code2term) IN $tty OR $tty = []) WITH * CALL apoc.when(term IS NULL, 'RETURN \\\"PREF_TERM\\\" AS tty, prefterm as term', 'RETURN Type(code2term) AS tty, term',{term:term,prefterm:prefterm,code2term:code2term}) YIELD value WITH *, value.tty AS tty, value.term AS term RETURN DISTINCT matched, rel_type, rel_sab, code.CodeID AS code_id, code.SAB AS code_sab, code.CODE AS code_code, tty, term.name AS term, related_concept.CUI AS concept ORDER BY size(term), code_id, tty DESC, rel_type, rel_sab, concept, matched\",\n            \"parameters\": {\n                \"query\": \"cancer\",\n                \"sab\": [\"DOID\"],\n                \"tty\": [\"PT\"],\n                \"rel\": [[\"isa\",\"DOID\"],[\"inverse_isa\",\"*\"],[\"*\",\"SNOMEDCT_US\"],[\"*\",\"*\"]]\n            }\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://neo4j.dev.hubmapconsortium.org:7477/db/ontology/tx/commit",
+					"protocol": "http",
+					"host": [
+						"neo4j",
+						"dev",
+						"hubmapconsortium",
+						"org"
+					],
+					"port": "7477",
+					"path": [
+						"db",
+						"ontology",
+						"tx",
+						"commit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "codes/{code_id}/terms",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json; charset=UTF-8",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"statements\": [\n        {\n            \"statement\": \"MATCH (matched_code:Code)<-[:CODE]-(concept:Concept) WHERE matched_code.CodeID IN $query WITH DISTINCT matched_code.CodeID AS matched, concept, $rel AS rel CALL apoc.when(rel = [], 'RETURN concept AS related_concept, NULL AS rel_type, NULL AS rel_sab', 'MATCH (concept)-[matched_rel]->(related_concept) WHERE any(x IN rel WHERE x IN [[Type(matched_rel),matched_rel.SAB],[Type(matched_rel),\\\"*\\\"],[\\\"*\\\",matched_rel.SAB],[\\\"*\\\",\\\"*\\\"]]) RETURN related_concept, Type(matched_rel) AS rel_type, matched_rel.SAB AS rel_sab',{concept:concept,rel:rel}) YIELD value WITH matched, value.related_concept AS related_concept, value.rel_type AS rel_type, value.rel_sab AS rel_sab  MATCH (code:Code)<-[:CODE]-(related_concept:Concept)-[:PREF_TERM]->(prefterm:Term) WHERE (code.SAB IN $sab OR $sab = []) OPTIONAL MATCH (code:Code)-[code2term]->(term:Term) WHERE (code2term.CUI = related_concept.CUI) AND (Type(code2term) IN $tty OR $tty = []) WITH * CALL apoc.when(term IS NULL, 'RETURN \\\"PREF_TERM\\\" AS tty, prefterm as term', 'RETURN Type(code2term) AS tty, term',{term:term,prefterm:prefterm,code2term:code2term}) YIELD value WITH *, value.tty AS tty, value.term AS term RETURN DISTINCT matched, rel_type, rel_sab, code.CodeID AS code_id, code.SAB AS code_sab, code.CODE AS code_code, tty, term.name AS term, related_concept.CUI AS concept ORDER BY size(term), code_id, tty DESC, rel_type, rel_sab, concept, matched\",\n            \"parameters\": {\n                \"query\": [\"DOID 4015\", \"DOID 4928\"],\n                \"sab\": [\"DOID\"],\n                \"tty\": [\"PT\"],\n                \"rel\": [[\"isa\",\"DOID\"],[\"inverse_isa\",\"*\"],[\"*\",\"SNOMEDCT_US\"]]\n            }\n        }\n    ]\n}"
+				},
+				"url": {
+					"raw": "http://neo4j.dev.hubmapconsortium.org:7477/db/ontology/tx/commit",
+					"protocol": "http",
+					"host": [
+						"neo4j",
+						"dev",
+						"hubmapconsortium",
+						"org"
+					],
+					"port": "7477",
+					"path": [
+						"db",
+						"ontology",
+						"tx",
+						"commit"
+					]
+				},
+				"description": "This is the original terms/terms paramaterized example."
+			},
+			"response": []
+		},
+		{
+			"name": "concepts/{concept_id}/terms",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json; charset=UTF-8",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"statements\": [\n        {\n            \"statement\": \"MATCH (concept:Concept) WHERE concept.CUI IN $query WITH DISTINCT concept.CUI AS matched, concept, $rel AS rel CALL apoc.when(rel = [], 'RETURN concept AS related_concept, NULL AS rel_type, NULL AS rel_sab', 'MATCH (concept)-[matched_rel]->(related_concept) WHERE any(x IN rel WHERE x IN [[Type(matched_rel),matched_rel.SAB],[Type(matched_rel),\\\"*\\\"],[\\\"*\\\",matched_rel.SAB],[\\\"*\\\",\\\"*\\\"]]) RETURN related_concept, Type(matched_rel) AS rel_type, matched_rel.SAB AS rel_sab',{concept:concept,rel:rel}) YIELD value WITH matched, value.related_concept AS related_concept, value.rel_type AS rel_type, value.rel_sab AS rel_sab  MATCH (code:Code)<-[:CODE]-(related_concept:Concept)-[:PREF_TERM]->(prefterm:Term) WHERE (code.SAB IN $sab OR $sab = []) OPTIONAL MATCH (code:Code)-[code2term]->(term:Term) WHERE (code2term.CUI = related_concept.CUI) AND (Type(code2term) IN $tty OR $tty = []) WITH * CALL apoc.when(term IS NULL, 'RETURN \\\"PREF_TERM\\\" AS tty, prefterm as term', 'RETURN Type(code2term) AS tty, term',{term:term,prefterm:prefterm,code2term:code2term}) YIELD value WITH *, value.tty AS tty, value.term AS term RETURN DISTINCT matched, rel_type, rel_sab, code.CodeID AS code_id, code.SAB AS code_sab, code.CODE AS code_code, tty, term.name AS term, related_concept.CUI AS concept ORDER BY size(term), code_id, tty DESC, rel_type, rel_sab, concept, matched\",\n            \"parameters\": {\n                \"query\": [\"C0678222\", \"C0006142\"],\n                \"sab\": [\"DOID\"],\n                \"tty\": [\"PT\"],\n                \"rel\": [[\"isa\",\"DOID\"],[\"inverse_isa\",\"*\"],[\"*\",\"SNOMEDCT_US\"]]\n            }\n        }\n    ]\n}"
+				},
+				"url": {
+					"raw": "http://neo4j.dev.hubmapconsortium.org:7477/db/ontology/tx/commit",
+					"protocol": "http",
+					"host": [
+						"neo4j",
+						"dev",
+						"hubmapconsortium",
+						"org"
+					],
+					"port": "7477",
+					"path": [
+						"db",
+						"ontology",
+						"tx",
+						"commit"
+					]
+				},
+				"description": "This is the original terms/terms paramaterized example."
+			},
+			"response": []
+		},
+		{
+			"name": "terms/{term}/terms",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json; charset=UTF-8",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"statements\": [\n        {\n            \"statement\": \"CALL db.index.fulltext.queryNodes(\\\"Term_name\\\", '\\\\\\\"'+$query+'\\\\\\\"') YIELD node WITH node AS matched_term MATCH (matched_term) WHERE size(matched_term.name) = size($query) WITH matched_term OPTIONAL MATCH (matched_term:Term)<-[relationship]-(:Code)<-[:CODE]-(concept:Concept) WHERE relationship.CUI = concept.CUI OPTIONAL MATCH (matched_term:Term)<-[:PREF_TERM]-(concept:Concept) WITH DISTINCT toLower(matched_term.name) as matched, concept, $rel AS rel CALL apoc.when(rel = [], 'RETURN concept AS related_concept, NULL AS rel_type, NULL AS rel_sab', 'MATCH (concept)-[matched_rel]->(related_concept) WHERE any(x IN rel WHERE x IN [[Type(matched_rel),matched_rel.SAB],[Type(matched_rel),\\\"*\\\"],[\\\"*\\\",matched_rel.SAB],[\\\"*\\\",\\\"*\\\"]]) RETURN related_concept, Type(matched_rel) AS rel_type, matched_rel.SAB AS rel_sab',{concept:concept,rel:rel}) YIELD value WITH matched, value.related_concept AS related_concept, value.rel_type AS rel_type, value.rel_sab AS rel_sab  MATCH (code:Code)<-[:CODE]-(related_concept:Concept)-[:PREF_TERM]->(prefterm:Term) WHERE (code.SAB IN $sab OR $sab = []) OPTIONAL MATCH (code:Code)-[code2term]->(term:Term) WHERE (code2term.CUI = related_concept.CUI) AND (Type(code2term) IN $tty OR $tty = []) WITH * CALL apoc.when(term IS NULL, 'RETURN \\\"PREF_TERM\\\" AS tty, prefterm as term', 'RETURN Type(code2term) AS tty, term',{term:term,prefterm:prefterm,code2term:code2term}) YIELD value WITH *, value.tty AS tty, value.term AS term RETURN DISTINCT matched, rel_type, rel_sab, code.CodeID AS code_id, code.SAB AS code_sab, code.CODE AS code_code, tty, term.name AS term, related_concept.CUI AS concept ORDER BY size(term), code_id, tty DESC, rel_type, rel_sab, concept, matched\",\n            \"parameters\": {\n                \"query\": \"cancer\",\n                \"sab\": [\"DOID\"],\n                \"tty\": [\"PT\"],\n                \"rel\": [[\"isa\",\"DOID\"],[\"inverse_isa\",\"*\"],[\"*\",\"SNOMEDCT_US\"]]\n            }\n        }\n    ]\n}"
+				},
+				"url": {
+					"raw": "http://neo4j.dev.hubmapconsortium.org:7477/db/ontology/tx/commit",
+					"protocol": "http",
+					"host": [
+						"neo4j",
+						"dev",
+						"hubmapconsortium",
+						"org"
+					],
+					"port": "7477",
+					"path": [
+						"db",
+						"ontology",
+						"tx",
+						"commit"
+					]
+				},
+				"description": "This is the original terms/terms paramaterized example."
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "basic",
+		"basic": [
+			{
+				"key": "password",
+				"value": "{{Pass}}",
+				"type": "string"
+			},
+			{
+				"key": "username",
+				"value": "{{User}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

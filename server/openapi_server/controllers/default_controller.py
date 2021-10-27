@@ -72,7 +72,7 @@ def codes_code_id_terms_get(code_id, sab=None, tty=None, rel=None):  # noqa: E50
     :type sab: List[str]
     :param tty: Restrict the Code2-[Type]-&gt;Term search to one or more TTY types
     :type tty: List[str]
-    :param rel: One or more TTYs to search
+    :param rel: One or more TTYs to search of the form &#39;Type[SAB]&#39;
     :type rel: List[str]
 
     :rtype: List[TermRespObj]
@@ -145,7 +145,7 @@ def concepts_concept_id_terms_get(concept_id, sab=None, tty=None, rel=None):  # 
     :type sab: List[str]
     :param tty: Restrict the Code2-[Type]-&gt;Term search to one or more TTY types
     :type tty: List[str]
-    :param rel: One or more TTYs to search
+    :param rel: One or more TTYs to search of the form &#39;Type[SAB]&#39;
     :type rel: List[str]
 
     :rtype: List[TermRespObj]
@@ -187,7 +187,7 @@ def nodes_node_id_terms_get(node_id, sab=None, tty=None, rel=None):  # noqa: E50
     :type sab: List[str]
     :param tty: Restrict the Code2-[Type]-&gt;Term search to one or more TTY types
     :type tty: List[str]
-    :param rel: One or more TTYs to search
+    :param rel: One or more TTYs to search of the form &#39;Type[SAB]&#39;
     :type rel: List[str]
 
     :rtype: List[TermRespObj]
@@ -258,7 +258,7 @@ def terms_term_id_terms_get(term_id, sab=None, tty=None, rel=None):  # noqa: E50
     :type sab: List[str]
     :param tty: Restrict the Code2-[Type]-&gt;Term search to one or more TTY types
     :type tty: List[str]
-    :param rel: One or more TTYs to search
+    :param rel: One or more TTYs to search of the form &#39;Type[SAB]&#39;
     :type rel: List[str]
 
     :rtype: List[TermRespObj]

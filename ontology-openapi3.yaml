@@ -117,7 +117,7 @@ paths:
         - name: rel
           in: query
           required: false
-          description: One or more TTYs to search
+          description: One or more TTYs to search of the form 'Type[SAB]'
           schema:
             type: array
             uniqueItems: true
@@ -246,7 +246,7 @@ paths:
         - name: rel
           in: query
           required: false
-          description: One or more TTYs to search
+          description: One or more TTYs to search of the form 'Type[SAB]'
           schema:
             type: array
             uniqueItems: true
@@ -427,7 +427,7 @@ paths:
         - name: rel
           in: query
           required: false
-          description: One or more TTYs to search
+          description: One or more TTYs to search of the form 'Type[SAB]'
           schema:
             type: array
             uniqueItems: true
@@ -481,7 +481,7 @@ paths:
         - name: rel
           in: query
           required: false
-          description: One or more TTYs to search
+          description: One or more TTYs to search of the form 'Type[SAB]'
           schema:
             type: array
             uniqueItems: true

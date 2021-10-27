@@ -133,7 +133,7 @@ paths:
           type: array
           uniqueItems: true
         style: form
-      - description: One or more TTYs to search
+      - description: One or more TTYs to search of the form 'Type[SAB]'
         explode: true
         in: query
         name: rel
@@ -312,7 +312,7 @@ paths:
           type: array
           uniqueItems: true
         style: form
-      - description: One or more TTYs to search
+      - description: One or more TTYs to search of the form 'Type[SAB]'
         explode: true
         in: query
         name: rel
@@ -459,7 +459,7 @@ paths:
           type: array
           uniqueItems: true
         style: form
-      - description: One or more TTYs to search
+      - description: One or more TTYs to search of the form 'Type[SAB]'
         explode: true
         in: query
         name: rel
@@ -623,7 +623,7 @@ paths:
           type: array
           uniqueItems: true
         style: form
-      - description: One or more TTYs to search
+      - description: One or more TTYs to search of the form 'Type[SAB]'
         explode: true
         in: query
         name: rel

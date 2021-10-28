@@ -2,7 +2,7 @@ version: '3.8'
 # https://docs.docker.com/compose/compose-file/compose-file-v3/
 
 services:
-  neo4j:
+  ontology-neo4j:
     container_name: ontology-neo4j
     build: neo4j
     restart: unless-stopped
@@ -30,23 +30,9 @@ services:
     # When the container has > 1G memory, set -XX:MaxRAMPercentage=75.0 is good (doesn't waste too many resources)
     environment:
       - _JAVA_OPTIONS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
-    networks:
-      - neo4j-network
 
-  neo4j-constraints:
-    container_name: neo4j-constraints
-    build: neo4j-constraints
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-    networks:
-      - neo4j-network
-    depends_on:
-      - neo4j
-
-  onthology:
-    container_name: onthology_server
+  onthology-api:
+    container_name: onthology-api
     build: server
     restart: unless-stopped
     deploy:
@@ -55,13 +41,8 @@ services:
           memory: 256M
     ports:
       - 8080:8080
-    networks:
-      - neo4j-network
-    depends_on:
-      - neo4j-constraints
+
 
 volumes:
   neo4j-data:
 
-networks:
-  neo4j-network:

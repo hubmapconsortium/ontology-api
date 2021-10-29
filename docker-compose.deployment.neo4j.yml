@@ -5,6 +5,7 @@ services:
   ontology-neo4j:
     hostname: ontology-neo4j
     container_name: ontology-neo4j
+    # Will not publish the neo4j image to DockerHub
     build: neo4j
     environment:
       - NEO4J_USER=${NEO4J_USER:-neo4j}

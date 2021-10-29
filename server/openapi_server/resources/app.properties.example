@@ -1,4 +1,4 @@
 [neo4j]
-Server = bolt://18.205.215.12:7688
+Server = bolt://localhost:7687
 Username = neo4j
 Password = HappyG0at

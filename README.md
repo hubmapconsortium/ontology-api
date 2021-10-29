@@ -10,6 +10,8 @@ There are two containers here:
 
 ## Local Development Instructions
 
+For local development, [HuBMAP Gateway](https://github.com/hubmapconsortium/gateway) is not needed, simply following the below steps:
+
 * Create an `import` directory under the `neo4j` that contains the CSV files that should be imported into the neo4j database by the 'neo4j-admin' program in the Docker file.
 * Under the project root directory, run command `docker-compose -f docker-compose.localhost.yml build --no-cache` which will create the two container images described above.
 * After the images are built, run `docker-compose -f docker-compose.localhost.yml up` to start the two containers.
@@ -23,7 +25,7 @@ Once the containers are ready, they can be accessed at:
 
 ## Remote Deployment on DEV and PROD
 
-When deploying the ontology services on the DEV and PROD, we'll use the `ontology-api` docker image that has been pre-built and published to DockerHub: https://hub.docker.com/r/hubmap/ontology-api. The `ontology-neo4j` image can not be published to DockerHub, so we'll always need to build it on the deployment VM. 
+When deploying the ontology services on the DEV and PROD, we'll use the `ontology-api` docker image that has been pre-built and published to DockerHub: https://hub.docker.com/r/hubmap/ontology-api. And the `ontology-api` will also be running behind the [HuBMAP Gateway](https://github.com/hubmapconsortium/gateway). The `ontology-neo4j` image can not be published to DockerHub, so we'll always need to build it on the deployment VM. 
 
 ### Publish ontology-api docker image
 

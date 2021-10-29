@@ -29,12 +29,26 @@ services:
     # -XX:MaxRAMPercentage (double) is depending on the max memory limit assigned to the contaienr
     # When the container has > 1G memory, set -XX:MaxRAMPercentage=75.0 is good (doesn't waste too many resources)
     environment:
+      - NEO4J_USER=${NEO4J_USER:-neo4j}
+      # Used for setting the initial neo4j password, defaut to HappyG0at
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-HappyG0at}
+      # Allow the JVM to read cgroup limits
+      # -XX:+UseContainerSupport is enabled by default on linux machines,
+      # this feature was introduced in java10 then backported to Java-8u191, the base image comes with OpenJDK(build 1.8.0_232-b09)
+      # -XX:MaxRAMPercentage (double) is depending on the max memory limit assigned to the contaienr
+      # When the container has > 1G memory, set -XX:MaxRAMPercentage=75.0 is good (doesn't waste too many resources)
       - _JAVA_OPTIONS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
 
-  onthology-api:
-    container_name: onthology-api
+  ontology-api:
+    container_name: ontology-api
     build: server
     restart: unless-stopped
+    environment:
+      - HOST_GID=${HOST_GID:-1000}
+      - HOST_UID=${HOST_UID:-1000}
+    volumes:
+      # Persist the logging
+      - "./server/log:/usr/src/app/log"
     deploy:
       resources:
         limits:

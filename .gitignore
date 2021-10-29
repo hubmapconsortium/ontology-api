@@ -17,6 +17,9 @@ scripts/.python-version
 scripts/robot
 server/.openapi-generator
 
+# config file
+server/openapi_server/resources/app.properties
+
 # log files in any path
 **/*.log
 

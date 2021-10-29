@@ -1,8 +1,8 @@
-version: '3.8'
+version: '3.7'
 # https://docs.docker.com/compose/compose-file/compose-file-v3/
 
 services:
-  neo4j:
+  ontology-neo4j:
     container_name: ontology-neo4j
     build: neo4j
     restart: unless-stopped
@@ -29,39 +29,34 @@ services:
     # -XX:MaxRAMPercentage (double) is depending on the max memory limit assigned to the contaienr
     # When the container has > 1G memory, set -XX:MaxRAMPercentage=75.0 is good (doesn't waste too many resources)
     environment:
+      - NEO4J_USER=${NEO4J_USER:-neo4j}
+      # Used for setting the initial neo4j password, defaut to HappyG0at
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-HappyG0at}
+      # Allow the JVM to read cgroup limits
+      # -XX:+UseContainerSupport is enabled by default on linux machines,
+      # this feature was introduced in java10 then backported to Java-8u191, the base image comes with OpenJDK(build 1.8.0_232-b09)
+      # -XX:MaxRAMPercentage (double) is depending on the max memory limit assigned to the contaienr
+      # When the container has > 1G memory, set -XX:MaxRAMPercentage=75.0 is good (doesn't waste too many resources)
       - _JAVA_OPTIONS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
-    networks:
-      - neo4j-network
 
-  neo4j-constraints:
-    container_name: neo4j-constraints
-    build: neo4j-constraints
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-    networks:
-      - neo4j-network
-    depends_on:
-      - neo4j
-
-  onthology:
-    container_name: onthology_server
+  ontology-api:
+    container_name: ontology-api
     build: server
     restart: unless-stopped
+    environment:
+      - HOST_GID=${HOST_GID:-1000}
+      - HOST_UID=${HOST_UID:-1000}
+    volumes:
+      # Persist the logging
+      - "./server/log:/usr/src/app/log"
     deploy:
       resources:
         limits:
           memory: 256M
     ports:
       - 8080:8080
-    networks:
-      - neo4j-network
-    depends_on:
-      - neo4j-constraints
+
 
 volumes:
   neo4j-data:
 
-networks:
-  neo4j-network:

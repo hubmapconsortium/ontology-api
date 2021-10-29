@@ -45,3 +45,5 @@ else
         elif [ "$2" = "down" ]; then
             docker-compose -f docker-compose.deployment.api.yml -p ontology-api down
         fi
+    fi
+fi

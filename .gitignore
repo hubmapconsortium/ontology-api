@@ -18,7 +18,7 @@ scripts/robot
 server/.openapi-generator
 
 # config file
-server/resources/app.properties
+server/openapi_server/resources/app.properties
 
 # log files in any path
 **/*.log

@@ -46,7 +46,7 @@ docker push hubmap/ontology-api:1.1.1
 
 ### Deploy ontology-api
 
-First we need to configure `ontology-api/server/openapi_server/resources/app.properties` with the correct neo4j connection information, in order to connect to the `ontology-neo4j` container running on another VM.
+First we need to create a new configuration file `ontology-api/server/openapi_server/resources/app.properties` with the correct neo4j connection information, in order to connect to the `ontology-neo4j` container running on another VM.
 
 On the VM where the `ontology-api` service will be running:
 

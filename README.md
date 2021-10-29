@@ -51,8 +51,7 @@ First we need to create a new configuration file `ontology-api/server/openapi_se
 On the VM where the `ontology-api` service will be running:
 
 ````
-./export-ontology-api-version.sh
-docker-compose -f docker-compose.deployment.api.yml up -d
+Usage: ./ontology-api-docker-deployment.sh [dev|prod] [start|stop|down]
 ````
 
 ### Deploy ontology-neo4j

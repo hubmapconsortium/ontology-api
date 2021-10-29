@@ -2,6 +2,8 @@
 
 The HuBMAP Ontology API contains a Neo4j graph loaded with the [UMLS](https://www.nlm.nih.gov/research/umls/index.html).  The UMLS allows extensive cross-referencing across many biomedical vocabulary systems.  The UMLS structure will form the basis for the rest of the ontologies added into this system.  The backbone of the UMLS data is the Concept to Concept relationship (aka the UMLS CUI to CUI).  The UMLS Concept provides an anchor for the various vocabularies and ontologies.  The user can "walk" backbone of the graph in a vocabulary agnostic manner and/or branch off into specific voabularies.
 
+The API documentation on SmartAPI: https://smart-api.info/ui/dea4bf91545a51b3dc415ba37e2a9e4e
+
 There are two containers here:
 
 * The `ontology-neo4j` container that contains the ontology which is build with .csv files on startup. The .csv files are not stored in the git repo because some are covered by licenses. The .csv files will be deleted when the server is built to save disk space on the server.

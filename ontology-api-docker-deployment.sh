@@ -29,8 +29,8 @@ function export_version() {
 if [[ "$1" != "dev" && "$1" != "prod" ]]; then
     echo "Unknown build environment '$1', specify one of the following: dev|prod"
 else
-    if [[ "$2" != "build" && "$2" != "start" && "$2" != "stop" && "$2" != "down" ]]; then
-        echo "Unknown command '$2', specify one of the following: build|start|stop|down"
+    if [[ "$2" != "start" && "$2" != "stop" && "$2" != "down" ]]; then
+        echo "Unknown command '$2', specify one of the following: start|stop|down"
     else
         # Show the script dir
         get_dir_of_this_script
@@ -38,9 +38,7 @@ else
         # Export and show the version
         export_version
 
-        if [ "$2" = "build" ]; then
-            docker-compose -f docker-compose.deployment.api.yml -p ontology-api build
-        elif [ "$2" = "start" ]; then
+        if [ "$2" = "start" ]; then
             docker-compose -f docker-compose.deployment.api.yml -p ontology-api up -d
         elif [ "$2" = "stop" ]; then
             docker-compose -f docker-compose.deployment.api.yml -p ontology-api stop

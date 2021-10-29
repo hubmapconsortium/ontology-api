@@ -52,7 +52,7 @@ fi
 echo "*** Using python3 venv in ${VENV}"
 source ${VENV}/bin/activate
 
-openapi-generator generate -i ../ontology-openapi3.yaml -g python-flask -o .
+openapi-generator generate -i ../ontology-api-spec.yaml -g python-flask -o .
 
 ./update_controller_and_manager.py
 

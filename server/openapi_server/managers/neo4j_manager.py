@@ -65,7 +65,10 @@ def rel_str_to_array(rels: List[str]) -> List[List]:
 # Each 'rel' list item is a string of the form 'Type[SAB]' which is translated into the array '[Type(t),t.SAB]'
 # The Type or SAB can be a wild card '*', so '*[SAB]', 'Type[*]', 'Type[SAB]' and even '*[*]' are valid
 def parse_and_check_rel(rel: List[str]) -> List[List]:
-    rel_list: List[List] = rel_str_to_array(rel)
+    try:
+        rel_list: List[List] = rel_str_to_array(rel)
+    except TypeError:
+        raise Exception(f"The rel optional parameter must be of the form 'Type[SAB]', 'Type[*]', '*[SAB], or '*[*]'", 400)
     for r in rel_list:
         if not re.match(r"\*|[a-zA-Z_]+", r[0]):
             raise Exception(f"Invalid Type in rel optional parameter list", 400)

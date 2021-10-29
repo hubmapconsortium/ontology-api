@@ -21,12 +21,29 @@ function get_dir_of_this_script () {
 # Version number is from the VERSION file
 # Also remove newlines and leading/trailing slashes if present in that VERSION file
 function export_version() {
-    export ONTOLOGY_API_VERSION=$(tr -d "\n\r" < ./VERSION | xargs)
+    export ONTOLOGY_API_VERSION=$(tr -d "\n\r" < VERSION | xargs)
     echo "ONTOLOGY_API_VERSION: $ONTOLOGY_API_VERSION"
 }
 
-# Show the script dir
-get_dir_of_this_script
 
-# Export and show the version
-export_version
+if [[ "$1" != "dev" && "$1" != "prod" ]]; then
+    echo "Unknown build environment '$1', specify one of the following: dev|prod"
+else
+    if [[ "$2" != "build" && "$2" != "start" && "$2" != "stop" && "$2" != "down" ]]; then
+        echo "Unknown command '$2', specify one of the following: build|start|stop|down"
+    else
+        # Show the script dir
+        get_dir_of_this_script
+
+        # Export and show the version
+        export_version
+
+        if [ "$2" = "build" ]; then
+            docker-compose -f docker-compose.deployment.api.yml -p ontology-api build
+        elif [ "$2" = "start" ]; then
+            docker-compose -f docker-compose.deployment.api.yml -p ontology-api up -d
+        elif [ "$2" = "stop" ]; then
+            docker-compose -f docker-compose.deployment.api.yml -p ontology-api stop
+        elif [ "$2" = "down" ]; then
+            docker-compose -f docker-compose.deployment.api.yml -p ontology-api down
+        fi

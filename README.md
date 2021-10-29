@@ -29,17 +29,19 @@ When deploying the ontology services on the DEV and PROD, we'll use the `ontolog
 
 ### Publish ontology-api docker image
 
-First we need to build a released version of the `ontology-api` image locally, specify the version tag, for example:
+First we need to build a released version of the `ontology-api` image locally, specify the `latest` tag as well as the new version tag based on the version number in `VERSION` file, for example:
 
 ```
-docker build -t hubmap/ontology-api:1.1.1 .
+cd server
+docker build -t hubmap/ontology-api:latest -t hubmap/ontology-api:1.1.1 .
 ```
 
-Then publish this image to DockerHub:
+Then publish this image with the the `latest` tag as well as the released version tag to DockerHub:
 
 ```
 docker login
-docker push -t hubmap/ontology-api:1.1.1
+docker push hubmap/ontology-api:latest
+docker push hubmap/ontology-api:1.1.1
 ```
 
 ### Deploy ontology-api

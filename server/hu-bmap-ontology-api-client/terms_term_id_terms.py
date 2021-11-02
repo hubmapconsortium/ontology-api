@@ -72,9 +72,10 @@ def print_data_for_term(term_id: str) -> None:
         parsed: List[TermRespObj] = response.parsed
         parsed_len = len(parsed)
         if parsed_len > 0:
-            parsed_0: TermRespObj = parsed[0]
+            # TODO: Confirm this logic...
+            parsed_0: TermRespObj = next(o for o in parsed if o.matched == term_id)
             if args.verbose is True:
-                eprint(f"parsed_len: {parsed_len}; parsed[0]: {parsed_0}")
+                eprint(f"parsed_len: {parsed_len}; parsed_0: {parsed_0}")
             print_term_resp_obj(parsed_0)
         else:
             if args.verbose is True:

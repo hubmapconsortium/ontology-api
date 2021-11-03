@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   description: This document describes the HuBMAP Ontology API
   title: HuBMAP Ontology API
-  version: 0.1.0
+  version: 1.1.1
 servers:
 - url: https://ontology-api.dev.hubmapconsortium.org/
 paths:

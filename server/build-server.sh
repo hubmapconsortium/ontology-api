@@ -13,12 +13,13 @@ usage()
 }
 
 unset VERBOSE
-while getopts 'rRvh' c; do
+while getopts 'rRvhc' c; do
   echo "Processing $c : OPTIND is $OPTIND"
   case $c in
     r) RUN=true ;;
     R) REINSTALL=true ;;
     v) VERBOSE=true ;;
+    c) CLIENT=true ;;
     h|?) usage ;;
   esac
 done
@@ -67,6 +68,23 @@ git add setup.py
 
 # NOTE: setup.py has the wrong version should match that of the .yml file
 
+if [ $CLIENT ]; then
+  echo "Building Python Client..."
+  #rm -rf ./hu-bmap-ontology-api-client
+  # https://pypi.org/project/openapi-python-client/
+  action='generate'
+  if [[ -d ./hu-bmap-ontology-api-client ]] ; then
+    action='update'
+  fi
+  openapi-python-client $action --path ../ontology-api-spec.yaml
+fi
+
 if [ $RUN ]; then
-  ./run_server_on_localhost.py
+  properties_file="openapi_server/resources/app.properties"
+  if [[ ! -f ${properties_file} ]] ; then
+    echo "To run the server locally, you will need to create a '${properties_file}' file."
+  else
+    echo "Running server..."
+    ./run_server_on_localhost.py
+  fi
 fi

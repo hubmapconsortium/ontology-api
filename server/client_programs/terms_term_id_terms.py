@@ -3,10 +3,11 @@
 import argparse
 from typing import Any, Dict, List, Optional, Union
 import time, json, sys
+sys.path.append('../hu-bmap-ontology-api-client')
 from hu_bmap_ontology_api_client import Client
-from hu_bmap_ontology_api_client.models.term_resp_obj import TermRespObj
 from hu_bmap_ontology_api_client.types import Response, Unset
 from hu_bmap_ontology_api_client.api.default import terms_term_id_terms_get
+from hu_bmap_ontology_api_client.models.term_resp_obj import TermRespObj
 
 
 class RawTextArgumentDefaultsHelpFormatter(

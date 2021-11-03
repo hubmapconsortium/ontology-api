@@ -1,6 +1,0 @@
-code_id,code_sab,code,concept,tty,term,matched,rel_type,rel_sab
-FMA 7203,FMA,7203,C0022646,SY,Ren,kidney,,
-FMA 7088,FMA,7088,C0018787,SY,Cor,heart,,
-CHV 0000007565,CHV,0000007565,C0024109,PT,lung,lung,,
-CHV 0000004810,CHV,0000004810,C0015392,PT,eye,eye,,
-CHV 0000022350,CHV,0000022350,C0229316,PT,concha,concha,,

@@ -1,5 +1,0 @@
-kidney
-heart
-lung
-eye
-concha

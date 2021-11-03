@@ -72,7 +72,11 @@ if [ $CLIENT ]; then
   echo "Building Python Client..."
   #rm -rf ./hu-bmap-ontology-api-client
   # https://pypi.org/project/openapi-python-client/
-  openapi-python-client generate --path ../ontology-api-spec.yaml
+  action='generate'
+  if [[ -d ./hu-bmap-ontology-api-client ]] ; then
+    action='update'
+  fi
+  openapi-python-client $action --path ../ontology-api-spec.yaml
 fi
 
 if [ $RUN ]; then

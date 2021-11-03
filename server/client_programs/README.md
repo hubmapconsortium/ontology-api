@@ -30,7 +30,7 @@ that Neo4j will omit attributes that have not been specified, but that the
 Results contain instances of the return object that will contain all attributes associated with
 that object.
 
-In the following we will include an endpoint and it's Response object
+In the following we will include an endpoint that will be called, and the object in which the response data is contained.
 ```python
 from hu_bmap_ontology_api_client.api.default import terms_term_id_terms_get
 from hu_bmap_ontology_api_client.models.term_resp_obj import TermRespObj
@@ -42,15 +42,15 @@ client = Client(base_url="http://0.0.0.0:8080")
 ```
 
 It is important to note that the default timeout for accessing the rest endpoints is 5 seconds.
-This may not be enough time for some of the Neo4j queries, so you should up the timeout.
-In this example the timeout is set to 30 seconds.
+This may not be enough time for some of the Neo4j queries that are executed by the server to complete, so you should up the timeout.
+In this example the timeout for access to the client MSAPI endpoint is set to 30 seconds.
 ```python
 client = client.with_timeout(30)
 ```
 
 There are a number of ways of calling the endpoint which are outlined in the
 '../hu-bmap-ontology-api-client/README.md' file but here we will be calling them so that
-they return a Response object which contains a 'response.status_code', and a 'response.parsed' entry which
+they return a 'Response' object which contains a 'response.status_code', and a 'response.parsed' entry which
 contains the response data parsed into objects declared in the OpenAPI file; in this case
 a List of TermRespObjs.
 ```python

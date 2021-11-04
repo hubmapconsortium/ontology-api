@@ -22,11 +22,13 @@ parser = argparse.ArgumentParser(
     description='Run term_ids in input file through HuBMAP Ontoloty API and output one line for each to stdout',
     formatter_class=RawTextArgumentDefaultsHelpFormatter)
 parser.add_argument('term_id_file',
-                    help='the file from which to read the term_id(s) to search')
+                    help='file from which to read the term_id(s) to search')
 parser.add_argument("-t", '--term_id', type=str,
                     help='process this one term_id and ignore the file if given')
 parser.add_argument("-s", '--sep', type=str, default=',',
                     help='separator to use between to delineate attributes in object while printing')
+parser.add_argument("-u", '--url', type=str, default='https://ontology-api.dev.hubmapconsortium.org',
+                    help='base portion of the url to be used when accessing the HuBMAP Ontology AIP Server')
 parser.add_argument("-v", "--verbose", action="store_true",
                     help='increase output verbosity writing to stderr')
 
@@ -66,23 +68,21 @@ def print_term_resp_obj(o: TermRespObj) -> None:
 def print_data_for_term(term_id: str) -> None:
     start: int = time.time()
     response: Response[List[TermRespObj]] = terms_term_id_terms_get.sync_detailed(client=client, term_id=term_id)
-    end: int = time.time()
     if args.verbose is True:
-        eprint(f"Processing term_id {term_id}all time (sec): {end - start}")
+        end: int = time.time()
+        eprint(f"Processing call to ontology API for term_id '{term_id}'; call time (sec): {end - start}")
     if response.status_code == 200:
         parsed: List[TermRespObj] = response.parsed
         parsed_len = len(parsed)
         if parsed_len > 0:
-            # TODO: Confirm this logic...
-            parsed_0: TermRespObj = next(o for o in parsed if o.matched == term_id)
             if args.verbose is True:
-                eprint(f"parsed_len: {parsed_len}; parsed_0: {parsed_0}")
-            print_term_resp_obj(parsed_0)
+                eprint(f"For term_id '{term_id}'; parsed_len: {parsed_len}")
+            for termRespObj in parsed:
+                print_term_resp_obj(termRespObj)
         else:
-            if args.verbose is True:
-                print(f"No term response for term_id: {term_id}")
+            eprint(f"No term response for term_id: {term_id}")
     else:
-        print(f"Error reading from server, non-200 response")
+        eprint(f"Error reading from server; response.status_code = {response.status_code}")
 
 
 def process_term_id_file(filename: str) -> None:
@@ -100,8 +100,8 @@ def process_term_id_file(filename: str) -> None:
 
 
 # https://pypi.org/project/openapi-python-client/
-client = Client(base_url="http://0.0.0.0:8080")
-timeout: int = 30
+client = Client(base_url=args.url)
+timeout: int = 60
 if args.verbose is True:
     eprint(f"Default client timeout (sec): {client.get_timeout()}")
     eprint(f"Setting client timeout to (sec): {timeout}")

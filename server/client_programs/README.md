@@ -84,3 +84,4 @@ and if given ignored.
 The '-s SEP' optional parameter is use to specify the separator for the output
 file. It defaults to a comma, but can be specified as a tab or any other character.
 
+The '-u URL' optional parameter specifies the URL of the Ontology API Server to call.

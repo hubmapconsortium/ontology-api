@@ -28,7 +28,7 @@ parser.add_argument("-t", '--term_id', type=str,
 parser.add_argument("-s", '--sep', type=str, default=',',
                     help='separator to use between to delineate attributes in object while printing')
 parser.add_argument("-u", '--url', type=str, default='https://ontology-api.dev.hubmapconsortium.org',
-                    help='base portion of the url to be used when accessing the HuBMAP Ontology AIP Server')
+                    help='base portion of the url to be used when accessing the HuBMAP Ontology API Server')
 parser.add_argument("-v", "--verbose", action="store_true",
                     help='increase output verbosity writing to stderr')
 

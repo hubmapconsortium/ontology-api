@@ -47,13 +47,15 @@ parser = argparse.ArgumentParser(
                 'In general you should not have the change any of the optional arguments',
     formatter_class=RawTextArgumentDefaultsHelpFormatter)
 parser.add_argument('owl_url', type=str,
-                    help='url for the OWL file to process.')
+                    help='url for the OWL file to process')
+parser.add_argument('owl_sab', type=str,
+                    help='directory in --owlnets_dir and --owl_dir to save information from this run')
 parser.add_argument("-l", "--owlnets_dir", type=str, default='./owlnets_output',
                     help='directory used for the owlnets output files')
-parser.add_argument("-t", "--owltools_dir", type=str, default='./pkt_kg/libs',
-                    help='directory where the owltools executable is downloaded to')
 parser.add_argument("-o", "--owl_dir", type=str, default='./owl',
                     help='directory used for the owl input files')
+parser.add_argument("-t", "--owltools_dir", type=str, default='./pkt_kg/libs',
+                    help='directory where the owltools executable is downloaded to')
 parser.add_argument("-c", "--clean", action="store_true",
                     help='clean the owlnets_output directory of previous output files before run')
 parser.add_argument("-d", "--force_owl_download", action="store_true",
@@ -82,6 +84,11 @@ def print_and_logger_info(message: str) -> None:
     logger.info(message)
 
 
+def print_and_logger_error(message: str) -> None:
+    print(message)
+    logger.error(message)
+
+
 def file_from_uri(uri_str: str) -> str:
     if uri_str.find('/'):
         return uri_str.rsplit('/', 1)[1]
@@ -97,7 +104,7 @@ def file_from_path(path_str: str) -> str:
 def download_owltools(loc: str) -> None:
     owl_tools_url = 'https://github.com/callahantiff/PheKnowLator/raw/master/pkt_kg/libs/owltools'
 
-    cmd = os.system(f"ls {loc}{os.sep}owltools")
+    cmd = os.system(f"ls {loc}{os.sep}owltools > /dev/null 2>&1")
     if os.WEXITSTATUS(cmd) != 0:
         logger.info('Download owltools and update permissions')
         # move into pkt_kg/libs/ directory
@@ -113,7 +120,7 @@ def download_owltools(loc: str) -> None:
         os.chdir(cwd)
 
 
-def download_owl(url: str, loc: str, force_empty=True) -> str:
+def download_owl(url: str, loc: str, working_file: str, force_empty=True) -> str:
     logger.info(f'Downloading owl file from \'{url}\' to \'{loc}\'')
 
     cwd: str = os.getcwd()
@@ -259,6 +266,7 @@ if args.verbose is True:
     if args.clean is True:
         print(" * Cleaning owlnets directory")
     print(f" * Owl URL: {args.owl_url}")
+    print(f" * Owl sab: {args.owl_sab}")
     print(f" * Owlnets directory: {args.owlnets_dir} (exists: {os.path.isdir(args.owlnets_dir)})")
     print(f" * Owltools directory: {args.owltools_dir} (exists: {os.path.isdir(args.owltools_dir)})")
     print(f" * Owl directory: {args.owl_dir} (exists: {os.path.isdir(args.owl_dir)})")
@@ -285,10 +293,7 @@ if args.robot is True:
 
 download_owltools(args.owltools_dir)
 
-working_file: str = file_from_uri(uri)
-uri_dir: str = working_file.rsplit('.', 1)[0]
-
-working_dir: str = args.owlnets_dir + os.path.sep + uri_dir
+working_dir: str = os.path.join(args.owlnets_dir, args.owl_sab)
 logger.info("Make sure working directory '%s' exists", working_dir)
 os.system(f"mkdir -p {working_dir}")
 
@@ -313,20 +318,21 @@ logger.info('Loading ontology')
 # ALWAYS parse a local copy of the .owl file (uri).
 # NOTE: Sometimes, with large documents (eg., chebi) the uri parse hangs, so here we download the document first
 # Another problem is with chebi, there is a redirect which Graph.parse(uri, ...) may not handle.
-owl_dir: str = args.owl_dir + os.path.sep + uri_dir
-owl_file: str = owl_dir + os.path.sep + working_file
+owl_dir: str = os.path.join(args.owl_dir, args.owl_sab)
+working_file: str = file_from_uri(uri)
+owl_file: str = os.path.join(owl_dir, working_file)
 
-if args.force_owl_download is True:
+if args.force_owl_download is True or os.path.exists(owl_file) is False:
     if args.verbose:
         print_and_logger_info(f"Downloading .owl file to {owl_file} (force .owl download specified)")
-    download_owl(uri, owl_dir)
+    download_owl(uri, owl_dir, working_file)
 elif args.ignore_owl_md5 is True:
     if args.verbose:
         print_and_logger_info(f"Ignoring .owl file {owl_file} MD5")
 elif compare_file_md5(owl_file) is False:
     if args.verbose:
         print_and_logger_info(f"Downloading .owl file to {owl_file} (MD5 of .owl file does not match)")
-    download_owl(uri, owl_dir)
+    download_owl(uri, owl_dir, working_file)
 
 if args.verbose:
     print_and_logger_info(f"Using .owl file at {owl_file}")
@@ -386,7 +392,7 @@ entity_metadata['relations']['http://www.w3.org/2000/01/rdf-schema#subClassOf'] 
 entity_metadata['relations']['http://www.w3.org/1999/02/22-rdf-syntax-ns#type'] =\
     {'label': 'type', 'definitions': 'None', 'namespace': 'www.w3.org'}
 
-logger.info('Stats for original graph before running OWL-NETS')
+print_and_logger_info('Stats for original graph before running OWL-NETS')
 pkt.utils.derives_graph_statistics(graph)
 
 logger.info('Initialize owlnets class')
@@ -411,15 +417,15 @@ owlnets = pkt.OwlNets(graph=graph,
                       relations=['RO']
                       )
 
-logger.info('Remove disjointness with Axioms')
+print_and_logger_info('Remove disjointness with Axioms')
 owlnets.removes_disjoint_with_axioms()
 
-logger.info('Remove triples used only to support semantics')
+print_and_logger_info('Remove triples used only to support semantics')
 cleaned_graph = owlnets.removes_edges_with_owl_semantics()
 filtered_triple_count = len(owlnets.owl_nets_dict['filtered_triples'])
 logger.info('removed {} triples that were not biologically meaningful'.format(filtered_triple_count))
 
-logger.info('Gather list of owl:Class and owl:Axiom entities')
+print_and_logger_info('Gather list of owl:Class and owl:Axiom entities')
 owl_classes = list(pkt.utils.gets_ontology_classes(owlnets.graph))
 owl_axioms: list = []
 for x in tqdm(set(owlnets.graph.subjects(RDF.type, OWL.Axiom))):
@@ -431,14 +437,13 @@ for x in tqdm(set(owlnets.graph.subjects(RDF.type, OWL.Axiom))):
 node_list = list(set(owl_classes) | set(owl_axioms))
 logger.info('There are:\n-{} OWL:Class objects\n-{} OWL:Axiom Objects'. format(len(owl_classes), len(owl_axioms)))
 
-logger.info('Decode owl semantics')
+print_and_logger_info('Decode owl semantics')
 owlnets.cleans_owl_encoded_entities(node_list)
 decoded_graph: Dict = owlnets.gets_owlnets_graph()
 
-logger.info('Update graph to get all cleaned edges')
+print_and_logger_info('Update graph to get all cleaned edges')
 owlnets.graph: Dict = cleaned_graph + decoded_graph
 
-logger.info('Print OWL-NETS results')
 str1 = 'Decoded {} owl-encoded classes and axioms. Note the following:\nPartially processed {} cardinality ' \
                'elements\nRemoved {} owl:disjointWith axioms\nIgnored:\n  -{} misc classes;\n  -{} classes constructed with ' \
                'owl:complementOf;\n  -{} classes containing negation (e.g. pr#lacks_part, cl#has_not_completed)\n' \
@@ -448,28 +453,28 @@ stats_str = str1.format(
     len(owlnets.owl_nets_dict['disjointWith']), len(owlnets.owl_nets_dict['misc'].keys()),
     len(owlnets.owl_nets_dict['complementOf'].keys()), len(owlnets.owl_nets_dict['negation'].keys()),
     len(owlnets.owl_nets_dict['filtered_triples']))
-logger.info('=' * 80 + '\n' + stats_str + '\n' + '=' * 80)
+print_and_logger_info(f'Print OWL-NETS results: {stats_str}')
 
 # run line below if you want to ensure resulting graph contains
 # common_ancestor = 'http://purl.obolibrary.org/obo/BFO_0000001'
 # owlnets.graph = owlnets.makes_graph_connected(owlnets.graph, common_ancestor)
 
-logger.info(f"Writing owl-nets results files to directory '{working_dir}'")
+print_and_logger_info(f"Writing owl-nets results files to directory '{working_dir}'")
 owlnets.write_location = working_dir
 owlnets.write_out_results(owlnets.graph)
 
 edge_list_filename: str = working_dir + os.sep + 'OWLNETS_edgelist.txt'
-logger.info(f"Write edge list results to '{edge_list_filename}'")
+print_and_logger_info(f"Write edge list results to '{edge_list_filename}'")
 with open(edge_list_filename, 'w') as out:
     out.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
     for row in tqdm(owlnets.graph):
         out.write(str(row[0]) + '\t' + str(row[1]) + '\t' + str(row[2]) + '\n')
 
-logger.info('Get all unique nodes in OWL-NETS graph')
+print_and_logger_info('Get all unique nodes in OWL-NETS graph')
 nodes = set([x for y in [[str(x[0]), str(x[2])] for x in owlnets.graph] for x in y])
 
 node_metadata_filename: str = working_dir + os.sep + 'OWLNETS_node_metadata.txt'
-logger.info(f"Write node metadata results to '{node_metadata_filename}'")
+print_and_logger_info(f"Write node metadata results to '{node_metadata_filename}'")
 with open(node_metadata_filename, 'w') as out:
     if args.delete_definitions is True:
         out.write('node_id' + '\t' + 'node_namespace' + '\t' + 'node_label' + '\t' +
@@ -489,11 +494,11 @@ with open(node_metadata_filename, 'w') as out:
             else:
                 out.write(x + '\t' + namespace + '\t' + labels + '\t' + definitions + '\t' + synonyms + '\t' + dbxrefs + '\n')
 
-logger.info('Get all unique nodes in OWL-NETS graph')
+print_and_logger_info('Get all unique nodes in OWL-NETS graph')
 relations = set([str(x[1]) for x in owlnets.graph])
 
 relation_filename: str = working_dir + os.sep + 'OWLNETS_relations.txt'
-logger.info(f"Writing relation metadata results to '{relation_filename}'")
+print_and_logger_info(f"Writing relation metadata results to '{relation_filename}'")
 with open(relation_filename, 'w') as out:
     if args.delete_definitions is True:
         out.write('relation_id' + '\t' + 'relation_namespace' + '\t' + 'relation_label' + '\n')
@@ -512,17 +517,17 @@ with open(relation_filename, 'w') as out:
                         else:
                             out.write(x + '\t' + namespace + '\t' + label + '\t' + definitions + '\n')
                     else:
-                        logger.error(f"entity_metadata['relations'][{x}]['definitions'] not found in: {entity_metadata['relations'][x]}")
+                        print_and_logger_error(f"entity_metadata['relations'][{x}]['definitions'] not found in: {entity_metadata['relations'][x]}")
                 else:
-                    logger.error(f"entity_metadata['relations'][{x}]['label'] not found in: {entity_metadata['relations'][x]}")
+                    print_and_logger_error(f"entity_metadata['relations'][{x}]['label'] not found in: {entity_metadata['relations'][x]}")
             else:
-                logger.error(f"entity_metadata['relations'][{x}]['namespace'] not found in: {entity_metadata['relations'][x]}")
+                print_and_logger_error(f"entity_metadata['relations'][{x}]['namespace'] not found in: {entity_metadata['relations'][x]}")
         else:
-            logger.error(f"entity_metadata['relations'][{x}] not found in: {entity_metadata['relations']}")
+            print_and_logger_error(f"entity_metadata['relations'][{x}] not found in: {entity_metadata['relations']}")
 
 log_files_and_sizes(working_dir)
 look_for_none_in_node_metadata_file(working_dir)
 
 # Add log entry for how long it took to do the processing...
 elapsed_time = time.time() - start_time
-logger.info('Done! Elapsed time %s', "{:0>8}".format(str(timedelta(seconds=elapsed_time))))
+print_and_logger_info(f'Done! Elapsed time {"{:0>8}".format(str(timedelta(seconds=elapsed_time)))}')

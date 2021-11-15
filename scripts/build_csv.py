@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from typing import Any
 
 import argparse
 import os
@@ -13,6 +14,7 @@ import json
 
 # TODO: make these optional parameters and print them out when --verbose
 OWLNETS_SCRIPT: str = './owlnets_script/__main__.py'
+FIX_OWLNETS_TSV_SCRIPT: str = './owlnets_script/fix_tsv_file.py'
 VALIDATION_SCRIPT: str = './blackbox_validation/__main__.py'
 UMLS_GRAPH_SCRIPT: str = './Jonathan/OWLNETS-UMLS-GRAPH-12.py'
 
@@ -32,8 +34,10 @@ UMLS_GRAPH_SCRIPT: str = './Jonathan/OWLNETS-UMLS-GRAPH-12.py'
 #
 # Jonathan 2 PM 9/28/21
 # remove mp, mi, and cco till we address: OWLNETS files with no labels, and OWLNETS files that are non-conformant TSVs
+# Last production build:
 # $ ./build_csv.sh -v PATO UBERON CL DOID CCFASCTB OBI EDAM HSAPDV SBO MI CHEBI
-# Unused: MP, VARIO, OGI, ORDO
+# Experimental build:
+# $ ./build_csv.sh -v PATO UBERON CL DOID CCFASCTB OBI EDAM HSAPDV SBO MI CHEBI PR MP VARIO ORDO CCO
 
 
 # TODO https://douroucouli.wordpress.com/2019/03/14/biological-knowledge-graph-modeling-design-patterns/
@@ -83,7 +87,72 @@ log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/log
 logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
-ontologies = json.load(open(args.ontologies_json, 'r'))
+
+def print_and_logger_info(message: str) -> None:
+    print(message)
+    logger.info(message)
+
+
+def make_new_save_dir(path: str, save_dir: str) -> str:
+    max_version: int = 0
+    for filename in os.listdir(path):
+        if re.match(f'^{save_dir}\.[0-9].*$', filename):
+            current_version: int = int(filename.split('.', 1)[1])
+            max_version = max(max_version, current_version)
+    new_dir: str = f"{save_dir}.{max_version+1}"
+    new_path: str = os.path.join(path, new_dir)
+    os.mkdir(new_path)
+    return new_path
+
+
+def copy_csv_files_to_save_dir(path: str, save_dir: str) -> str:
+    save_path: str = make_new_save_dir(path, save_dir)
+    print_and_logger_info(f"Saving .csv files to directory: {save_path}")
+    for filename in os.listdir(path):
+        if re.match(f'^.*\.csv$', filename):
+            fp_src: str = os.path.join(path, filename)
+            fp_dst: str = os.path.join(save_path, filename)
+            shutil.copyfile(fp_src, fp_dst)
+    print_and_logger_info(f"Copied {len(os.listdir(save_path))} files from {path} to {save_path}")
+    return save_path
+
+
+def lines_in_file(path: str) -> int:
+    return int(subprocess.check_output(f"/usr/bin/wc -l {path}", shell=True).split()[0])
+
+
+def lines_in_csv_files(path: str, save_path: str) -> None:
+    for filename in os.listdir(path):
+        if re.match(f'^.*\.csv$', filename):
+            fp: str = os.path.join(path, filename)
+            lines_fp: int = lines_in_file(fp)
+            fp_save: str = os.path.join(save_path, filename)
+            lines_fp_save: int = lines_in_file(fp_save)
+            print_and_logger_info(f"Lines in files: {fp} {lines_fp}; {fp_save} {lines_fp_save}; difference: {lines_fp-lines_fp_save}")
+
+
+def verify_ontologies_json_file(ontologies: dict, ontologies_filename: str) -> None:
+    valid_ontology_keys: List[str] = ['owl_url', 'home_url', 'comment', 'sab', 'download_owl_url_to_file_name']
+    for key, value in ontologies.items():
+        if not key.isupper():
+            print_and_logger_info(f"For the Ontologies file {ontologies_filename}: the ontology key {key} must be upper case.")
+            exit(1)
+        for key_o in value:
+            if key_o not in valid_ontology_keys:
+                print_and_logger_info(f"For the Ontologies file {ontologies_filename} with ontology key {key}: {key_o} must be one of: {', '.join(valid_ontology_keys)}")
+                exit(1)
+
+
+# Fix files that have tabs in the descriptions and therefore broken records (while saving the original file)...
+def fix_owlnets_metadata_file(working_owlnets_dir: str) -> None:
+    owlnets_metadata_file: str = os.path.join(working_owlnets_dir, 'OWLNETS_node_metadata.txt')
+    owlnets_metadata_orig_file: str = os.path.join(working_owlnets_dir, 'OWLNETS_node_metadata_orig.txt')
+    os.system(f"mv {owlnets_metadata_file} {owlnets_metadata_orig_file}")
+    fix_owlnets_tsv_script: str = f"{FIX_OWLNETS_TSV_SCRIPT} --fix {owlnets_metadata_file} {owlnets_metadata_orig_file}"
+    print_and_logger_info(f"Running: {fix_owlnets_tsv_script}")
+    os.system(fix_owlnets_tsv_script)
+
+
 ontology_names = [s.upper() for s in args.ontologies]
 
 if args.verbose is True:
@@ -113,53 +182,8 @@ if args.verbose is True:
         print(' * Skipping all validation')
     print('')
 
-
-def print_and_logger_info(message: str) -> None:
-    print(message)
-    logger.info(message)
-
-
-def file_from_uri(uri_str: str) -> str:
-    if uri_str.find('/'):
-        return uri_str.rsplit('/', 1)[1]
-
-
-def make_new_save_dir(path: str, save_dir: str) -> str:
-    max_version: int = 0
-    for filename in os.listdir(path):
-        if re.match(f'^{save_dir}\.[0-9].*$', filename):
-            current_version: int = int(filename.split('.', 1)[1])
-            max_version = max(max_version, current_version)
-    new_dir: str = f"{save_dir}.{max_version+1}"
-    new_path: str = os.path.join(path, new_dir)
-    os.mkdir(new_path)
-    return new_path
-
-
-def copy_csv_files_to_save_dir(path: str, save_dir: str) -> str:
-    save_path: str = make_new_save_dir(path, save_dir)
-    for filename in os.listdir(path):
-        if re.match(f'^.*\.csv$', filename):
-            fp_src: str = os.path.join(path, filename)
-            fp_dst: str = os.path.join(save_path, filename)
-            shutil.copyfile(fp_src, fp_dst)
-    print_and_logger_info(f"Copied {len(os.listdir(save_path))} files from {path} to {save_path}")
-    return save_path
-
-
-def lines_in_file(path: str) -> int:
-    return int(subprocess.check_output(f"/usr/bin/wc -l {path}", shell=True).split()[0])
-
-
-def lines_in_csv_files(path: str, save_path: str) -> None:
-    for filename in os.listdir(path):
-        if re.match(f'^.*\.csv$', filename):
-            fp: str = os.path.join(path, filename)
-            lines_fp: int = lines_in_file(fp)
-            fp_save: str = os.path.join(save_path, filename)
-            lines_fp_save: int = lines_in_file(fp_save)
-            print_and_logger_info(f"Lines in files: {fp} {lines_fp}; {fp_save} {lines_fp_save}; difference: {lines_fp-lines_fp_save}")
-
+ontologies = json.load(open(args.ontologies_json, 'r'))
+verify_ontologies_json_file(ontologies, args.ontologies_json)
 
 missing_ontology = False
 if len(ontology_names) > 0 or args.oneOwl is not None:
@@ -170,7 +194,7 @@ if len(ontology_names) > 0 or args.oneOwl is not None:
             print_and_logger_info(f"ERROR... Ontology name ''{ontology_name}'' not found in ontologies.json")
             missing_ontology = True
 else:
-    print("ERROR: No ''ontologies'' specified on the command line? Use -h for help.")
+    print_and_logger_info("ERROR: No ''ontologies'' specified on the command line? Use -h for help.")
     exit(1)
 if missing_ontology is True:
     print_and_logger_info(f"Exiting since some ontologies specified were not found in the ontology.json file.")
@@ -181,13 +205,16 @@ start_time = time.time()
 print_and_logger_info(f"Processing Ontologies: {', '.join(ontology_names)}")
 
 for ontology_name in ontology_names:
-    print(f"Ontology: {ontology_name}")
+    print_and_logger_info(f"Ontology: {ontology_name}")
     ontology_record = ontologies[ontology_name]
     owl_url = ontology_record['owl_url']
-    processing_file: str = f"Processing OWL file: {owl_url}"
-    print(processing_file)
-    exit(0)
-    logger.info(processing_file)
+
+    owl_sab: str = ontology_name.upper()
+    if 'sab' in ontology_record:
+        owl_sab: str = ontology_record['sab'].upper()
+    working_owlnets_dir: str = os.path.join(args.owlnets_dir, owl_sab)
+
+    print_and_logger_info(f"Processing OWL file: {owl_url}")
     if args.skipPheKnowLator is not True:
         clean = ''
         if args.clean is True:
@@ -198,28 +225,24 @@ for ontology_name in ontology_names:
         with_imports = ''
         if args.with_imports is True:
             with_imports = '--with_imports'
-        owlnets_script: str = f"{OWLNETS_SCRIPT} --ignore_owl_md5 {clean} {force_owl_download} {with_imports} -l {args.owlnets_dir} -t {args.owltools_dir} -o {args.owl_dir} {owl_url}"
-        logger.info(f"Running: {owlnets_script}")
+        owlnets_script: str = f"{OWLNETS_SCRIPT} --ignore_owl_md5 {clean} {force_owl_download} {with_imports} -l {args.owlnets_dir} -t {args.owltools_dir} -o {args.owl_dir} {owl_url} {owl_sab}"
+        print_and_logger_info(f"Running: {owlnets_script}")
         os.system(owlnets_script)
-    if args.skipValidation is not True:
-        validation_script: str = f"{VALIDATION_SCRIPT} -o {args.umls_csvs_dir} -l {bargs.owlnets_dir}"
-        logger.info(f"Running: {validation_script}")
-        os.system(validation_script)
-    save_csv_dir = copy_csv_files_to_save_dir(args.umls_csvs_dir, 'save')
-    logger.info(f"Saving .csv files to directory: {save_csv_dir}")
-    working_file: str = file_from_uri(owl_url)
-    working_file_base: str = working_file.rsplit('.', 1)[0]
-    working_owlnets_dir: str = args.owlnets_dir + os.path.sep + working_file_base
 
-    owl_sab: str = ontology_name
-    if 'sab' in ontologies:
-        owl_sab: str = ontologies['sab']
+        fix_owlnets_metadata_file(working_owlnets_dir)
+
+    # if args.skipValidation is not True:
+    #     validation_script: str = f"{VALIDATION_SCRIPT} -o {args.umls_csvs_dir} -l {bargs.owlnets_dir}"
+    #     logger.info(f"Running: {validation_script}")
+    #     os.system(validation_script)
+    save_csv_dir = copy_csv_files_to_save_dir(args.umls_csvs_dir, 'save')
 
     umls_graph_script: str = f"{UMLS_GRAPH_SCRIPT} {working_owlnets_dir} {args.umls_csvs_dir} {owl_sab}"
-    logger.info(f"Running: {umls_graph_script}")
+    print_and_logger_info(f"Running: {umls_graph_script}")
     os.system(umls_graph_script)
+
     lines_in_csv_files(args.umls_csvs_dir, save_csv_dir)
 
 # Add log entry for how long it took to do the processing...
 elapsed_time = time.time() - start_time
-logger.info('Done! Elapsed time %s', "{:0>8}".format(str(timedelta(seconds=elapsed_time))))
+print_and_logger_info(f'Done! Total Elapsed time {"{:0>8}".format(str(timedelta(seconds=elapsed_time)))}')

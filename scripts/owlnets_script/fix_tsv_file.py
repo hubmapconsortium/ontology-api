@@ -24,6 +24,8 @@ parser.add_argument("-f", "--fix", type=str,
                          ' then do an implicit --check on the output file')
 parser.add_argument("-a", "--all", action="store_true",
                     help='fix all OWLNETS_node_metadata.txt files in the filename which should be a directory')
+parser.add_argument("-v", "--verbose", action="store_true",
+                    help='increase output verbosity')
 args = parser.parse_args()
 
 
@@ -63,7 +65,8 @@ def check(ifilename: str) -> int:
 
         line_no_initial = line_no
         while not eof and tabs_in_line < tabs_in_record:
-            print(f"< Line number {line_no_initial}:{line_no} has {tabs_in_line} fields but wanted {tabs_in_record}, last character {ord(line[-1])}")
+            if args.verbose is True:
+                print(f"< Line number {line_no_initial}:{line_no} has {tabs_in_line} fields but wanted {tabs_in_record}, last character {ord(line[-1])}")
             bad_no += 1
             line_no += 1
             next_line = file_r.readline()
@@ -73,7 +76,8 @@ def check(ifilename: str) -> int:
             line = line + ' ' + next_line
             tabs_in_line = line.count('\t')
         if tabs_in_line > tabs_in_record:
-            print(f"> Line number {line_no} has {tabs_in_line} fields but wanted {tabs_in_record}, last character {ord(line[-1])}")
+            if args.verbose is True:
+                print(f"> Line number {line_no} has {tabs_in_line} fields but wanted {tabs_in_record}, last character {ord(line[-1])}")
             bad_no += 1
 
     print(f"Lines in file: {line_no}, bad records: {bad_no}")
@@ -108,7 +112,8 @@ def fix_records_to_have_same_number_of_fields(ifilename: str, ofilename: str) ->
 
         line_no_initial = line_no
         while not eof and tabs_in_line < tabs_in_record:
-            print(f"< Line number {line_no_initial}:{line_no} has {tabs_in_line} fields but wanted {tabs_in_record}, last character {ord(line[-1])}")
+            if args.verbose is True:
+                print(f"< Line number {line_no_initial}:{line_no} has {tabs_in_line} fields but wanted {tabs_in_record}, last character {ord(line[-1])}")
             # This should be a new line character, so remove it
             line = line[:-1]
             line_no += 1
@@ -120,7 +125,8 @@ def fix_records_to_have_same_number_of_fields(ifilename: str, ofilename: str) ->
             line = line + ' ' + next_line
             tabs_in_line = line.count('\t')
         if tabs_in_line > tabs_in_record:
-            print(f"> Line number {line_no} has {tabs_in_line} fields but wanted {tabs_in_record}, last character {ord(line[-1])}")
+            if args.verbose is True:
+                print(f"> Line number {line_no} has {tabs_in_line} fields but wanted {tabs_in_record}, last character {ord(line[-1])}")
 
         file_w.write(line)
 

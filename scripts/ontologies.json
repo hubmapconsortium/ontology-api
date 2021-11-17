@@ -1,13 +1,27 @@
 {
-  "UBERON": {
-    "owl_url": "http://purl.obolibrary.org/obo/uberon.owl",
-    "home_url": "https://uberon.github.io/downloads.html",
-    "comment": "An integrated cross-species ontology covering anatomical structures in animals. This one contains data without references"
+  "CCF": {
+    "owl_url": "https://ccf-ontology.hubmapconsortium.org/ccf.owl",
+    "comment": "Currently has just AS (using ccf_part_of as the relationship)"
   },
-  "RO": {
-    "owl_url": "http://purl.obolibrary.org/obo/ro.owl",
-    "home_url": "http://www.obofoundry.org/ontology/ro.html",
-    "comment": "This Relation Ontology should get relationships and inverses and the RO code where we want the name"
+  "CCFASCTB": {
+    "owl_url": "https://ccf-ontology.hubmapconsortium.org/ccf-asctb.owl",
+    "comment": "From Indiana: First version of the ASCT+B tables as OWL",
+    "sab": "CCF"
+  },
+  "CCO": {
+    "owl_url": "http://brg.ai.sri.com/CCO/downloads/cco.owl",
+    "home_url": "http://brg.ai.sri.com/CCO/",
+    "comment": "Cell Component Ontology"
+  },
+  "CHEBI": {
+    "owl_url": "http://purl.obolibrary.org/obo/chebi.owl",
+    "home_url": "http://www.obofoundry.org/ontology/chebi.html",
+    "comment": "Chemical Entities of Biological Interest"
+  },
+  "CL": {
+    "owl_url": "http://purl.obolibrary.org/obo/cl.owl",
+    "home_url": "http://www.obofoundry.org/ontology/cl.html",
+    "comment": "Complete cell ontology, plus inter-ontology axioms, and imports modules"
   },
   "CL_BASE": {
     "owl_url": "http://purl.obolibrary.org/obo/cl/cl-base.owl",
@@ -15,40 +29,35 @@
     "comment": "Complete cell ontology, but with no imports or external axioms",
     "sab": "CL"
   },
-  "CL": {
-    "owl_url": "http://purl.obolibrary.org/obo/cl.owl",
-    "home_url": "http://www.obofoundry.org/ontology/cl.html",
-    "comment": "Complete cell ontology, plus inter-ontology axioms, and imports modules"
-  },
-  "CHEBI": {
-    "owl_url": "http://purl.obolibrary.org/obo/chebi.owl",
-    "home_url": "http://www.obofoundry.org/ontology/chebi.html",
-    "comment": "Chemical Entities of Biological Interest"
-  },
-  "PR": {
-    "owl_url": "http://purl.obolibrary.org/obo/pr.owl",
-    "home_url": "http://www.obofoundry.org/ontology/pr.html",
-    "comment": "BREAKS: PRotein Ontology"
-  },
-  "PATO": {
-    "owl_url": "http://purl.obolibrary.org/obo/pato.owl",
-    "home_url": "http://www.obofoundry.org/ontology/pato.html",
-    "comment": "Phenotype And Trait Ontology "
-  },
   "DOID": {
-    "owl_url": "http://purl.obolibrary.org/obo/doid.owl"
+    "owl_url": "http://purl.obolibrary.org/obo/doid.owl",
+    "home_url": "https://disease-ontology.org/",
+    "comment": "Human Disease Ontology"
+  },
+  "EDAM": {
+    "owl_url": "http://edamontology.org/EDAM.owl",
+    "home_url": "http://edamontology.org/page",
+    "comment": "Ontology of bioscientific data analysis and data management"
+  },
+  "HSAPDV": {
+    "owl_url": "http://purl.obolibrary.org/obo/hsapdv.owl",
+    "home_url": "https://www.ebi.ac.uk/ols/ontologies/hsapdv",
+    "comment": "Life cycle stages for Human"
+  },
+  "MI": {
+    "owl_url": "http://purl.obolibrary.org/obo/mi.owl",
+    "home_url": "https://www.ebi.ac.uk/ols/ontologies/mi",
+    "comment": "A structured controlled vocabulary for the annotation of experiments concerned with protein-protein interactions"
+  },
+  "MP": {
+    "owl_url": "http://purl.obolibrary.org/obo/mp.owl",
+    "home_url": "http://obofoundry.org/ontology/mp.html",
+    "comment": "Standard terms for annotating mammalian phenotypic data"
   },
   "OBI": {
-    "owl_url": "http://purl.obolibrary.org/obo/obi.owl"
-  },
-  "CCFASCTB": {
-    "owl_url": "https://ccf-ontology.hubmapconsortium.org/ccf-asctb.owl",
-    "comment": "From Indiana: First version of the ASCT+B tables as OWL",
-    "sab": "CCF"
-  },
-  "CCF": {
-    "owl_url": "https://ccf-ontology.hubmapconsortium.org/ccf.owl",
-    "comment": "Currently has just AS (using ccf_part_of as the relationship)"
+    "owl_url": "http://purl.obolibrary.org/obo/obi.owl",
+    "home_url": "http://obi-ontology.org/",
+    "comment": "Ontology for Biomedical Investigations"
   },
   "OGI": {
     "owl_url": "https://data.bioontology.org/ontologies/OGI/submissions/18/download?apikey=8b5b7825-538d-40e0-9e9e-5ab9274a9aeb",
@@ -57,32 +66,27 @@
     "download_owl_url_to_file_name": "ogi.owl",
     "sab": "OGI"
   },
-  "HSAPDV": {
-    "owl_url": "http://purl.obolibrary.org/obo/hsapdv.owl",
-    "home_url": "https://www.ebi.ac.uk/ols/ontologies/hsapdv",
-    "comment": "Life cycle stages for Human"
-  },
-  "VARIO": {
-    "owl_url": "http://purl.obolibrary.org/obo/vario.owl",
-    "home_url": "https://www.ebi.ac.uk/ols/ontologies/vario",
-    "comment": "BREAKS: Variation Ontology"
-  },
   "ORDO": {
     "owl_url": "https://data.bioontology.org/ontologies/ORDO/submissions/22/download?apikey=8b5b7825-538d-40e0-9e9e-5ab9274a9aeb",
     "home_url": "https://bioportal.bioontology.org/ontologies/ORDO",
     "comment": "Orphanet Rare Disease Ontology",
     "download_owl_url_to_file_name": "ordo.owl",
-    "sab": "OGI"
+    "sab": "ORDO"
   },
-  "CCO": {
-    "owl_url": "http://brg.ai.sri.com/CCO/downloads/cco.owl",
-    "home_url": "http://brg.ai.sri.com/CCO/",
-    "comment": "Cell Component Ontology"
+  "PATO": {
+    "owl_url": "http://purl.obolibrary.org/obo/pato.owl",
+    "home_url": "http://www.obofoundry.org/ontology/pato.html",
+    "comment": "Phenotype And Trait Ontology "
   },
-  "MI": {
-    "owl_url": "http://purl.obolibrary.org/obo/mi.owl",
-    "home_url": "https://www.ebi.ac.uk/ols/ontologies/mi",
-    "comment": "A structured controlled vocabulary for the annotation of experiments concerned with protein-protein interactions"
+  "PR": {
+    "owl_url": "http://purl.obolibrary.org/obo/pr.owl",
+    "home_url": "http://www.obofoundry.org/ontology/pr.html",
+    "comment": "BREAKS: PRotein Ontology"
+  },
+  "RO": {
+    "owl_url": "http://purl.obolibrary.org/obo/ro.owl",
+    "home_url": "http://www.obofoundry.org/ontology/ro.html",
+    "comment": "This Relation Ontology should get relationships and inverses and the RO code where we want the name"
   },
   "SBO": {
     "owl_url": "http://www.ebi.ac.uk/sbo/exports/Main/SBO_OWL.owl",
@@ -90,14 +94,14 @@
     "comment": "Systems Biology Ontology",
     "sab": "SBO"
   },
-  "EDAM": {
-    "owl_url": "http://edamontology.org/EDAM.owl",
-    "home_url": "http://edamontology.org/page",
-    "comment": "Ontology of bioscientific data analysis and data management"
+  "UBERON": {
+    "owl_url": "http://purl.obolibrary.org/obo/uberon.owl",
+    "home_url": "https://uberon.github.io/downloads.html",
+    "comment": "UBER-anatomy ONtology: An integrated cross-species ontology covering anatomical structures in animals. This one contains data without references"
   },
-  "MP": {
-    "owl_url": "http://purl.obolibrary.org/obo/mp.owl",
-    "home_url": "http://obofoundry.org/ontology/mp.html",
-    "comment": "Standard terms for annotating mammalian phenotypic data. "
+  "VARIO": {
+    "owl_url": "http://www.variationontology.org/vario_download/vario.owl",
+    "home_url": "http://www.variationontology.org/download.shtml",
+    "comment": "A Variation Ontology: for standardized, systematic description of effects, consequences and mechanisms of variations"
   }
 }

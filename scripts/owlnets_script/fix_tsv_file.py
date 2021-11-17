@@ -166,7 +166,11 @@ def all(dir: str) -> int:
 
 print(f"Processing {args.filename}")
 
-exit_status = 0
+if not os.path.exists(args.filename):
+    print(f"ERROR: The file or directory to fix '{args.filename}' does not exist?!")
+    exit(1)
+
+exit_status: int = 0
 if args.fix is not None:
     fix_records_to_have_same_number_of_fields(args.filename, args.fix)
 if args.check is True or args.fix is True:

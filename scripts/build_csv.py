@@ -36,8 +36,9 @@ UMLS_GRAPH_SCRIPT: str = './Jonathan/OWLNETS-UMLS-GRAPH-12.py'
 # remove mp, mi, and cco till we address: OWLNETS files with no labels, and OWLNETS files that are non-conformant TSVs
 # Last production build:
 # $ ./build_csv.sh -v PATO UBERON CL DOID CCFASCTB OBI EDAM HSAPDV SBO MI CHEBI
-# Experimental build:
-# $ ./build_csv.sh -v PATO UBERON CL DOID CCFASCTB OBI EDAM HSAPDV SBO MI CHEBI PR MP VARIO ORDO CCO
+# Latest working build (Nov 17, 2021):
+# $ ./build_csv.sh -v PATO UBERON CL DOID CCFASCTB OBI EDAM HSAPDV SBO MI CHEBI MP ORDO PR
+# NOTE: VARIO, and CCO still have problems and so are omitted for now.
 
 
 # TODO https://douroucouli.wordpress.com/2019/03/14/biological-knowledge-graph-modeling-design-patterns/

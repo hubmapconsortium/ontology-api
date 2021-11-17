@@ -187,14 +187,10 @@ def search_owl_file_for_imports(owl_filename: str) -> None:
     if len(imports) != 0:
         logger.info(f"Found the following imports were found in the OWL file {uri} : {', '.join(imports)}")
         if args.with_imports is not True:
-            exit_msg = f"Imports found in OWL file {uri}. Exiting"
-            print_and_logger_info(exit_msg)
+            print_and_logger_info(f"Imports found in OWL file {uri}. Exiting")
             exit(1)
     else:
-        msg = f"No imports were found in OWL file {uri}"
-        logger.info(msg)
-        if args.verbose:
-            print(msg)
+        print_and_logger_info(f"No imports were found in OWL file {uri}")
 
 
 def log_files_and_sizes(dir: str) -> None:
@@ -356,8 +352,13 @@ for cls in tqdm(ont_classes):
     dbxrefs = '|'.join([k for k, v in ont_dbxrefs[0].items() if str(cls) in v])
 
     # extract metadata
-    if '_' in str(cls): namespace = re.findall(r'^(.*?)(?=\W|_)', str(cls).split('/')[-1])[0].upper()
-    else: namespace = str(cls).split('/')[2]
+    cls_path_last: str = str(cls).split('/')[-1]
+    if '_' in cls_path_last:
+        namespace_candidate = re.findall(r'^(.*?)(?=\W|_)', cls_path_last)
+        if len(namespace_candidate) > 0:
+            namespace: str = namespace_candidate[0].upper()
+    else:
+        namespace: str = str(cls).split('/')[2]
 
     # update dict
     entity_metadata['nodes'][str(cls)] = {

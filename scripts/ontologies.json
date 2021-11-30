@@ -99,6 +99,9 @@
     "home_url": "https://uberon.github.io/downloads.html",
     "comment": "UBER-anatomy ONtology: An integrated cross-species ontology covering anatomical structures in animals. This one contains data without references"
   },
+  "UNIPROTKB": {
+    "execute": "./uniprotkb/__main__.py ./uniprotkb/uniprot.tab"
+  },
   "VARIO": {
     "owl_url": "http://www.variationontology.org/vario_download/vario.owl",
     "home_url": "http://www.variationontology.org/download.shtml",

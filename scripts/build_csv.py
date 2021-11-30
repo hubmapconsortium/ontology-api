@@ -37,7 +37,7 @@ UMLS_GRAPH_SCRIPT: str = './Jonathan/OWLNETS-UMLS-GRAPH-12.py'
 # Last production build:
 # $ ./build_csv.sh -v PATO UBERON CL DOID CCFASCTB OBI EDAM HSAPDV SBO MI CHEBI
 # Latest working build (Nov 17, 2021):
-# $ ./build_csv.sh -v PATO UBERON CL DOID CCFASCTB OBI EDAM HSAPDV SBO MI CHEBI MP ORDO PR
+# $ ./build_csv.sh -v PATO UBERON CL DOID CCFASCTB OBI EDAM HSAPDV SBO MI CHEBI MP ORDO PR UNIPROTKB
 # NOTE: VARIO, and CCO still have problems and so are omitted for now.
 
 
@@ -133,7 +133,8 @@ def lines_in_csv_files(path: str, save_path: str) -> None:
 
 
 def verify_ontologies_json_file(ontologies: dict, ontologies_filename: str) -> None:
-    valid_ontology_keys: List[str] = ['owl_url', 'home_url', 'comment', 'sab', 'download_owl_url_to_file_name']
+    valid_ontology_keys: List[str] = \
+        ['owl_url', 'home_url', 'comment', 'sab', 'download_owl_url_to_file_name', 'execute']
     for key, value in ontologies.items():
         if not key.isupper():
             print_and_logger_info(f"For the Ontologies file {ontologies_filename}: the ontology key {key} must be upper case.")
@@ -208,15 +209,15 @@ print_and_logger_info(f"Processing Ontologies: {', '.join(ontology_names)}")
 for ontology_name in ontology_names:
     print_and_logger_info(f"Ontology: {ontology_name}")
     ontology_record = ontologies[ontology_name]
-    owl_url = ontology_record['owl_url']
 
     owl_sab: str = ontology_name.upper()
     if 'sab' in ontology_record:
         owl_sab: str = ontology_record['sab'].upper()
     working_owlnets_dir: str = os.path.join(args.owlnets_dir, owl_sab)
 
-    print_and_logger_info(f"Processing OWL file: {owl_url}")
-    if args.skipPheKnowLator is not True:
+    if 'execute' not in ontology_record and args.skipPheKnowLator is not True:
+        owl_url = ontology_record['owl_url']
+        print_and_logger_info(f"Processing OWL file: {owl_url}")
         clean = ''
         if args.clean is True:
             clean = '--clean'
@@ -231,6 +232,12 @@ for ontology_name in ontology_names:
         os.system(owlnets_script)
 
         fix_owlnets_metadata_file(working_owlnets_dir)
+    elif 'execute' in ontology_record:
+        script: str = ontology_record['execute']
+        print_and_logger_info(f"Running: {script}")
+        os.system(script)
+    else:
+        print_and_logger_info(f"ERROR: There is no processing available for Ontology: {ontology_name}?!")
 
     # if args.skipValidation is not True:
     #     validation_script: str = f"{VALIDATION_SCRIPT} -o {args.umls_csvs_dir} -l {bargs.owlnets_dir}"

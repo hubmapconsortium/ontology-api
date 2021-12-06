@@ -27,7 +27,7 @@ parser.add_argument('input_tsv', type=str,
                     help='the input tsv file to use to create the owlnets files')
 parser.add_argument("-s", "--sab", type=str, default='UNIPROTKB',
                     help='the sab to use for this Ontology')
-parser.add_argument("-d", "--owlnets_dir", type=str, default='../owlnets_output',
+parser.add_argument("-d", "--owlnets_dir", type=str, default='./owlnets_output',
                     help='directory used for the owlnets output files')
 parser.add_argument("-r", "--rec_sep", type=str, default='\t',
                     help='record separator')
@@ -39,9 +39,9 @@ args = parser.parse_args()
 
 rec_sep: str = args.rec_sep
 
-# log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
-# logger = logging.getLogger(__name__)
-# logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
+log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
+logger = logging.getLogger(__name__)
+logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
 start_time = time.time()
 
@@ -60,6 +60,7 @@ node_metadata_path: str = os.path.join(owlnets_path, 'OWLNETS_node_metadata.txt'
 # relation_id(sab_code)     relation_namespace(sab)      relation_label(verb)  relation_definition(text)
 relations_path: str = os.path.join(owlnets_path, 'OWLNETS_relations.txt')
 
+# https://pitt-my.sharepoint.com/:u:/r/personal/jos220_pitt_edu/Documents/HuBMAP-Knowledge-Graph/uniprot-database%253A%2528type%253AHGNC%2529.tab?csf=1&web=1&e=ZqifvM
 # Entry(code)   Status(ignore)  Organism(ignoe) Gene_names_primary(node_dbxrefs)    Protein_names(string)
 # NOTE: Status is usually 'unreviewed'; Organism is usually 'Homo sapiens (Human)'
 input_tsv_path: str = os.path.join('.', args.input_tsv)

@@ -100,7 +100,9 @@
     "comment": "UBER-anatomy ONtology: An integrated cross-species ontology covering anatomical structures in animals. This one contains data without references"
   },
   "UNIPROTKB": {
-    "execute": "./uniprotkb/__main__.py ./uniprotkb/uniprot.tab"
+    "home_url": "https://www.uniprot.org/uniprot/?query=*&fil=organism%3A%22Homo+sapiens+%28Human%29+%5B9606%5D%22",
+    "comment": "Choose columns: Entry, Organism=Home sapiens, Gene names (primary), Protein names, and ownload all uncompressed as a format should be Tab-separated file.",
+    "execute": "./uniprotkb/__main__.py uniprotkb/uniprot.tab"
   },
   "VARIO": {
     "owl_url": "http://www.variationontology.org/vario_download/vario.owl",

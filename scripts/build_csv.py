@@ -38,6 +38,7 @@ UMLS_GRAPH_SCRIPT: str = './Jonathan/OWLNETS-UMLS-GRAPH-12.py'
 # $ ./build_csv.sh -v PATO UBERON CL DOID CCFASCTB OBI EDAM HSAPDV SBO MI CHEBI
 # Latest working build (Nov 17, 2021):
 # $ ./build_csv.sh -v PATO UBERON CL DOID CCFASCTB OBI EDAM HSAPDV SBO MI CHEBI MP ORDO PR UNIPROTKB
+# Approximate run time 26 hrs on a MacBook Pro 2.6 GHz 6-core I7 /w 32 GB 2667 MHz memory
 # NOTE: VARIO, and CCO still have problems and so are omitted for now.
 
 

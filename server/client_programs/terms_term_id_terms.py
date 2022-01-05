@@ -101,6 +101,7 @@ def process_term_id_file(filename: str) -> None:
 
 # https://pypi.org/project/openapi-python-client/
 client = Client(base_url=args.url)
+# client = AuthenticatedClient(base_url=args.url, token="my-friend-bob")
 timeout: int = 60
 if args.verbose is True:
     eprint(f"Default client timeout (sec): {client.get_timeout()}")

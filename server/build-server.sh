@@ -8,6 +8,7 @@ usage()
   echo " -r Run server after building"
   echo " -R Reinstall VENV at ${VENV}"
   echo " -v Verbose output"
+  echo " -c Build the client from the openapi spec"
   echo " -h Help"
   exit 2
 }

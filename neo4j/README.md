@@ -84,6 +84,13 @@ ontology-api_ontology-neo4j      latest    54a08940394d   35 seconds ago   9.57G
 ...
 ```
 
+The ontology data is being mounted from the ontology-neo4j container to the host VM using named volume: `ontology-neo4j-data`.
+We need to delete the old volume mount before starting the container of the new image:
+```
+docker volume inspect ontology-api_ontology-neo4j-data
+docker volume rm ontology-api_ontology-neo4j-data
+```
+
 Start the container.
 ```buildoutcfg
 $ docker-compose -f docker-compose.deployment.neo4j.yml up -d

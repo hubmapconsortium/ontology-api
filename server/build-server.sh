@@ -4,7 +4,7 @@ VENV=./venv
 
 usage()
 {
-  echo "Usage: $0 [-r] [-R] [-v] [-h]"
+  echo "Usage: $0 [-r] [-R] [-v] [-c] [-h]"
   echo " -r Run server after building"
   echo " -R Reinstall VENV at ${VENV}"
   echo " -v Verbose output"

@@ -4,7 +4,9 @@ The database is always build "from scratch" using the .csv files created by the 
 
 ## Rebuilding
 
-Copy the data (.csv) files to neo4j deployment machine (host).
+Copy the data (.csv) files to neo4j deployment machine (host). The instructions here show the .csv files
+being copied to a tmp directory, gzipped and timestamped. After that just one file is copied to the server
+to '/tmp' because that directory is writable by everyone.
 ```buildoutcfg
 $ cd ~/Documents/Git/ontology-api/neo4j/import/current
 $ mkdir -p tmp/current; cp *.csv tmp/current
@@ -23,7 +25,7 @@ $ cd hubmap/ontology-api
 $ git pull
 ```
 
-Delete the old database import files (.csv) and install the new ones.
+Delete the old database import files (.csv) and install the new ones that were uploaded to the server in a step above.
 ```buildoutcfg
 $ pushd neo4j/import
 $ rm -rf current
@@ -38,18 +40,25 @@ CONTAINER ID   IMAGE                         COMMAND                  CREATED   
 c49e97df99ec   ontology-api_ontology-neo4j   "/usr/src/app/start.…"   11 hours ago   Up 11 hours (healthy)   0.0.0.0:7477->7474/tcp, :::7477->7474/tcp, 0.0.0.0:7688->7687/tcp, :::7688->7687/tcp   ontology-neo4j
 ```
 
-Stop the container, and notice that there is also an associated volume which needs to be deleted.
+If the container is running then stop it.
 ```buildoutcfg
 $ docker-compose -f docker-compose.deployment.neo4j.yml down
 Stopping ontology-neo4j ... done
 Removing ontology-neo4j ... done
 Removing network ontology-api_ontology-neo4j-network
 NOTE: After this the 'ontology-api_ontology-neo4j' will not show up when running 'docker ps'
+```
+
+The ontology Neo4j database is being mounted from the ontology-neo4j container to the host VM using named volume: `ontology-neo4j-data`.
+We need to delete the old volume mount before starting the container of the new image because building of the new database will replace it.
+```
+$ docker volume inspect ontology-api_ontology-neo4j-data
 $ docker volume rm ontology-api_ontology-neo4j-data
 ontology-api_ontology-neo4j-data
 ```
 
 Delete the old image. NEVER EVER touch any other images that you may find!
+This is because there are other services running on this machine.
 ```buildoutcfg
 $ docker images
 REPOSITORY                    TAG       IMAGE ID       CREATED        SIZE
@@ -58,7 +67,7 @@ ontology-api_ontology-neo4j   latest    5944de80ab13   2 hours ago    9.3GB
 $ docker rmi 5944de80ab13
 ```
 
-Rebuild the container. The warning about 'bad entries' is normal.
+Rebuild the container. This will create a new image. Note that the warning about 'bad entries' is normal.
 ```buildoutcfg
 $ docker-compose -f docker-compose.deployment.neo4j.yml build --no-cache
 Building ontology-neo4j
@@ -84,14 +93,7 @@ ontology-api_ontology-neo4j      latest    54a08940394d   35 seconds ago   9.57G
 ...
 ```
 
-The ontology data is being mounted from the ontology-neo4j container to the host VM using named volume: `ontology-neo4j-data`.
-We need to delete the old volume mount before starting the container of the new image:
-```
-docker volume inspect ontology-api_ontology-neo4j-data
-docker volume rm ontology-api_ontology-neo4j-data
-```
-
-Start the container.
+Start the container in the background. This will initiate the Neo4j database rebuilding.
 ```buildoutcfg
 $ docker-compose -f docker-compose.deployment.neo4j.yml up -d
 Creating network "ontology-api_ontology-neo4j-network" with the default driver
@@ -107,7 +109,9 @@ CONTAINER ID   IMAGE                         COMMAND                  CREATED   
 ...
 ```
 
-Look at the logs for the container. You should see it waiting for "Cypher Query available", and then it will create constraints using Cypher queries. After this it will sleep for a minute of two, shurdown, change the database to read_only and then restart the database.
+Look at the logs for the container. You should see it waiting for "Cypher Query available", and then it will create constraints using Cypher queries.
+After this it will sleep for a minute of two, shutdown, modify the .conf file to change the database to read_only, and then restart the database.
+Running the database in read only mode is a precaution taken to see that nothing is deleted as the database should be complete and consistent after it is built.
 ```buildoutcfg
 $ docker logs -f 60e02ed00622
 ...
@@ -153,6 +157,7 @@ Picked up _JAVA_OPTIONS: -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
 ```
 
 Optionally, remove the database files from /tmp.
+This is not strictly necessary, but will save some space on the machine.
 ```buildoutcfg
 $ exit
 $ rm /tmp/current_&lt;CSV_TIMESTAMP&gt;.tgz

@@ -1,6 +1,11 @@
 # HuBMAP Ontology API
 
-The HuBMAP Ontology API contains a Neo4j graph loaded with the [UMLS](https://www.nlm.nih.gov/research/umls/index.html).  The UMLS allows extensive cross-referencing across many biomedical vocabulary systems.  The UMLS structure will form the basis for the rest of the ontologies added into this system.  The backbone of the UMLS data is the Concept to Concept relationship (aka the UMLS CUI to CUI).  The UMLS Concept provides an anchor for the various vocabularies and ontologies.  The user can "walk" backbone of the graph in a vocabulary agnostic manner and/or branch off into specific voabularies.
+The HuBMAP Ontology API contains a Neo4j graph loaded with the [UMLS](https://www.nlm.nih.gov/research/umls/index.html).
+The UMLS allows extensive cross-referencing across many biomedical vocabulary systems.
+The UMLS structure will form the basis for the rest of the ontologies added into this system.
+The backbone of the UMLS data is the Concept to Concept relationship (aka the UMLS CUI to CUI).
+The UMLS Concept provides an anchor for the various vocabularies and ontologies.
+The user can "walk" backbone of the graph in a vocabulary agnostic manner and/or branch off into specific vocabularies.
 
 The API documentation on SmartAPI: https://smart-api.info/ui/dea4bf91545a51b3dc415ba37e2a9e4e
 
@@ -27,19 +32,21 @@ Once the containers are ready, they can be accessed at:
 
 ## Remote Deployment on DEV and PROD
 
-When deploying the ontology services on the DEV and PROD, we'll use the `ontology-api` docker image that has been pre-built and published to DockerHub: https://hub.docker.com/r/hubmap/ontology-api. And the `ontology-api` will also be running behind the [HuBMAP Gateway](https://github.com/hubmapconsortium/gateway). The `ontology-neo4j` image can not be published to DockerHub, so we'll always need to build it on the deployment VM. 
+When deploying the ontology services on the DEV and PROD, we'll use the `ontology-api` docker image that has been
+pre-built and published to DockerHub: https://hub.docker.com/r/hubmap/ontology-api.
+The `ontology-api` will also be running behind the [HuBMAP Gateway](https://github.com/hubmapconsortium/gateway).
+The `ontology-neo4j` image can not be published to DockerHub, so we'll always need to build it on the deployment VM. 
 
 ### Publish ontology-api docker image
 
-First we need to build a released version of the `ontology-api` image locally, specify the `latest` tag as well as the new version tag based on the version number in `VERSION` file, for example:
-
+First we need to build a released version of the `ontology-api` image locally, specify the `latest` tag as well as
+the new version tag based on the version number in `VERSION` file, for example:
 ```
 cd server
 docker build -t hubmap/ontology-api:latest -t hubmap/ontology-api:1.1.1 .
 ```
 
 Then publish this image with the the `latest` tag as well as the released version tag to DockerHub:
-
 ```
 docker login
 docker push hubmap/ontology-api:latest
@@ -48,10 +55,10 @@ docker push hubmap/ontology-api:1.1.1
 
 ### Deploy ontology-api
 
-First we need to create a new configuration file `ontology-api/server/openapi_server/resources/app.properties` with the correct neo4j connection information, in order to connect to the `ontology-neo4j` container running on another VM.
+First we need to create a new configuration file `ontology-api/server/openapi_server/resources/app.properties` with 
+the correct neo4j connection information, in order to connect to the `ontology-neo4j` container running on another VM.
 
 On the VM where the `ontology-api` service will be running:
-
 ````
 Usage: ./ontology-api-docker-deployment.sh [dev|prod] [start|stop|down]
 ````
@@ -59,7 +66,6 @@ Usage: ./ontology-api-docker-deployment.sh [dev|prod] [start|stop|down]
 ### Deploy ontology-neo4j
 
 On the VM where the `ontology-neo4j` service will be running, have the CSV files placed under `neo4j/import/current`, then run
-
 ````
 docker-compose -f docker-compose.deployment.neo4j.yml up -d
 ````
@@ -77,4 +83,5 @@ docker volume inspect ontology-api_ontology-neo4j-data
 
 ## Publish OpenAPI file on SmartApi
 
-There is a HubMap account on SmartApi that allows you to publish OpenAPI specked files after you set this up. Once done the file will be automatically updated upon checkin.
+There is a HubMap account on SmartApi that allows you to publish OpenAPI specked files after you set this up.
+Once done the file will be automatically updated upon checkin.

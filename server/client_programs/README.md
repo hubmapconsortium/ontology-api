@@ -74,14 +74,13 @@ to stdout. So the general approach to running this is
 ```python
 $ ./terms_term_id_terms.py test.txt > output_test.txt
 ```
-If the '-v' option is used additional output will be produced but it will
-go to stderr.
 
-The '-t term_id' is used to run the program on only the term_id given with
-the optional parameter, and in this case the input file will not be required
-and if given ignored.
+If the '-v' option is used additional output will be produced, but it will go to stderr.
 
-The '-s SEP' optional parameter is use to specify the separator for the output
-file. It defaults to a comma, but can be specified as a tab or any other character.
+The '-t term_id' is used to run the program on only the term_id given with the optional parameter,
+and in this case the input file will not be required and if given ignored.
+
+The '-s SEP' optional parameter is use to specify the separator for the output file.
+It defaults to a comma, but can be specified as a tab or any other character.
 
 The '-u URL' optional parameter specifies the URL of the Ontology API Server to call.

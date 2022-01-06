@@ -111,3 +111,38 @@ for: dev, test, start, and prod. Currently there is no protection set on the end
 }
 ```
 
+## Confirm that the server is running and has access to the database
+
+You can do this in two ways. The first is through the postman collection found in the 'server/postman' directory.
+The second way is by running a program that accesses the server through an OpenAPI generated interface.
+It is this second method that weill be discussed here.
+
+The file './client_programs/terms_term_id_terms.py' was written to test access to the server using the OpenAPI generated interface.
+As such the program also was intended to serve as an example of using the OpenAPI generated interface.
+In order to use it you will have to have built the server './build_server.sh' using the '-c' optional parameter which will build the client from the openapi spec.
+```bash
+$ ./build_server.sh -c
+```
+
+To run this program you will need to generate an input file consisting of a term to search for.
+For a term, you can use something simple like 'cancer'. By default output is sent to stdout. You should see something like the following.
+```bash
+$ source venv/bin/activate
+$ cd client_programs
+$ echo 'cancer' > test.txt
+$ ./terms_term_id_terms.py test.txt
+code_id,code_sab,code,concept,tty,term,matched,rel_type,rel_sab
+NCI C9305,NCI,C9305,C0006826,AB,CA,cancer,,
+NCI_CDISC C9305,NCI_CDISC,C9305,C0006826,SY,CA,cancer,,
+PDQ CDR0000041060,PDQ,CDR0000041060,C0006826,AB,CA,cancer,,
+CHV 0000053965,CHV,0000053965,C0998265,PT,crab,cancer,,
+CHV 0000002337,CHV,0000002337,C0006826,PT,cancer,cancer,,
+CSP 2000-0173,CSP,2000-0173,C0006826,ET,cancer,cancer,,
+...
+ICD10AM C80,ICD10AM,C80,C0006826,PT,Malignant neoplasm without specification of site,cancer,,
+ICD10CM C80,ICD10CM,C80,C0006826,HT,Malignant neoplasm without specification of site,cancer,,
+ICD10CM C80,ICD10CM,C80,C0006826,AB,Malignant neoplasm without specification of site,cancer,,
+ICD9CM 199,ICD9CM,199,C0006826,HT,Malignant neoplasm without specification of site,cancer,,
+MDR 10026655,MDR,10026655,C0006826,LLT,Malignant neoplasm without specification of site,cancer,,
+SNOMEDCT_US 86049000,SNOMEDCT_US,86049000,C1306459,FN,Malignant neoplasm, primary (morphologic abnormality),cancer,,
+```

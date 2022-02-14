@@ -59,27 +59,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ConceptDetail'
-  /codes/{code_id}/description:
-    get:
-      operationId: codes_code_id_description_get
-      summary: Returns a list of {SAB, Code, Term} dictionaries associated with the code_id
-      parameters:
-        - name: code_id
-          in: path
-          required: true
-          description: The code identifier
-          schema:
-            type: string
-            example: CCF UBERON_0013702
-      responses:
-        '200':
-          description: A JSON array of {SAB, Code, Term} dictionaries
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SabCodeTerm'
   /codes/{code_id}/terms:
     get:
       operationId: codes_code_id_terms_get

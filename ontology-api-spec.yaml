@@ -8,7 +8,7 @@ servers:
 paths:
   /codes/{code_id}/codes:
     get:
-      summary: Returns a list of {Concept, Code, Sab} associated with the code_id optionally restricted to SAB
+      summary: Returns a list of code_ids {Concept, Code, SAB} that code the same concept(s) as the code_id, optionally restricted to source (SAB)
       operationId: codes_code_id_codes_get
       parameters:
         - name: code_id
@@ -17,17 +17,17 @@ paths:
           description: The code identifier
           schema:
             type: string
-            example: CHV 0000000540
+            example: SNOMEDCT_US 254837009
         - name: sab
           in: query
           required: false
-          description: One or more SABs to search
+          description: One or more sources (SABs) to return
           schema:
             type: array
             uniqueItems: true
             items:
               type: string
-              example: MEDLINEPLUS,MSH,MEDCIN
+              example: NCI,MDR
             default: []
       responses:
         '200':
@@ -41,7 +41,7 @@ paths:
   /codes/{code_id}/concepts:
     get:
       operationId: codes_code_id_concepts_get
-      summary: Returns a list of {Concept, Prefterm} associated with the code_id
+      summary: Returns a list of concepts {Concept, Prefterm} that the code_id codes
       parameters:
         - name: code_id
           in: path

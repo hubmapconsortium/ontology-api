@@ -62,7 +62,7 @@ paths:
   /concepts/{concept_id}/codes:
     get:
       operationId: concepts_concept_id_codes_get
-      summary: Returns a distinct list of codes associated with the concept_id
+      summary: Returns a distinct list of code_id(s) that code the concept
       parameters:
         - name: concept_id
           in: path
@@ -74,7 +74,7 @@ paths:
         - name: sab
           in: query
           required: false
-          description: One or more SABs to search
+          description: One or more sources (SABs) to return
           schema:
             type: array
             uniqueItems: true
@@ -84,7 +84,7 @@ paths:
             default: []
       responses:
         '200':
-          description: A JSON array of codes associated with the concept
+          description: A JSON array of code_id(s) that code the concept
           content:
             application/json:
               schema:
@@ -95,7 +95,7 @@ paths:
   /concepts/{concept_id}/concepts:
     get:
       operationId: concepts_concept_id_concepts_get
-      summary: Returns a list of {Sab, Relationship, Concept, Prefterm} dictionaries associated with the concept_id
+      summary: Returns a list of concepts {Sab, Relationship, Concept, Prefterm} related to the concept
       parameters:
         - name: concept_id
           in: path
@@ -116,7 +116,7 @@ paths:
   /concepts/{concept_id}/definitions:
     get:
       operationId: concepts_concept_id_definitions_get
-      summary: Returns a list of {Sab, Definition} dictionaries associated with the concept_id
+      summary: Returns a list of definitions {Sab, Definition} of the concept
       parameters:
         - name: concept_id
           in: path
@@ -134,64 +134,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/SabDefinition'
-  /concepts/{concept_id}/terms:
-    get:
-      operationId: concepts_concept_id_terms_get
-      summary: Returns a list of TermRespObjs associated with the concept_id as follows Concept(concept_id)-[rel.sab]->Concept-->Code-[Type]->Term
-      parameters:
-        - name: concept_id
-          in: path
-          required: true
-          description: The concept identifier which is used to identify the initial Concept
-          schema:
-            type: string
-            example: SNOMEDCT_US 254837009
-        - name: sab
-          in: query
-          required: false
-          description: Restrict the ConceptI-[rel.sab]->ConceptR search to Relationships of this Sab
-          schema:
-            type: array
-            uniqueItems: true
-            items:
-              type: string
-              example: MEDLINEPLUS,MSH,MEDCIN
-            default: []
-        - name: tty
-          in: query
-          required: false
-          description: Restrict the Code2-[Type]->Term search to one or more TTY types
-          schema:
-            type: array
-            uniqueItems: true
-            items:
-              type: string
-              example: PEP,PT
-            default: []
-        - name: rel
-          in: query
-          required: false
-          description: One or more TTYs to search of the form 'Type[SAB]'
-          schema:
-            type: array
-            uniqueItems: true
-            items:
-              type: string
-              example: "*[PEP],*[PT]"
-            default: []
-      responses:
-        '200':
-          description: A JSON array of TermRespObj
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TermRespObj'
   /concepts/{concept_id}/semantics:
     get:
       operationId: concepts_concept_id_semantics_get
-      summary: Returns a list of {Sty, Tui, Stn} dictionaries associated with the concept_id
+      summary: Returns a list of semantic_types {Sty, Tui, Stn} of the concept
       parameters:
         - name: concept_id
           in: path
@@ -212,7 +158,7 @@ paths:
   /semantics/{semantic_id}/semantics:
     get:
       operationId: semantics_semantic_id_semantics_get
-      summary: Returns a list of {queryTUI, querySTN ,semantic, TUI_STN} dictionaries associated with the concept_id
+      summary: Returns a list of semantic_types {queryTUI, querySTN ,semantic, TUI_STN} of the semantic type
       parameters:
         - name: semantic_id
           in: path
@@ -233,7 +179,7 @@ paths:
   /tui/{tui_id}/semantics:
     get:
       operationId: tui_tui_id_semantics_get
-      summary: Returns a list of {semantic, STN} dictionaries associated with the tui_id
+      summary: Returns a list of symantic_types {semantic, STN} of the type unique id (tui)
       parameters:
         - name: tui_id
           in: path
@@ -254,7 +200,7 @@ paths:
   /terms/{term_id}/codes:
     get:
       operationId: terms_term_id_codes_get
-      summary: Returns a list of {TermType, Code} dictionaries associated with the term_id
+      summary: Returns a list of codes {TermType, Code} of the text string
       parameters:
         - name: term_id
           in: path
@@ -275,7 +221,7 @@ paths:
   /terms/{term_id}/concepts:
     get:
       operationId: terms_term_id_concepts_get
-      summary: Returns a list of Terms associated with the concept_id
+      summary: Returns a list of concepts associated with the text string
       parameters:
         - name: term_id
           in: path
@@ -297,7 +243,7 @@ paths:
   /terms/{term_id}/concepts/terms:
     get:
       operationId: terms_term_id_concepts_terms_get
-      summary: Returns a list of {Concept, Term} dictionaries associated with the term_id
+      summary: Returns an expanded list of concept(s) and preferred term(s) {Concept, Term} from an exact text match 
       parameters:
         - name: term_id
           in: path
@@ -315,114 +261,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ConceptTerm'
-  /terms/{term_id}/terms:
-    get:
-      operationId: terms_term_id_terms_get
-      summary: Returns a list of TermRespObjs associated with the term_id
-      parameters:
-        - name: term_id
-          in: path
-          required: true
-          description: The term identifier which is used to identify the initial Concept
-          schema:
-            type: string
-            example: cancer
-        - name: sab
-          in: query
-          required: false
-          description: Restrict the ConceptI-[rel.sab]->ConceptR search to Relationships of this Sab
-          schema:
-            type: array
-            uniqueItems: true
-            items:
-              type: string
-              example: MEDLINEPLUS,MSH,MEDCIN
-            default: []
-        - name: tty
-          in: query
-          required: false
-          description: Restrict the Code2-[Type]->Term search to one or more TTY types
-          schema:
-            type: array
-            uniqueItems: true
-            items:
-              type: string
-              example: PEP,PT
-            default: []
-        - name: rel
-          in: query
-          required: false
-          description: One or more TTYs to search of the form 'Type[SAB]'
-          schema:
-            type: array
-            uniqueItems: true
-            items:
-              type: string
-              example: "*[PEP],*[PT]"
-            default: []
-      responses:
-        '200':
-          description: A JSON array of TermRespObj
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TermRespObj'
-  /nodes/{node_id}/terms:
-    get:
-      operationId: nodes_node_id_terms_get
-      summary: Returns a list of TermRespObjs associated with the node_id
-      parameters:
-        - name: node_id
-          in: path
-          required: true
-          description: The node (either code, concept, term) identifier which is used to identify the initial Concept
-          schema:
-            type: string
-            example: cancer
-        - name: sab
-          in: query
-          required: false
-          description: Restrict the ConceptI-[rel.sab]->ConceptR search to Relationships of this Sab
-          schema:
-            type: array
-            uniqueItems: true
-            items:
-              type: string
-              example: MEDLINEPLUS,MSH,MEDCIN
-            default: []
-        - name: tty
-          in: query
-          required: false
-          description: Restrict the Code2-[Type]->Term search to one or more TTY types
-          schema:
-            type: array
-            uniqueItems: true
-            items:
-              type: string
-              example: PEP,PT
-            default: []
-        - name: rel
-          in: query
-          required: false
-          description: One or more TTYs to search of the form 'Type[SAB]'
-          schema:
-            type: array
-            uniqueItems: true
-            items:
-              type: string
-              example: "*[PEP],*[PT]"
-            default: []
-      responses:
-        '200':
-          description: A JSON array of TermRespObj
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TermRespObj'
 components:
   schemas:
     ConceptDetail:    # Schema name

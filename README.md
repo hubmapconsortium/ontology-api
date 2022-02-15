@@ -7,7 +7,10 @@ The backbone of the UMLS data is the Concept to Concept relationship (aka the UM
 The UMLS Concept provides an anchor for the various vocabularies and ontologies.
 The user can "walk" backbone of the graph in a vocabulary agnostic manner and/or branch off into specific vocabularies.
 
-The API documentation on SmartAPI: https://smart-api.info/ui/dea4bf91545a51b3dc415ba37e2a9e4e
+The API documentation can be found on this [SmartAPI](https://smart-api.info/ui/dea4bf91545a51b3dc415ba37e2a9e4e) webpage.
+When the 'master' branch is updated on [GitHub](https://github.com/hubmapconsortium/ontology-api)
+the [OpenAPI](https://swagger.io/specification/) file './ontology-api-spec.yml' will be used to update the SmartAPI webpage.
+The [SmartAPI Editor](https://smart-api.info/editor/) can be used as a tool to validate the spec file.
 
 There are two containers here:
 

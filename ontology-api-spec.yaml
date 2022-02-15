@@ -229,7 +229,7 @@ paths:
           description: The term identifier
           schema:
             type: string
-            example: lidocaine 0.05 MG/MG Medicated Patch
+            example: Breast cancer
       responses:
         '200':
           description: A JSON array of concepts associated with the term

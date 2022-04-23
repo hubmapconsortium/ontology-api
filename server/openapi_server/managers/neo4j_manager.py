@@ -197,7 +197,7 @@ class Neo4jManager(object):
     def concepts_concept_id_concepts_get(self, concept_id: str) -> List[SabRelationshipConceptPrefterm]:
         sabRelationshipConceptPrefterms: [SabRelationshipConceptPrefterm] = []
         query = 'WITH [$concept_id] AS query' \
-                ' MATCH (a:Term)<-[:PREF_TERM]-(b:Concept)-[c]-(d:Concept)-[:PREF_TERM]->(e:Term)' \
+                ' MATCH (a:Term)<-[:PREF_TERM]-(b:Concept)<-[c]-(d:Concept)-[:PREF_TERM]->(e:Term)' \
                 ' WHERE b.CUI IN query' \
                 ' RETURN DISTINCT a.name AS Prefterm1, b.CUI AS Concept1, c.SAB AS SAB, type(c) AS Relationship,' \
                 '  d.CUI AS Concept2, e.name AS Prefterm2' \

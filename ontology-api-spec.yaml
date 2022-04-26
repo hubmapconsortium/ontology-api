@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: HuBMAP Ontology API
   description: This document describes the HuBMAP Ontology API
-  version: 1.1.2
+  version: 1.1.3
 servers:
   - url: https://ontology-api.dev.hubmapconsortium.org/
 paths:
@@ -269,7 +269,7 @@ components:
         concept:
           type: string
           example: C0006142
-        perfterm:
+        prefterm:
           type: string
           example: Malignant neoplasm of breast
     CodesCodesObj: # Schema name
@@ -284,36 +284,6 @@ components:
         SAB:
           type: string
           example: CCF
-    TermRespObj: # Schema name
-      type: object
-      properties:
-        code_id:
-          type: string
-          example: CHV 0000000540
-        code_sab:
-          type: string
-          example: CHV
-        code:
-          type: string
-          example: 0000000540
-        concept:
-          type: string
-          example: C0000766
-        tty:
-          type: string
-          example: SY
-        term:
-          type: string
-          example: x-ray abnormal
-        matched:
-          type: string
-          example: CHV 0000000540
-        rel_type:
-          type: string
-          example: LA
-        rel_sab:
-          type: string
-          example: CHV
     SabRelationshipConceptPrefterm: # Schema name
       type: object
       properties:
@@ -326,7 +296,7 @@ components:
         concept:
           type: string
           example: C0006826
-        perfterm:
+        prefterm:
           type: string
           example: Malignant Neoplasms
     SabDefinition: # Schema name
@@ -395,36 +365,3 @@ components:
         term:
           type: string
           example: LNC LA14283-8
-    SabCodeTerm: # Schema name
-      type: object
-      properties:
-        SAB:
-          type: string
-          example: CCF
-        code:
-          type: string
-          example: UBERON_0000056
-        term:
-          type: string
-          example: Ureter
-    FullCapacityTerm: # Schema name
-      type: object
-      properties:
-        term:
-          type: string
-          example: Carcinoma of male breast
-        tty:
-          type: string
-          example: PT
-        code:
-          type: string
-          example: MEDCIN 339752
-        concept:
-          type: string
-          example: C0238033
-        perfterm:
-          type: string
-          example: Carcinoma of Male Breast
-        semantic:
-          type: string
-          example: Neoplastic Process

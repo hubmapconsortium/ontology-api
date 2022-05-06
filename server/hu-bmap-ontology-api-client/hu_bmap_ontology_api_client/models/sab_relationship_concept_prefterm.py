@@ -9,19 +9,25 @@ T = TypeVar("T", bound="SabRelationshipConceptPrefterm")
 
 @attr.s(auto_attribs=True)
 class SabRelationshipConceptPrefterm:
-    """ """
+    """
+    Attributes:
+        sab (Union[Unset, str]):  Example: ICD10AM.
+        relationship (Union[Unset, str]):  Example: CHD.
+        concept (Union[Unset, str]):  Example: C0006826.
+        prefterm (Union[Unset, str]):  Example: Malignant Neoplasms.
+    """
 
     sab: Union[Unset, str] = UNSET
     relationship: Union[Unset, str] = UNSET
     concept: Union[Unset, str] = UNSET
-    perfterm: Union[Unset, str] = UNSET
+    prefterm: Union[Unset, str] = UNSET
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         sab = self.sab
         relationship = self.relationship
         concept = self.concept
-        perfterm = self.perfterm
+        prefterm = self.prefterm
 
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -32,8 +38,8 @@ class SabRelationshipConceptPrefterm:
             field_dict["relationship"] = relationship
         if concept is not UNSET:
             field_dict["concept"] = concept
-        if perfterm is not UNSET:
-            field_dict["perfterm"] = perfterm
+        if prefterm is not UNSET:
+            field_dict["prefterm"] = prefterm
 
         return field_dict
 
@@ -46,13 +52,13 @@ class SabRelationshipConceptPrefterm:
 
         concept = d.pop("concept", UNSET)
 
-        perfterm = d.pop("perfterm", UNSET)
+        prefterm = d.pop("prefterm", UNSET)
 
         sab_relationship_concept_prefterm = cls(
             sab=sab,
             relationship=relationship,
             concept=concept,
-            perfterm=perfterm,
+            prefterm=prefterm,
         )
 
         sab_relationship_concept_prefterm.additional_properties = d

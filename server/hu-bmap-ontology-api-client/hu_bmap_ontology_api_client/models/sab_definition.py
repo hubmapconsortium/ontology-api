@@ -9,7 +9,13 @@ T = TypeVar("T", bound="SabDefinition")
 
 @attr.s(auto_attribs=True)
 class SabDefinition:
-    """ """
+    """
+    Attributes:
+        sab (Union[Unset, str]):  Example: NCI.
+        definition (Union[Unset, str]):  Example: A primary or metastatic malignant neoplasm involving the breast. The
+            vast majority of cases are carcinomas arising from the breast parenchyma or the nipple. Malignant breast
+            neoplasms occur more frequently in females than in males..
+    """
 
     sab: Union[Unset, str] = UNSET
     definition: Union[Unset, str] = UNSET

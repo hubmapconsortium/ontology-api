@@ -15,26 +15,26 @@ class ConceptDetail(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, concept=None, perfterm=None):  # noqa: E501
+    def __init__(self, concept=None, prefterm=None):  # noqa: E501
         """ConceptDetail - a model defined in OpenAPI
 
         :param concept: The concept of this ConceptDetail.  # noqa: E501
         :type concept: str
-        :param perfterm: The perfterm of this ConceptDetail.  # noqa: E501
-        :type perfterm: str
+        :param prefterm: The prefterm of this ConceptDetail.  # noqa: E501
+        :type prefterm: str
         """
         self.openapi_types = {
             'concept': str,
-            'perfterm': str
+            'prefterm': str
         }
 
         self.attribute_map = {
             'concept': 'concept',
-            'perfterm': 'perfterm'
+            'prefterm': 'prefterm'
         }
 
         self._concept = concept
-        self._perfterm = perfterm
+        self._prefterm = prefterm
 
     @classmethod
     def from_dict(cls, dikt) -> 'ConceptDetail':
@@ -69,22 +69,22 @@ class ConceptDetail(Model):
         self._concept = concept
 
     @property
-    def perfterm(self):
-        """Gets the perfterm of this ConceptDetail.
+    def prefterm(self):
+        """Gets the prefterm of this ConceptDetail.
 
 
-        :return: The perfterm of this ConceptDetail.
+        :return: The prefterm of this ConceptDetail.
         :rtype: str
         """
-        return self._perfterm
+        return self._prefterm
 
-    @perfterm.setter
-    def perfterm(self, perfterm):
-        """Sets the perfterm of this ConceptDetail.
+    @prefterm.setter
+    def prefterm(self, prefterm):
+        """Sets the prefterm of this ConceptDetail.
 
 
-        :param perfterm: The perfterm of this ConceptDetail.
-        :type perfterm: str
+        :param prefterm: The prefterm of this ConceptDetail.
+        :type prefterm: str
         """
 
-        self._perfterm = perfterm
+        self._prefterm = prefterm

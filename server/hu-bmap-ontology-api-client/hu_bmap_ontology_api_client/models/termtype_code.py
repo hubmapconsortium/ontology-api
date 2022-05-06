@@ -9,7 +9,11 @@ T = TypeVar("T", bound="TermtypeCode")
 
 @attr.s(auto_attribs=True)
 class TermtypeCode:
-    """ """
+    """
+    Attributes:
+        termtype (Union[Unset, str]):  Example: LA.
+        code (Union[Unset, str]):  Example: LNC LA14283-8.
+    """
 
     termtype: Union[Unset, str] = UNSET
     code: Union[Unset, str] = UNSET

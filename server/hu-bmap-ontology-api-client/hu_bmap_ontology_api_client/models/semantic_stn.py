@@ -9,7 +9,11 @@ T = TypeVar("T", bound="SemanticStn")
 
 @attr.s(auto_attribs=True)
 class SemanticStn:
-    """ """
+    """
+    Attributes:
+        semantic (Union[Unset, str]):  Example: Entity.
+        stn (Union[Unset, str]):  Example: A.
+    """
 
     semantic: Union[Unset, str] = UNSET
     stn: Union[Unset, str] = UNSET

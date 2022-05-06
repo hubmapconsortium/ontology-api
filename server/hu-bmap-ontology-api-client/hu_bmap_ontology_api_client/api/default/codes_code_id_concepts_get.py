@@ -14,10 +14,11 @@ def _get_kwargs(
 ) -> Dict[str, Any]:
     url = "{}/codes/{code_id}/concepts".format(client.base_url, code_id=code_id)
 
-    headers: Dict[str, Any] = client.get_headers()
+    headers: Dict[str, str] = client.get_headers()
     cookies: Dict[str, Any] = client.get_cookies()
 
     return {
+        "method": "get",
         "url": url,
         "headers": headers,
         "cookies": cookies,
@@ -52,12 +53,21 @@ def sync_detailed(
     *,
     client: Client,
 ) -> Response[List[ConceptDetail]]:
+    """Returns a list of concepts {Concept, Prefterm} that the code_id codes
+
+    Args:
+        code_id (str):  Example: SNOMEDCT_US 254837009.
+
+    Returns:
+        Response[List[ConceptDetail]]
+    """
+
     kwargs = _get_kwargs(
         code_id=code_id,
         client=client,
     )
 
-    response = httpx.get(
+    response = httpx.request(
         verify=client.verify_ssl,
         **kwargs,
     )
@@ -70,7 +80,14 @@ def sync(
     *,
     client: Client,
 ) -> Optional[List[ConceptDetail]]:
-    """ """
+    """Returns a list of concepts {Concept, Prefterm} that the code_id codes
+
+    Args:
+        code_id (str):  Example: SNOMEDCT_US 254837009.
+
+    Returns:
+        Response[List[ConceptDetail]]
+    """
 
     return sync_detailed(
         code_id=code_id,
@@ -83,13 +100,22 @@ async def asyncio_detailed(
     *,
     client: Client,
 ) -> Response[List[ConceptDetail]]:
+    """Returns a list of concepts {Concept, Prefterm} that the code_id codes
+
+    Args:
+        code_id (str):  Example: SNOMEDCT_US 254837009.
+
+    Returns:
+        Response[List[ConceptDetail]]
+    """
+
     kwargs = _get_kwargs(
         code_id=code_id,
         client=client,
     )
 
     async with httpx.AsyncClient(verify=client.verify_ssl) as _client:
-        response = await _client.get(**kwargs)
+        response = await _client.request(**kwargs)
 
     return _build_response(response=response)
 
@@ -99,7 +125,14 @@ async def asyncio(
     *,
     client: Client,
 ) -> Optional[List[ConceptDetail]]:
-    """ """
+    """Returns a list of concepts {Concept, Prefterm} that the code_id codes
+
+    Args:
+        code_id (str):  Example: SNOMEDCT_US 254837009.
+
+    Returns:
+        Response[List[ConceptDetail]]
+    """
 
     return (
         await asyncio_detailed(

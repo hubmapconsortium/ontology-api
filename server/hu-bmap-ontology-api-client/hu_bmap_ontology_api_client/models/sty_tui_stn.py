@@ -9,7 +9,12 @@ T = TypeVar("T", bound="StyTuiStn")
 
 @attr.s(auto_attribs=True)
 class StyTuiStn:
-    """ """
+    """
+    Attributes:
+        sty (Union[Unset, str]):  Example: Organic Chemical.
+        tui (Union[Unset, str]):  Example: T109.
+        stn (Union[Unset, str]):  Example: A1.4.1.2.1.
+    """
 
     sty: Union[Unset, str] = UNSET
     tui: Union[Unset, str] = UNSET

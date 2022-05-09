@@ -15,7 +15,7 @@ class SabRelationshipConceptPrefterm(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, sab=None, relationship=None, concept=None, perfterm=None):  # noqa: E501
+    def __init__(self, sab=None, relationship=None, concept=None, prefterm=None):  # noqa: E501
         """SabRelationshipConceptPrefterm - a model defined in OpenAPI
 
         :param sab: The sab of this SabRelationshipConceptPrefterm.  # noqa: E501
@@ -24,27 +24,27 @@ class SabRelationshipConceptPrefterm(Model):
         :type relationship: str
         :param concept: The concept of this SabRelationshipConceptPrefterm.  # noqa: E501
         :type concept: str
-        :param perfterm: The perfterm of this SabRelationshipConceptPrefterm.  # noqa: E501
-        :type perfterm: str
+        :param prefterm: The prefterm of this SabRelationshipConceptPrefterm.  # noqa: E501
+        :type prefterm: str
         """
         self.openapi_types = {
             'sab': str,
             'relationship': str,
             'concept': str,
-            'perfterm': str
+            'prefterm': str
         }
 
         self.attribute_map = {
             'sab': 'sab',
             'relationship': 'relationship',
             'concept': 'concept',
-            'perfterm': 'perfterm'
+            'prefterm': 'prefterm'
         }
 
         self._sab = sab
         self._relationship = relationship
         self._concept = concept
-        self._perfterm = perfterm
+        self._prefterm = prefterm
 
     @classmethod
     def from_dict(cls, dikt) -> 'SabRelationshipConceptPrefterm':
@@ -121,22 +121,22 @@ class SabRelationshipConceptPrefterm(Model):
         self._concept = concept
 
     @property
-    def perfterm(self):
-        """Gets the perfterm of this SabRelationshipConceptPrefterm.
+    def prefterm(self):
+        """Gets the prefterm of this SabRelationshipConceptPrefterm.
 
 
-        :return: The perfterm of this SabRelationshipConceptPrefterm.
+        :return: The prefterm of this SabRelationshipConceptPrefterm.
         :rtype: str
         """
-        return self._perfterm
+        return self._prefterm
 
-    @perfterm.setter
-    def perfterm(self, perfterm):
-        """Sets the perfterm of this SabRelationshipConceptPrefterm.
+    @prefterm.setter
+    def prefterm(self, prefterm):
+        """Sets the prefterm of this SabRelationshipConceptPrefterm.
 
 
-        :param perfterm: The perfterm of this SabRelationshipConceptPrefterm.
-        :type perfterm: str
+        :param prefterm: The prefterm of this SabRelationshipConceptPrefterm.
+        :type prefterm: str
         """
 
-        self._perfterm = perfterm
+        self._prefterm = prefterm

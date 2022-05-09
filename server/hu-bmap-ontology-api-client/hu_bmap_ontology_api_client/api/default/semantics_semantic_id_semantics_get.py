@@ -14,10 +14,11 @@ def _get_kwargs(
 ) -> Dict[str, Any]:
     url = "{}/semantics/{semantic_id}/semantics".format(client.base_url, semantic_id=semantic_id)
 
-    headers: Dict[str, Any] = client.get_headers()
+    headers: Dict[str, str] = client.get_headers()
     cookies: Dict[str, Any] = client.get_cookies()
 
     return {
+        "method": "get",
         "url": url,
         "headers": headers,
         "cookies": cookies,
@@ -52,12 +53,21 @@ def sync_detailed(
     *,
     client: Client,
 ) -> Response[List[QQST]]:
+    """Returns a list of semantic_types {queryTUI, querySTN ,semantic, TUI_STN} of the semantic type
+
+    Args:
+        semantic_id (str):  Example: Physical Object.
+
+    Returns:
+        Response[List[QQST]]
+    """
+
     kwargs = _get_kwargs(
         semantic_id=semantic_id,
         client=client,
     )
 
-    response = httpx.get(
+    response = httpx.request(
         verify=client.verify_ssl,
         **kwargs,
     )
@@ -70,7 +80,14 @@ def sync(
     *,
     client: Client,
 ) -> Optional[List[QQST]]:
-    """ """
+    """Returns a list of semantic_types {queryTUI, querySTN ,semantic, TUI_STN} of the semantic type
+
+    Args:
+        semantic_id (str):  Example: Physical Object.
+
+    Returns:
+        Response[List[QQST]]
+    """
 
     return sync_detailed(
         semantic_id=semantic_id,
@@ -83,13 +100,22 @@ async def asyncio_detailed(
     *,
     client: Client,
 ) -> Response[List[QQST]]:
+    """Returns a list of semantic_types {queryTUI, querySTN ,semantic, TUI_STN} of the semantic type
+
+    Args:
+        semantic_id (str):  Example: Physical Object.
+
+    Returns:
+        Response[List[QQST]]
+    """
+
     kwargs = _get_kwargs(
         semantic_id=semantic_id,
         client=client,
     )
 
     async with httpx.AsyncClient(verify=client.verify_ssl) as _client:
-        response = await _client.get(**kwargs)
+        response = await _client.request(**kwargs)
 
     return _build_response(response=response)
 
@@ -99,7 +125,14 @@ async def asyncio(
     *,
     client: Client,
 ) -> Optional[List[QQST]]:
-    """ """
+    """Returns a list of semantic_types {queryTUI, querySTN ,semantic, TUI_STN} of the semantic type
+
+    Args:
+        semantic_id (str):  Example: Physical Object.
+
+    Returns:
+        Response[List[QQST]]
+    """
 
     return (
         await asyncio_detailed(

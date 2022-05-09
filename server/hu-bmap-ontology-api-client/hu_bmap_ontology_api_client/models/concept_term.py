@@ -9,7 +9,11 @@ T = TypeVar("T", bound="ConceptTerm")
 
 @attr.s(auto_attribs=True)
 class ConceptTerm:
-    """ """
+    """
+    Attributes:
+        concept (Union[Unset, str]):  Example: C0006826.
+        term (Union[Unset, str]):  Example: LNC LA14283-8.
+    """
 
     concept: Union[Unset, str] = UNSET
     term: Union[Unset, str] = UNSET

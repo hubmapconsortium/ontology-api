@@ -59,15 +59,12 @@ $ docker images
 REPOSITORY                  TAG                 IMAGE ID            CREATED             SIZE
 ontology-api_ontology-api   latest              24b1f748f10f        31 minutes ago      77.6MB
 ...
-$ docker-compose -f docker-compose.deployment.api.yml down
+
+# Stop process and remove old image...
+$ export ONTOLOGY_API_VERSION=latest; docker-compose -f docker-compose.deployment.yml down --rmi all
 Stopping ontology-api ... done
 Removing ontology-api ... done
 Network gateway_hubmap is external, skipping
-
-# Remove the old image
-$ docker rmi -f 24b1f748f10f
-Untagged: ontology-api_ontology-api:latest
-...
 
 # Rebuild the image
 $ docker-compose -f docker-compose.deployment.api.yml build --no-cache

@@ -9,23 +9,27 @@ T = TypeVar("T", bound="ConceptDetail")
 
 @attr.s(auto_attribs=True)
 class ConceptDetail:
-    """ """
+    """
+    Attributes:
+        concept (Union[Unset, str]):  Example: C0006142.
+        prefterm (Union[Unset, str]):  Example: Malignant neoplasm of breast.
+    """
 
     concept: Union[Unset, str] = UNSET
-    perfterm: Union[Unset, str] = UNSET
+    prefterm: Union[Unset, str] = UNSET
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         concept = self.concept
-        perfterm = self.perfterm
+        prefterm = self.prefterm
 
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update({})
         if concept is not UNSET:
             field_dict["concept"] = concept
-        if perfterm is not UNSET:
-            field_dict["perfterm"] = perfterm
+        if prefterm is not UNSET:
+            field_dict["prefterm"] = prefterm
 
         return field_dict
 
@@ -34,11 +38,11 @@ class ConceptDetail:
         d = src_dict.copy()
         concept = d.pop("concept", UNSET)
 
-        perfterm = d.pop("perfterm", UNSET)
+        prefterm = d.pop("prefterm", UNSET)
 
         concept_detail = cls(
             concept=concept,
-            perfterm=perfterm,
+            prefterm=prefterm,
         )
 
         concept_detail.additional_properties = d

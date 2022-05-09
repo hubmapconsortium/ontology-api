@@ -9,7 +9,14 @@ T = TypeVar("T", bound="QQST")
 
 @attr.s(auto_attribs=True)
 class QQST:
-    """ """
+    """
+    Attributes:
+        query_tui (Union[Unset, str]):  Example: T072.
+        query_stn (Union[Unset, str]):  Example: A1.
+        semantic (Union[Unset, str]):  Example: Entity.
+        tui (Union[Unset, str]):  Example: T071.
+        stn (Union[Unset, str]):  Example: A.
+    """
 
     query_tui: Union[Unset, str] = UNSET
     query_stn: Union[Unset, str] = UNSET

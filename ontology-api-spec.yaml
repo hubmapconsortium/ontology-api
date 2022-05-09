@@ -263,15 +263,6 @@ paths:
                   $ref: '#/components/schemas/ConceptTerm'
 components:
   schemas:
-    ConceptDetail:    # Schema name
-      type: object
-      properties:
-        concept:
-          type: string
-          example: C0006142
-        prefterm:
-          type: string
-          example: Malignant neoplasm of breast
     CodesCodesObj: # Schema name
       type: object
       properties:
@@ -284,42 +275,24 @@ components:
         SAB:
           type: string
           example: CCF
-    SabRelationshipConceptPrefterm: # Schema name
+    ConceptDetail:    # Schema name
       type: object
       properties:
-        sab:
+        concept:
           type: string
-          example: ICD10AM
-        relationship:
+          example: C0006142
+        prefterm:
           type: string
-          example: CHD
+          example: Malignant neoplasm of breast
+    ConceptTerm: # Schema name
+      type: object
+      properties:
         concept:
           type: string
           example: C0006826
-        prefterm:
+        term:
           type: string
-          example: Malignant Neoplasms
-    SabDefinition: # Schema name
-      type: object
-      properties:
-        sab:
-          type: string
-          example: NCI
-        definition:
-          type: string
-          example: A primary or metastatic malignant neoplasm involving the breast. The vast majority of cases are carcinomas arising from the breast parenchyma or the nipple. Malignant breast neoplasms occur more frequently in females than in males.
-    StyTuiStn: # Schema name
-      type: object
-      properties:
-        sty:
-          type: string
-          example: Organic Chemical
-        tui:
-          type: string
-          example: T109
-        stn:
-          type: string
-          example: A1.4.1.2.1
+          example: LNC LA14283-8
     QQST: # Schema name
       type: object
       properties:
@@ -338,6 +311,30 @@ components:
         STN:
           type: string
           example: A
+    SabDefinition: # Schema name
+      type: object
+      properties:
+        sab:
+          type: string
+          example: NCI
+        definition:
+          type: string
+          example: A primary or metastatic malignant neoplasm involving the breast. The vast majority of cases are carcinomas arising from the breast parenchyma or the nipple. Malignant breast neoplasms occur more frequently in females than in males.
+    SabRelationshipConceptPrefterm: # Schema name
+      type: object
+      properties:
+        sab:
+          type: string
+          example: ICD10AM
+        relationship:
+          type: string
+          example: CHD
+        concept:
+          type: string
+          example: C0006826
+        prefterm:
+          type: string
+          example: Malignant Neoplasms
     SemanticStn: # Schema name
       type: object
       properties:
@@ -347,6 +344,18 @@ components:
         STN:
           type: string
           example: A
+    StyTuiStn: # Schema name
+      type: object
+      properties:
+        sty:
+          type: string
+          example: Organic Chemical
+        tui:
+          type: string
+          example: T109
+        stn:
+          type: string
+          example: A1.4.1.2.1
     TermtypeCode: # Schema name
       type: object
       properties:
@@ -354,14 +363,5 @@ components:
           type: string
           example: LA
         code:
-          type: string
-          example: LNC LA14283-8
-    ConceptTerm: # Schema name
-      type: object
-      properties:
-        concept:
-          type: string
-          example: C0006826
-        term:
           type: string
           example: LNC LA14283-8

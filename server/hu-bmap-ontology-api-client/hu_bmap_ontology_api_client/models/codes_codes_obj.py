@@ -9,7 +9,12 @@ T = TypeVar("T", bound="CodesCodesObj")
 
 @attr.s(auto_attribs=True)
 class CodesCodesObj:
-    """ """
+    """
+    Attributes:
+        concept (Union[Unset, str]):  Example: C0006142.
+        code (Union[Unset, str]):  Example: CCS 2.5.
+        sab (Union[Unset, str]):  Example: CCF.
+    """
 
     concept: Union[Unset, str] = UNSET
     code: Union[Unset, str] = UNSET

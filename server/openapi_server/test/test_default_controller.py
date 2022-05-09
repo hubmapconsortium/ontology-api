@@ -6,17 +6,15 @@ import unittest
 from flask import json
 from six import BytesIO
 
-from openapi_server.models.concept_code import ConceptCode  # noqa: E501
+from openapi_server.models.codes_codes_obj import CodesCodesObj  # noqa: E501
 from openapi_server.models.concept_detail import ConceptDetail  # noqa: E501
 from openapi_server.models.concept_term import ConceptTerm  # noqa: E501
 from openapi_server.models.qqst import QQST  # noqa: E501
-from openapi_server.models.sab_code_term import SabCodeTerm  # noqa: E501
 from openapi_server.models.sab_definition import SabDefinition  # noqa: E501
 from openapi_server.models.sab_relationship_concept_prefterm import SabRelationshipConceptPrefterm  # noqa: E501
 from openapi_server.models.semantic_stn import SemanticStn  # noqa: E501
 from openapi_server.models.sty_tui_stn import StyTuiStn  # noqa: E501
 from openapi_server.models.termtype_code import TermtypeCode  # noqa: E501
-from openapi_server.models.termtype_term import TermtypeTerm  # noqa: E501
 from openapi_server.test import BaseTestCase
 
 
@@ -48,36 +46,6 @@ class TestDefaultController(BaseTestCase):
         }
         response = self.client.open(
             '/codes/{code_id}/concepts'.format(code_id='SNOMEDCT_US 254837009'),
-            method='GET',
-            headers=headers)
-        self.assert200(response,
-                       'Response body is : ' + response.data.decode('utf-8'))
-
-    def test_codes_code_id_description_get(self):
-        """Test case for codes_code_id_description_get
-
-        Returns a list of {SAB, Code, Term} dictionaries associated with the code_id
-        """
-        headers = { 
-            'Accept': 'application/json',
-        }
-        response = self.client.open(
-            '/codes/{code_id}/description'.format(code_id='CCF UBERON_0013702'),
-            method='GET',
-            headers=headers)
-        self.assert200(response,
-                       'Response body is : ' + response.data.decode('utf-8'))
-
-    def test_codes_code_id_terms_get(self):
-        """Test case for codes_code_id_terms_get
-
-        Returns a list of {TermType, Term} dictionaries associated with the code_id
-        """
-        headers = { 
-            'Accept': 'application/json',
-        }
-        response = self.client.open(
-            '/codes/{code_id}/terms'.format(code_id='SNOMEDCT_US 254837009'),
             method='GET',
             headers=headers)
         self.assert200(response,
@@ -138,21 +106,6 @@ class TestDefaultController(BaseTestCase):
         }
         response = self.client.open(
             '/concepts/{concept_id}/semantics'.format(concept_id='C0304055'),
-            method='GET',
-            headers=headers)
-        self.assert200(response,
-                       'Response body is : ' + response.data.decode('utf-8'))
-
-    def test_concepts_concept_id_terms_get(self):
-        """Test case for concepts_concept_id_terms_get
-
-        Returns a list of Terms associated with the concept_id
-        """
-        headers = { 
-            'Accept': 'application/json',
-        }
-        response = self.client.open(
-            '/concepts/{concept_id}/terms'.format(concept_id='C0006142'),
             method='GET',
             headers=headers)
         self.assert200(response,

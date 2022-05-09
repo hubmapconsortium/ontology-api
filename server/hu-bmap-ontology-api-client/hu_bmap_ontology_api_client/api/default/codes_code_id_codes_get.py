@@ -15,9 +15,10 @@ def _get_kwargs(
 ) -> Dict[str, Any]:
     url = "{}/codes/{code_id}/codes".format(client.base_url, code_id=code_id)
 
-    headers: Dict[str, Any] = client.get_headers()
+    headers: Dict[str, str] = client.get_headers()
     cookies: Dict[str, Any] = client.get_cookies()
 
+    params: Dict[str, Any] = {}
     json_sab: Union[Unset, None, List[str]] = UNSET
     if not isinstance(sab, Unset):
         if sab is None:
@@ -25,12 +26,12 @@ def _get_kwargs(
         else:
             json_sab = sab
 
-    params: Dict[str, Any] = {
-        "sab": json_sab,
-    }
+    params["sab"] = json_sab
+
     params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
     return {
+        "method": "get",
         "url": url,
         "headers": headers,
         "cookies": cookies,
@@ -67,13 +68,24 @@ def sync_detailed(
     client: Client,
     sab: Union[Unset, None, List[str]] = UNSET,
 ) -> Response[List[CodesCodesObj]]:
+    """Returns a list of code_ids {Concept, Code, SAB} that code the same concept(s) as the code_id,
+    optionally restricted to source (SAB)
+
+    Args:
+        code_id (str):  Example: SNOMEDCT_US 254837009.
+        sab (Union[Unset, None, List[str]]):
+
+    Returns:
+        Response[List[CodesCodesObj]]
+    """
+
     kwargs = _get_kwargs(
         code_id=code_id,
         client=client,
         sab=sab,
     )
 
-    response = httpx.get(
+    response = httpx.request(
         verify=client.verify_ssl,
         **kwargs,
     )
@@ -87,7 +99,16 @@ def sync(
     client: Client,
     sab: Union[Unset, None, List[str]] = UNSET,
 ) -> Optional[List[CodesCodesObj]]:
-    """ """
+    """Returns a list of code_ids {Concept, Code, SAB} that code the same concept(s) as the code_id,
+    optionally restricted to source (SAB)
+
+    Args:
+        code_id (str):  Example: SNOMEDCT_US 254837009.
+        sab (Union[Unset, None, List[str]]):
+
+    Returns:
+        Response[List[CodesCodesObj]]
+    """
 
     return sync_detailed(
         code_id=code_id,
@@ -102,6 +123,17 @@ async def asyncio_detailed(
     client: Client,
     sab: Union[Unset, None, List[str]] = UNSET,
 ) -> Response[List[CodesCodesObj]]:
+    """Returns a list of code_ids {Concept, Code, SAB} that code the same concept(s) as the code_id,
+    optionally restricted to source (SAB)
+
+    Args:
+        code_id (str):  Example: SNOMEDCT_US 254837009.
+        sab (Union[Unset, None, List[str]]):
+
+    Returns:
+        Response[List[CodesCodesObj]]
+    """
+
     kwargs = _get_kwargs(
         code_id=code_id,
         client=client,
@@ -109,7 +141,7 @@ async def asyncio_detailed(
     )
 
     async with httpx.AsyncClient(verify=client.verify_ssl) as _client:
-        response = await _client.get(**kwargs)
+        response = await _client.request(**kwargs)
 
     return _build_response(response=response)
 
@@ -120,7 +152,16 @@ async def asyncio(
     client: Client,
     sab: Union[Unset, None, List[str]] = UNSET,
 ) -> Optional[List[CodesCodesObj]]:
-    """ """
+    """Returns a list of code_ids {Concept, Code, SAB} that code the same concept(s) as the code_id,
+    optionally restricted to source (SAB)
+
+    Args:
+        code_id (str):  Example: SNOMEDCT_US 254837009.
+        sab (Union[Unset, None, List[str]]):
+
+    Returns:
+        Response[List[CodesCodesObj]]
+    """
 
     return (
         await asyncio_detailed(

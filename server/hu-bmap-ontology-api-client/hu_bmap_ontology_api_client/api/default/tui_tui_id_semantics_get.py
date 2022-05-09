@@ -14,10 +14,11 @@ def _get_kwargs(
 ) -> Dict[str, Any]:
     url = "{}/tui/{tui_id}/semantics".format(client.base_url, tui_id=tui_id)
 
-    headers: Dict[str, Any] = client.get_headers()
+    headers: Dict[str, str] = client.get_headers()
     cookies: Dict[str, Any] = client.get_cookies()
 
     return {
+        "method": "get",
         "url": url,
         "headers": headers,
         "cookies": cookies,
@@ -52,12 +53,21 @@ def sync_detailed(
     *,
     client: Client,
 ) -> Response[List[SemanticStn]]:
+    """Returns a list of symantic_types {semantic, STN} of the type unique id (tui)
+
+    Args:
+        tui_id (str):  Example: T200.
+
+    Returns:
+        Response[List[SemanticStn]]
+    """
+
     kwargs = _get_kwargs(
         tui_id=tui_id,
         client=client,
     )
 
-    response = httpx.get(
+    response = httpx.request(
         verify=client.verify_ssl,
         **kwargs,
     )
@@ -70,7 +80,14 @@ def sync(
     *,
     client: Client,
 ) -> Optional[List[SemanticStn]]:
-    """ """
+    """Returns a list of symantic_types {semantic, STN} of the type unique id (tui)
+
+    Args:
+        tui_id (str):  Example: T200.
+
+    Returns:
+        Response[List[SemanticStn]]
+    """
 
     return sync_detailed(
         tui_id=tui_id,
@@ -83,13 +100,22 @@ async def asyncio_detailed(
     *,
     client: Client,
 ) -> Response[List[SemanticStn]]:
+    """Returns a list of symantic_types {semantic, STN} of the type unique id (tui)
+
+    Args:
+        tui_id (str):  Example: T200.
+
+    Returns:
+        Response[List[SemanticStn]]
+    """
+
     kwargs = _get_kwargs(
         tui_id=tui_id,
         client=client,
     )
 
     async with httpx.AsyncClient(verify=client.verify_ssl) as _client:
-        response = await _client.get(**kwargs)
+        response = await _client.request(**kwargs)
 
     return _build_response(response=response)
 
@@ -99,7 +125,14 @@ async def asyncio(
     *,
     client: Client,
 ) -> Optional[List[SemanticStn]]:
-    """ """
+    """Returns a list of symantic_types {semantic, STN} of the type unique id (tui)
+
+    Args:
+        tui_id (str):  Example: T200.
+
+    Returns:
+        Response[List[SemanticStn]]
+    """
 
     return (
         await asyncio_detailed(

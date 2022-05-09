@@ -6,14 +6,11 @@ import re
 from openapi_server.models.codes_codes_obj import CodesCodesObj  # noqa: E501
 from openapi_server.models.concept_detail import ConceptDetail  # noqa: E501
 from openapi_server.models.concept_term import ConceptTerm  # noqa: E501
-from openapi_server.models.full_capacity_term import FullCapacityTerm  # noqa: E501
 from openapi_server.models.qqst import QQST  # noqa: E501
-from openapi_server.models.sab_code_term import SabCodeTerm  # noqa: E501
 from openapi_server.models.sab_definition import SabDefinition  # noqa: E501
 from openapi_server.models.sab_relationship_concept_prefterm import SabRelationshipConceptPrefterm  # noqa: E501
 from openapi_server.models.semantic_stn import SemanticStn  # noqa: E501
 from openapi_server.models.sty_tui_stn import StyTuiStn  # noqa: E501
-from openapi_server.models.term_resp_obj import TermRespObj  # noqa: E501
 from openapi_server.models.termtype_code import TermtypeCode  # noqa: E501
 
 cypher_tail: str = \
@@ -97,26 +94,6 @@ class Neo4jManager(object):
     def close(self):
         self.driver.close()
 
-    def query_terms_get(self, cypher: str, query: str, sab: List[str], tty: List[str], rel: List[List]) -> List[TermRespObj]:
-        try:
-            rel = parse_and_check_rel(rel)
-        except Exception as e:
-            msg, code = e.args
-            return msg, code
-        termRespObjs: List[TermRespObj] = []
-        with self.driver.session() as session:
-            recds: neo4j.Result = session.run(cypher, queryx=query, sab=sab, tty=tty, rel=rel)
-            for record in recds:
-                try:
-                    termRespObj: TermRespObj = \
-                        TermRespObj(record.get('code_id'), record.get('code_sab'), record.get('code_code'),
-                                    record.get('concept'), record.get('tty'), record.get('term'), record.get('matched'),
-                                    record.get('rel_type'), record.get('rel_sab'))
-                    termRespObjs.append(termRespObj)
-                except KeyError:
-                    pass
-        return termRespObjs
-
     def codes_code_id_codes_get(self, code_id: str, sab: List[str]) -> List[CodesCodesObj]:
         codesCodesObjs: List[CodesCodesObj] = []
         query = 'WITH [$code_id] AS query' \
@@ -138,8 +115,9 @@ class Neo4jManager(object):
     def codes_code_id_concepts_get(self, code_id: str) -> List[ConceptDetail]:
         conceptDetails: List[ConceptDetail] = []
         query = 'WITH [$code_id] AS query' \
-                ' MATCH (a:Code)<-[:CODE]-(b:Concept)-[:PREF_TERM]->(c:Term)' \
+                ' MATCH (a:Code)<-[:CODE]-(b:Concept)' \
                 ' WHERE a.CodeID IN query' \
+                ' OPTIONAL MATCH (b)-[:PREF_TERM]->(c:Term)' \
                 ' RETURN DISTINCT a.CodeID AS Code, b.CUI AS Concept, c.name as Prefterm' \
                 ' ORDER BY Code ASC, Concept'
         with self.driver.session() as session:
@@ -151,30 +129,6 @@ class Neo4jManager(object):
                 except KeyError:
                     pass
         return conceptDetails
-
-    def codes_code_id_description_get(self, code_id: str) -> List[SabCodeTerm]:
-        sabCodeTerms: List[SabCodeTerm] = []
-        query = 'WITH [$code_id] as query' \
-                ' MATCH (c:Code)<--(e:Concept)' \
-                ' WHERE c.CodeID = query' \
-                '  WITH c, e' \
-                '  MATCH p = ((e:Concept)<-[:isa|CHD|subclass_of|part_of*0..5]-(l:Concept))' \
-                ' WHERE ALL (y IN relationships(p)' \
-                ' WHERE y.SAB = c.SAB) ' \
-                '  WITH c, l ' \
-                '  MATCH (n:Code)<--(l:Concept)-[:PREF_TERM]->(v:Term)' \
-                ' WHERE n.SAB = c.SAB' \
-                ' RETURN DISTINCT n.SAB AS SAB, n.CODE as code, v.name as term' \
-                ' ORDER BY SAB, code, size(term)'
-        with self.driver.session() as session:
-            recds: neo4j.Result = session.run(query, code_id=code_id)
-            for record in recds:
-                try:
-                    sabCodeTerm: SabCodeTerm = SabCodeTerm(record.get('SAB'), record.get('code'), record.get('term'))
-                    sabCodeTerms.append(sabCodeTerm)
-                except KeyError:
-                    pass
-        return sabCodeTerms
 
     # https://neo4j.com/docs/api/python-driver/current/api.html#explicit-transactions
     def concepts_concept_id_codes_get(self, concept_id: str, sab: List[str]) -> List[str]:
@@ -197,8 +151,10 @@ class Neo4jManager(object):
     def concepts_concept_id_concepts_get(self, concept_id: str) -> List[SabRelationshipConceptPrefterm]:
         sabRelationshipConceptPrefterms: [SabRelationshipConceptPrefterm] = []
         query = 'WITH [$concept_id] AS query' \
-                ' MATCH (a:Term)<-[:PREF_TERM]-(b:Concept)<-[c]-(d:Concept)-[:PREF_TERM]->(e:Term)' \
+                ' MATCH (b:Concept)<-[c]-(d:Concept)' \
                 ' WHERE b.CUI IN query' \
+                ' OPTIONAL MATCH (b)-[:PREF_TERM]->(a:Term)' \
+                ' OPTIONAL MATCH (d)-[:PREF_TERM]->(e:Term)' \
                 ' RETURN DISTINCT a.name AS Prefterm1, b.CUI AS Concept1, c.SAB AS SAB, type(c) AS Relationship,' \
                 '  d.CUI AS Concept2, e.name AS Prefterm2' \
                 ' ORDER BY Concept1, Relationship, Concept2 ASC, Prefterm1, Prefterm2'
@@ -264,22 +220,6 @@ class Neo4jManager(object):
                     pass
         return qqsts
 
-    def tui_tui_id_semantics_get(self, tui_id: str) -> List[SemanticStn]:
-        semanticStns: [SemanticStn] = []
-        query = 'WITH [$tui_id] AS query' \
-                ' MATCH (a:Semantic)' \
-                ' WHERE (a.TUI IN query OR query = [])' \
-                ' RETURN DISTINCT a.name AS semantic, a.TUI AS TUI, a.STN AS STN1'
-        with self.driver.session() as session:
-            recds: neo4j.Result = session.run(query, tui_id=tui_id)
-            for record in recds:
-                try:
-                    semanticStn: SemanticStn = SemanticStn(record.get('semantic'), record.get('STN1'))
-                    semanticStns.append(semanticStn)
-                except KeyError:
-                    pass
-        return semanticStns
-
     def terms_term_id_codes_get(self, term_id: str) -> List[TermtypeCode]:
         termtypeCodes: [TermtypeCode] = []
         query = 'WITH [$term_id] AS query' \
@@ -338,81 +278,18 @@ class Neo4jManager(object):
                     pass
         return conceptTerms
 
-    def full_capacity_paremeterized_term_get(self, term: str, sab: List[str], tty: List[str], semantic: List[str], contains: bool, case: bool)\
-            -> List[FullCapacityTerm]:
-        print(f"term: '{term}'; sab: {sab}; tty: {tty}; semantic: {semantic}; contains: {contains}; case: {case}")
-        fullCapacityTerms: List[FullCapacityTerm] = []
-        query = "WITH $term AS query" \
-                "  CALL apoc.when($CASE = 'true'," \
-                "    'MATCH (node:Term) WHERE node.name CONTAINS query RETURN node'," \
-                "    'CALL db.index.fulltext.queryNodes(\"Term_name\", \"\"+query+\"\") YIELD node RETURN node'," \
-                "    {query:query})" \
-                "  YIELD value" \
-                "  WITH query, value.node AS node" \
-                "  MATCH (node)" \
-                "    CALL apoc.when($CONTAINS = 'true'," \
-                "      'WHERE toLower(node.name) CONTAINS toLower(query) RETURN node'," \
-                "      'WHERE toLower(node.name) = toLower(query) RETURN node'," \
-                "      {query:query, node:node})" \
-                "    YIELD value" \
-                "  WITH node" \
-                "  OPTIONAL MATCH (node)<-[r]-(:Code)<-[:CODE]-(d:Concept)" \
-                "  WHERE r.CUI = d.CUI" \
-                "    OPTIONAL MATCH (node)<-[:PREF_TERM]-(d:Concept)" \
-                "    WITH d" \
-                "    MATCH (d:Concept)-[:PREF_TERM]->(e:Term)," \
-                "          (f:Semantic)<-[:STY]-(d:Concept)-[:CODE]->(a:Code)-[s]->(b:Term)" \
-                "    WHERE s.CUI = d.CUI AND" \
-                "          (a.SAB IN $SAB OR $SAB = []) AND" \
-                "          (Type(s) IN $TTY OR $TTY = []) AND" \
-                "          (f.name IN $semantic OR $semantic = [])" \
-                "  RETURN DISTINCT b.name as term, Type(s) as TTY, a.CodeID AS code, " \
-                "                  d.CUI AS concept, e.name AS prefterm, f.name AS semantic"
+    def tui_tui_id_semantics_get(self, tui_id: str) -> List[SemanticStn]:
+        semanticStns: [SemanticStn] = []
+        query = 'WITH [$tui_id] AS query' \
+                ' MATCH (a:Semantic)' \
+                ' WHERE (a.TUI IN query OR query = [])' \
+                ' RETURN DISTINCT a.name AS semantic, a.TUI AS TUI, a.STN AS STN1'
         with self.driver.session() as session:
-            recds: neo4j.Result =\
-                session.run(query, term=term, SAB=sab, TTY=tty, semantic=semantic, CONTAINS=contains, CASE=case)
+            recds: neo4j.Result = session.run(query, tui_id=tui_id)
             for record in recds:
                 try:
-                    fullCapacityTerm: FullCapacityTerm =\
-                        FullCapacityTerm(record.get('term'), record.get('TTY'), record.get('code'), record.get('concept'),
-                                         record.get('prefterm'), record.get('semantic'))
-                    fullCapacityTerms.append(fullCapacityTerm)
+                    semanticStn: SemanticStn = SemanticStn(record.get('semantic'), record.get('STN1'))
+                    semanticStns.append(semanticStn)
                 except KeyError:
                     pass
-        return fullCapacityTerms
-
-    def concepts_concept_id_terms_get(self, concept_id: str, sab: List[str], tty: List[str], rel: List[List]) -> List[TermRespObj]:
-        print(f"Original; concept_id: '{concept_id}'; sab: {sab}; tty: {tty}; rel: {rel}")
-        cypher = "MATCH (concept:Concept)" \
-                 " WHERE concept.CUI IN [ $queryx ]" \
-                 " WITH DISTINCT concept.CUI AS matched, concept, $rel AS rel" \
-                 + cypher_tail
-        return self.query_terms_get(cypher, concept_id, sab, tty, rel)
-
-    def codes_code_id_terms_get(self, code_id: str, sab: List[str], tty: List[str], rel: List[List]) -> List[TermRespObj]:
-        print(f"Original; code_id: '{code_id}'; sab: {sab}; tty: {tty}; rel: {rel}")
-        cypher = "MATCH (matched_code:Code)<-[:CODE]-(concept:Concept)" \
-                 " WHERE matched_code.CodeID IN [ $queryx ]" \
-                 " WITH DISTINCT matched_code.CodeID AS matched, concept, $rel AS rel" \
-                 + cypher_tail
-        return self.query_terms_get(cypher, code_id, sab, tty, rel)
-
-    def terms_term_id_terms_get(self, term_id: str, sab: List[str], tty: List[str], rel: List[List]) -> List[TermRespObj]:
-        print(f"Original; term_id: '{term_id}'; sab: {sab}; tty: {tty}; rel: {rel}")
-        cypher = cypher_head + \
-                 " WITH DISTINCT toLower(matched_term.name) as matched, concept, $rel AS rel" \
-                 + cypher_tail
-        return self.query_terms_get(cypher, term_id, sab, tty, rel)
-
-    def nodes_node_id_terms_get(self, node_id: str, sab: List[str], tty: List[str], rel: List[List]) -> List[TermRespObj]:
-        print(f"Original; node_id: '{node_id}'; sab: {sab}; tty: {tty}; rel: {rel}")
-        cypher = cypher_head + \
-                 " WITH COLLECT({matched:toLower(matched_term.name),concept:concept}) AS list1" \
-                 " OPTIONAL MATCH (concept:Concept{CUI:$queryx})" \
-                 " WITH list1 + COLLECT({matched:concept.CUI,concept:concept}) AS list2" \
-                 " OPTIONAL MATCH (matched_code:Code{CodeID:$queryx})<-[:CODE]-(concept:Concept)" \
-                 " WITH list2 + COLLECT({matched:matched_code.CodeID,concept:concept}) AS list3" \
-                 " UNWIND list3 AS rows" \
-                 " WITH DISTINCT rows.matched AS matched, rows.concept as concept, $rel as rel" \
-                 + cypher_tail
-        return self.query_terms_get(cypher, node_id, sab, tty, rel)
+        return semanticStns

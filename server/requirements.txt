@@ -10,4 +10,4 @@ python_dateutil >= 2.6.0
 setuptools >= 21.0.0
 Flask == 1.1.2
 neo4j == 4.2.1
-openapi-python-client >= 0.10.7
+openapi-python-client >= 0.10.8

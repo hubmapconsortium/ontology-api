@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: HuBMAP Ontology API
   description: This document describes the HuBMAP Ontology API
-  version: 1.1.3
+  version: 1.1.4
 servers:
   - url: https://ontology.api.hubmapconsortium.org/
 paths:
@@ -113,6 +113,62 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/SabRelationshipConceptPrefterm'
+  /concepts/expand:
+    post:
+      operationId: concepts_expand_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConceptSabRelDepth"
+      responses:
+        '200':
+          description: Return all {concept, prefterm}
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConceptPrefterm'
+  /concepts/paths:
+    post:
+      operationId: concepts_path_post
+      summary: Return all paths of the relationship pattern specified within the selected sources
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConceptSabRel"
+      responses:
+        '200':
+          description: Return all paths of the relationship pattern specified within the selected sources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PathItemConceptRelationshipSabPrefterm'
+  /concepts/trees:
+    post:
+      operationId: concepts_trees_post
+      summary: Return all paths of the relationship pattern specified within the selected sources
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConceptSabRelDepth"
+      responses:
+        '200':
+          description: Return all paths of the relationship pattern specified within the selected sources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PathItemConceptRelationshipSabPrefterm'
   /concepts/{concept_id}/definitions:
     get:
       operationId: concepts_concept_id_definitions_get
@@ -284,6 +340,50 @@ components:
         prefterm:
           type: string
           example: Malignant neoplasm of breast
+    ConceptSabRel:    # Schema name
+      type: object
+      properties:
+        query_concept_id:
+          type: string
+          example: C2720507
+        sab:
+          type: array
+          items:
+            type: string
+          example: ["SNOMEDCT_US", "HGNC"]
+        rel:
+          type: array
+          items:
+            type: string
+          example: ["isa","isa"]
+    ConceptSabRelDepth:    # Schema name
+      type: object
+      properties:
+        query_concept_id:
+          type: string
+          example: C2720507
+        sab:
+          type: array
+          items:
+            type: string
+          example: ["SNOMEDCT_US", "HGNC"]
+        rel:
+          type: array
+          items:
+            type: string
+          example: ["isa","isa"]
+        depth:
+          type: integer
+          example: 2
+    ConceptPrefterm: # Schema name
+      type: object
+      properties:
+        concept:
+          type: string
+          example: C0006826
+        prefterm:
+          type: string
+          example: Malignant Neoplasms
     ConceptTerm: # Schema name
       type: object
       properties:
@@ -293,6 +393,25 @@ components:
         term:
           type: string
           example: LNC LA14283-8
+    PathItemConceptRelationshipSabPrefterm: # Schema name
+      type: object
+      properties:
+        path:
+          type: string
+        item:
+          type: string
+        concept:
+          type: string
+          example: C0006826
+        relationship:
+          type: string
+          example: CHD
+        sab:
+          type: string
+          example: ICD10AM
+        prefterm:
+          type: string
+          example: Malignant Neoplasms
     QQST: # Schema name
       type: object
       properties:

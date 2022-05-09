@@ -5,7 +5,11 @@ import re
 
 from openapi_server.models.codes_codes_obj import CodesCodesObj  # noqa: E501
 from openapi_server.models.concept_detail import ConceptDetail  # noqa: E501
+from openapi_server.models.concept_prefterm import ConceptPrefterm  # noqa: E501
+from openapi_server.models.concept_sab_rel import ConceptSabRel  # noqa: E501
+from openapi_server.models.concept_sab_rel_depth import ConceptSabRelDepth  # noqa: E501
 from openapi_server.models.concept_term import ConceptTerm  # noqa: E501
+from openapi_server.models.path_item_concept_relationship_sab_prefterm import PathItemConceptRelationshipSabPrefterm  # noqa: E501
 from openapi_server.models.qqst import QQST  # noqa: E501
 from openapi_server.models.sab_definition import SabDefinition  # noqa: E501
 from openapi_server.models.sab_relationship_concept_prefterm import SabRelationshipConceptPrefterm  # noqa: E501
@@ -96,11 +100,12 @@ class Neo4jManager(object):
 
     def codes_code_id_codes_get(self, code_id: str, sab: List[str]) -> List[CodesCodesObj]:
         codesCodesObjs: List[CodesCodesObj] = []
-        query = 'WITH [$code_id] AS query' \
-                ' MATCH (a:Code)<-[:CODE]-(b:Concept)-[:CODE]->(c:Code)' \
-                ' WHERE a.CodeID IN query AND (c.SAB IN $SAB OR $SAB = [])' \
-                ' RETURN DISTINCT a.CodeID AS Code1, b.CUI as Concept, c.CodeID AS Code2, c.SAB AS Sab2' \
-                ' ORDER BY Code1, Concept ASC, Code2, Sab2'
+        query: str =\
+            'WITH [$code_id] AS query' \
+            ' MATCH (a:Code)<-[:CODE]-(b:Concept)-[:CODE]->(c:Code)' \
+            ' WHERE a.CodeID IN query AND (c.SAB IN $SAB OR $SAB = [])' \
+            ' RETURN DISTINCT a.CodeID AS Code1, b.CUI as Concept, c.CodeID AS Code2, c.SAB AS Sab2' \
+            ' ORDER BY Code1, Concept ASC, Code2, Sab2'
         with self.driver.session() as session:
             recds: neo4j.Result = session.run(query, code_id=code_id, SAB=sab)
             for record in recds:
@@ -114,12 +119,13 @@ class Neo4jManager(object):
 
     def codes_code_id_concepts_get(self, code_id: str) -> List[ConceptDetail]:
         conceptDetails: List[ConceptDetail] = []
-        query = 'WITH [$code_id] AS query' \
-                ' MATCH (a:Code)<-[:CODE]-(b:Concept)' \
-                ' WHERE a.CodeID IN query' \
-                ' OPTIONAL MATCH (b)-[:PREF_TERM]->(c:Term)' \
-                ' RETURN DISTINCT a.CodeID AS Code, b.CUI AS Concept, c.name as Prefterm' \
-                ' ORDER BY Code ASC, Concept'
+        query: str =\
+            'WITH [$code_id] AS query' \
+            ' MATCH (a:Code)<-[:CODE]-(b:Concept)' \
+            ' WHERE a.CodeID IN query' \
+            ' OPTIONAL MATCH (b)-[:PREF_TERM]->(c:Term)' \
+            ' RETURN DISTINCT a.CodeID AS Code, b.CUI AS Concept, c.name as Prefterm' \
+            ' ORDER BY Code ASC, Concept'
         with self.driver.session() as session:
             recds: neo4j.Result = session.run(query, code_id=code_id)
             for record in recds:
@@ -133,11 +139,12 @@ class Neo4jManager(object):
     # https://neo4j.com/docs/api/python-driver/current/api.html#explicit-transactions
     def concepts_concept_id_codes_get(self, concept_id: str, sab: List[str]) -> List[str]:
         codes: List[str] = []
-        query = 'WITH [$concept_id] AS query' \
-                ' MATCH (a:Concept)-[:CODE]->(b:Code)' \
-                ' WHERE a.CUI IN query AND (b.SAB IN $SAB OR $SAB = [])' \
-                ' RETURN DISTINCT a.CUI AS Concept, b.CodeID AS Code, b.SAB AS Sab' \
-                ' ORDER BY Concept, Code ASC'
+        query: str =\
+            'WITH [$concept_id] AS query' \
+            ' MATCH (a:Concept)-[:CODE]->(b:Code)' \
+            ' WHERE a.CUI IN query AND (b.SAB IN $SAB OR $SAB = [])' \
+            ' RETURN DISTINCT a.CUI AS Concept, b.CodeID AS Code, b.SAB AS Sab' \
+            ' ORDER BY Concept, Code ASC'
         with self.driver.session() as session:
             recds: neo4j.Result = session.run(query, concept_id=concept_id, SAB=sab)
             for record in recds:
@@ -150,14 +157,15 @@ class Neo4jManager(object):
 
     def concepts_concept_id_concepts_get(self, concept_id: str) -> List[SabRelationshipConceptPrefterm]:
         sabRelationshipConceptPrefterms: [SabRelationshipConceptPrefterm] = []
-        query = 'WITH [$concept_id] AS query' \
-                ' MATCH (b:Concept)<-[c]-(d:Concept)' \
-                ' WHERE b.CUI IN query' \
-                ' OPTIONAL MATCH (b)-[:PREF_TERM]->(a:Term)' \
-                ' OPTIONAL MATCH (d)-[:PREF_TERM]->(e:Term)' \
-                ' RETURN DISTINCT a.name AS Prefterm1, b.CUI AS Concept1, c.SAB AS SAB, type(c) AS Relationship,' \
-                '  d.CUI AS Concept2, e.name AS Prefterm2' \
-                ' ORDER BY Concept1, Relationship, Concept2 ASC, Prefterm1, Prefterm2'
+        query: str =\
+            'WITH [$concept_id] AS query' \
+            ' MATCH (b:Concept)<-[c]-(d:Concept)' \
+            ' WHERE b.CUI IN query' \
+            ' OPTIONAL MATCH (b)-[:PREF_TERM]->(a:Term)' \
+            ' OPTIONAL MATCH (d)-[:PREF_TERM]->(e:Term)' \
+            ' RETURN DISTINCT a.name AS Prefterm1, b.CUI AS Concept1, c.SAB AS SAB, type(c) AS Relationship,' \
+            '  d.CUI AS Concept2, e.name AS Prefterm2' \
+            ' ORDER BY Concept1, Relationship, Concept2 ASC, Prefterm1, Prefterm2'
         with self.driver.session() as session:
             recds: neo4j.Result = session.run(query, concept_id=concept_id)
             for record in recds:
@@ -172,11 +180,12 @@ class Neo4jManager(object):
 
     def concepts_concept_id_definitions_get(self, concept_id: str) -> List[SabDefinition]:
         sabDefinitions: [SabDefinition] = []
-        query = 'WITH [$concept_id] AS query' \
-                ' MATCH (a:Concept)-[:DEF]->(b:Definition)' \
-                ' WHERE a.CUI in query' \
-                ' RETURN DISTINCT a.CUI AS Concept, b.SAB AS SAB, b.DEF AS Definition' \
-                ' ORDER BY Concept, SAB'
+        query: str =\
+            'WITH [$concept_id] AS query' \
+            ' MATCH (a:Concept)-[:DEF]->(b:Definition)' \
+            ' WHERE a.CUI in query' \
+            ' RETURN DISTINCT a.CUI AS Concept, b.SAB AS SAB, b.DEF AS Definition' \
+            ' ORDER BY Concept, SAB'
         with self.driver.session() as session:
             recds: neo4j.Result = session.run(query, concept_id=concept_id)
             for record in recds:
@@ -189,10 +198,11 @@ class Neo4jManager(object):
 
     def concepts_concept_id_semantics_get(self, concept_id) -> List[StyTuiStn]:
         styTuiStns: [StyTuiStn] = []
-        query = 'WITH [$concept_id] AS query' \
-                ' MATCH (a:Concept)-[:STY]->(b:Semantic)' \
-                ' WHERE a.CUI IN query' \
-                ' RETURN DISTINCT a.CUI AS concept, b.name AS STY, b.TUI AS TUI, b.STN as STN'
+        query: str =\
+            'WITH [$concept_id] AS query' \
+            ' MATCH (a:Concept)-[:STY]->(b:Semantic)' \
+            ' WHERE a.CUI IN query' \
+            ' RETURN DISTINCT a.CUI AS concept, b.name AS STY, b.TUI AS TUI, b.STN as STN'
         with self.driver.session() as session:
             recds: neo4j.Result = session.run(query, concept_id=concept_id)
             for record in recds:
@@ -203,13 +213,98 @@ class Neo4jManager(object):
                     pass
         return styTuiStns
 
+    def concepts_expand_post(self, concept_sab_rel_depth: ConceptSabRelDepth) -> List[ConceptPrefterm]:
+        conceptPrefterms: [ConceptPrefterm] = []
+        query: str =\
+            "MATCH (c:Concept {CUI: $query_concept_id})" \
+            " CALL apoc.path.expand(c, apoc.text.join([x in $rel | ‘<’+x], ‘|'), ‘Concept’, 1, $depth)" \
+            " YIELD path" \
+            " WHERE ALL(r IN relationships(path) WHERE r.SAB IN $sab)" \
+            " UNWIND nodes(path) AS con OPTIONAL MATCH (con)-[:PREF_TERM]->(pref:Term)" \
+            " RETURN DISTINCT con.CUI as concept, pref.name as prefterm"
+        with self.driver.session() as session:
+            recds: neo4j.Result = session.run(query,
+                                              query_concept_id=concept_sab_rel_depth.query_concept_id(),
+                                              sab=concept_sab_rel_depth.sab(),
+                                              rel=concept_sab_rel_depth.rel(),
+                                              depth=concept_sab_rel_depth.depth())
+            for record in recds:
+                try:
+                    conceptPrefterm: ConceptPrefterm = ConceptPrefterm(record.get('concept'), record.get('prefterm'))
+                    conceptPrefterms.append(conceptPrefterm)
+                except KeyError:
+                    pass
+        return conceptPrefterms
+
+    def concepts_path_post(self, concept_sab_rel: ConceptSabRel) -> List[PathItemConceptRelationshipSabPrefterm]:
+        pathItemConceptRelationshipSabPrefterms: [PathItemConceptRelationshipSabPrefterm] = []
+        query: str =\
+            "MATCH (c:Concept {CUI: $query_concept_id})" \
+            " CALL apoc.path.expandConfig(c, {relationshipFilter: apoc.text.join([x in $rel | ‘<’+x], ‘,’),minLevel: size($rel),maxLevel: size($rel)})" \
+            " YIELD path" \
+            " WHERE ALL(r IN relationships(path) WHERE r.SAB IN $sab)" \
+            " WITH [n IN nodes(path) | n.CUI] AS concepts, [null]+[r IN relationships(path) |Type(r)] AS relationships, [null]+[r IN relationships(path) | r.SAB] AS sabs" \
+            " CALL{WITH concepts,relationships,sabs UNWIND RANGE(0, size(concepts)-1) AS items WITH items AS item, concepts[items] AS concept, relationships[items] AS relationship, sabs[items] AS sab RETURN COLLECT([item,concept,relationship,sab]) AS paths}" \
+            " WITH COLLECT(paths) AS rollup" \
+            " UNWIND RANGE(0, size(rollup)-1) AS path" \
+            " UNWIND rollup[path] as final" \
+            " OPTIONAL MATCH (:Concept{CUI:final[1]})-[:PREF_TERM]->(prefterm:Term)" \
+            " RETURN path as path, final[0] AS item, final[1] AS concept, final[2] AS relationship, final[3] AS sab, prefterm.name as prefterm"
+        with self.driver.session() as session:
+            recds: neo4j.Result = session.run(query,
+                                              query_concept_id=concept_sab_rel.query_concept_id(),
+                                              sab=concept_sab_rel.sab(),
+                                              rel=concept_sab_rel.rel())
+            for record in recds:
+                try:
+                    pathItemConceptRelationshipSabPrefterm: PathItemConceptRelationshipSabPrefterm =\
+                        PathItemConceptRelationshipSabPrefterm(record.get('path'), record.get('item'),
+                                                               record.get('concept'), record.get('relationship'),
+                                                               record.get('sab'), record.get('prefterm'))
+                    pathItemConceptRelationshipSabPrefterms.append(pathItemConceptRelationshipSabPrefterm)
+                except KeyError:
+                    pass
+        return pathItemConceptRelationshipSabPrefterms
+
+    def concepts_trees_post(self, concept_sab_rel_depth: ConceptSabRelDepth) -> List[PathItemConceptRelationshipSabPrefterm]:
+        pathItemConceptRelationshipSabPrefterms: [PathItemConceptRelationshipSabPrefterm] = []
+        query: str =\
+            "MATCH (c:Concept {CUI: $query_concept_id})" \
+            " CALL apoc.path.spanningTree(c, {relationshipFilter: apoc.text.join([x in $rel | ‘<’+x], ‘|'),minLevel: 1,maxLevel: $depth})" \
+            " YIELD path" \
+            " WHERE ALL(r IN relationships(path) WHERE r.SAB IN $sab)" \
+            " WITH [n IN nodes(path) | n.CUI] AS concepts, [null]+[r IN relationships(path) |Type(r)] AS relationships, [null]+[r IN relationships(path) | r.SAB] AS sabs" \
+            " CALL{WITH concepts,relationships,sabs UNWIND RANGE(0, size(concepts)-1) AS items WITH items AS item, concepts[items] AS concept, relationships[items] AS relationship, sabs[items] AS sab RETURN COLLECT([item,concept,relationship,sab]) AS paths}" \
+            " WITH COLLECT(paths) AS rollup" \
+            " UNWIND RANGE(0, size(rollup)-1) AS path" \
+            " UNWIND rollup[path] as final" \
+            " OPTIONAL MATCH (:Concept{CUI:final[1]})-[:PREF_TERM]->(prefterm:Term)" \
+            " RETURN path as path, final[0] AS item, final[1] AS concept, final[2] AS relationship, final[3] AS sab, prefterm.name as prefterm"
+        with self.driver.session() as session:
+            recds: neo4j.Result = session.run(query,
+                                              query_concept_id=concept_sab_rel_depth.query_concept_id(),
+                                              sab=concept_sab_rel_depth.sab(),
+                                              rel=concept_sab_rel_depth.rel(),
+                                              depth=concept_sab_rel_depth.depth())
+            for record in recds:
+                try:
+                    pathItemConceptRelationshipSabPrefterm: PathItemConceptRelationshipSabPrefterm =\
+                        PathItemConceptRelationshipSabPrefterm(record.get('path'), record.get('item'),
+                                                               record.get('concept'), record.get('relationship'),
+                                                               record.get('sab'), record.get('prefterm'))
+                    pathItemConceptRelationshipSabPrefterms.append(pathItemConceptRelationshipSabPrefterm)
+                except KeyError:
+                    pass
+        return pathItemConceptRelationshipSabPrefterms
+
     def semantics_semantic_id_semantics_get(self, semantic_id: str) -> List[QQST]:
         qqsts: [QQST] = []
-        query = 'WITH [$semantic_id] AS query' \
-                ' MATCH (a:Semantic)-[:ISA_STY]->(b:Semantic)' \
-                ' WHERE (a.name IN query OR query = [])' \
-                ' RETURN DISTINCT a.name AS querySemantic, a.TUI as queryTUI, a.STN as querySTN, b.name AS semantic,' \
-                '  b.TUI AS TUI, b.STN as STN'
+        query: str =\
+            'WITH [$semantic_id] AS query' \
+            ' MATCH (a:Semantic)-[:ISA_STY]->(b:Semantic)' \
+            ' WHERE (a.name IN query OR query = [])' \
+            ' RETURN DISTINCT a.name AS querySemantic, a.TUI as queryTUI, a.STN as querySTN, b.name AS semantic,' \
+            '  b.TUI AS TUI, b.STN as STN'
         with self.driver.session() as session:
             recds: neo4j.Result = session.run(query, semantic_id=semantic_id)
             for record in recds:
@@ -222,11 +317,12 @@ class Neo4jManager(object):
 
     def terms_term_id_codes_get(self, term_id: str) -> List[TermtypeCode]:
         termtypeCodes: [TermtypeCode] = []
-        query = 'WITH [$term_id] AS query' \
-                ' MATCH (a:Term)<-[b]-(c:Code)' \
-                ' WHERE a.name IN query' \
-                ' RETURN DISTINCT a.name AS Term, Type(b) AS TermType, c.CodeID AS Code' \
-                ' ORDER BY Term, TermType, Code'
+        query: str =\
+            'WITH [$term_id] AS query' \
+            ' MATCH (a:Term)<-[b]-(c:Code)' \
+            ' WHERE a.name IN query' \
+            ' RETURN DISTINCT a.name AS Term, Type(b) AS TermType, c.CodeID AS Code' \
+            ' ORDER BY Term, TermType, Code'
         with self.driver.session() as session:
             recds: neo4j.Result = session.run(query, term_id=term_id)
             for record in recds:
@@ -239,12 +335,13 @@ class Neo4jManager(object):
 
     def terms_term_id_concepts_get(self, term_id: str) -> List[str]:
         concepts: [str] = []
-        query = 'WITH [$term_id] AS query' \
-                ' OPTIONAL MATCH (a:Term)<-[b]-(c:Code)<-[:CODE]-(d:Concept)' \
-                ' WHERE a.name IN query AND b.CUI = d.CUI' \
-                ' OPTIONAL MATCH (a:Term)<--(d:Concept) WHERE a.name IN query' \
-                ' RETURN DISTINCT a.name AS Term, d.CUI AS Concept' \
-                ' ORDER BY Concept ASC'
+        query: str =\
+            'WITH [$term_id] AS query' \
+            ' OPTIONAL MATCH (a:Term)<-[b]-(c:Code)<-[:CODE]-(d:Concept)' \
+            ' WHERE a.name IN query AND b.CUI = d.CUI' \
+            ' OPTIONAL MATCH (a:Term)<--(d:Concept) WHERE a.name IN query' \
+            ' RETURN DISTINCT a.name AS Term, d.CUI AS Concept' \
+            ' ORDER BY Concept ASC'
         with self.driver.session() as session:
             recds: neo4j.Result = session.run(query, term_id=term_id)
             for record in recds:
@@ -257,17 +354,18 @@ class Neo4jManager(object):
 
     def terms_term_id_concepts_terms_get(self, term_id: str) -> List[ConceptTerm]:
         conceptTerms: [ConceptTerm] = []
-        query = 'WITH [$term_id] AS query' \
-                ' OPTIONAL MATCH (a:Term)<-[b]-(c:Code)<-[:CODE]-(d:Concept)' \
-                ' WHERE a.name IN query AND b.CUI = d.CUI' \
-                ' OPTIONAL MATCH (a:Term)<--(d:Concept)' \
-                ' WHERE a.name IN query WITH a,collect(d.CUI) AS next' \
-                ' MATCH (f:Term)<-[:PREF_TERM]-(g:Concept)-[:CODE]->(h:Code)-[i]->(j:Term)' \
-                ' WHERE g.CUI IN next AND g.CUI = i.CUI' \
-                ' WITH a, g,COLLECT(j.name)+[f.name] AS x' \
-                ' WITH * UNWIND(x) AS Term2' \
-                ' RETURN DISTINCT a.name AS Term1, g.CUI AS Concept, Term2' \
-                ' ORDER BY Term1, Term2'
+        query: str =\
+            'WITH [$term_id] AS query' \
+            ' OPTIONAL MATCH (a:Term)<-[b]-(c:Code)<-[:CODE]-(d:Concept)' \
+            ' WHERE a.name IN query AND b.CUI = d.CUI' \
+            ' OPTIONAL MATCH (a:Term)<--(d:Concept)' \
+            ' WHERE a.name IN query WITH a,collect(d.CUI) AS next' \
+            ' MATCH (f:Term)<-[:PREF_TERM]-(g:Concept)-[:CODE]->(h:Code)-[i]->(j:Term)' \
+            ' WHERE g.CUI IN next AND g.CUI = i.CUI' \
+            ' WITH a, g,COLLECT(j.name)+[f.name] AS x' \
+            ' WITH * UNWIND(x) AS Term2' \
+            ' RETURN DISTINCT a.name AS Term1, g.CUI AS Concept, Term2' \
+            ' ORDER BY Term1, Term2'
         with self.driver.session() as session:
             recds: neo4j.Result = session.run(query, term_id=term_id)
             for record in recds:
@@ -280,10 +378,11 @@ class Neo4jManager(object):
 
     def tui_tui_id_semantics_get(self, tui_id: str) -> List[SemanticStn]:
         semanticStns: [SemanticStn] = []
-        query = 'WITH [$tui_id] AS query' \
-                ' MATCH (a:Semantic)' \
-                ' WHERE (a.TUI IN query OR query = [])' \
-                ' RETURN DISTINCT a.name AS semantic, a.TUI AS TUI, a.STN AS STN1'
+        query: str =\
+            'WITH [$tui_id] AS query' \
+            ' MATCH (a:Semantic)' \
+            ' WHERE (a.TUI IN query OR query = [])' \
+            ' RETURN DISTINCT a.name AS semantic, a.TUI AS TUI, a.STN AS STN1'
         with self.driver.session() as session:
             recds: neo4j.Result = session.run(query, tui_id=tui_id)
             for record in recds:

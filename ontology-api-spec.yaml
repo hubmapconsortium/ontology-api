@@ -122,6 +122,11 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/ConceptSabRelDepth"
+            example:
+              query_concept_id: C2720507
+              sab: [SNOMEDCT_US, HGNC]
+              rel: [isa, isa]
+              depth: 2
       responses:
         '200':
           description: Return all {concept, prefterm}

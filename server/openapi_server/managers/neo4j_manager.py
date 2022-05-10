@@ -17,6 +17,13 @@ from openapi_server.models.semantic_stn import SemanticStn  # noqa: E501
 from openapi_server.models.sty_tui_stn import StyTuiStn  # noqa: E501
 from openapi_server.models.termtype_code import TermtypeCode  # noqa: E501
 
+import logging
+
+logging.basicConfig(format='[%(asctime)s] %(levelname)s in %(module)s:%(lineno)d: %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S',
+                    level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 cypher_tail: str = \
     " CALL apoc.when(rel = []," \
     "  'RETURN concept AS related_concept, NULL AS rel_type, NULL AS rel_sab'," \
@@ -214,6 +221,7 @@ class Neo4jManager(object):
         return styTuiStns
 
     def concepts_expand_post(self, concept_sab_rel_depth: ConceptSabRelDepth) -> List[ConceptPrefterm]:
+        logger.info(f'concepts_expand_post: {concept_sab_rel_depth.to_str()}')
         conceptPrefterms: [ConceptPrefterm] = []
         query: str =\
             "MATCH (c:Concept {CUI: $query_concept_id})" \
@@ -224,10 +232,10 @@ class Neo4jManager(object):
             " RETURN DISTINCT con.CUI as concept, pref.name as prefterm"
         with self.driver.session() as session:
             recds: neo4j.Result = session.run(query,
-                                              query_concept_id=concept_sab_rel_depth.query_concept_id(),
-                                              sab=concept_sab_rel_depth.sab(),
-                                              rel=concept_sab_rel_depth.rel(),
-                                              depth=concept_sab_rel_depth.depth())
+                                              query_concept_id=concept_sab_rel_depth.query_concept_id,
+                                              sab=concept_sab_rel_depth.sab,
+                                              rel=concept_sab_rel_depth.rel,
+                                              depth=concept_sab_rel_depth.depth)
             for record in recds:
                 try:
                     conceptPrefterm: ConceptPrefterm = ConceptPrefterm(record.get('concept'), record.get('prefterm'))
@@ -237,6 +245,7 @@ class Neo4jManager(object):
         return conceptPrefterms
 
     def concepts_path_post(self, concept_sab_rel: ConceptSabRel) -> List[PathItemConceptRelationshipSabPrefterm]:
+        logger.info(f'concepts_path_post: {concept_sab_rel.to_str()}')
         pathItemConceptRelationshipSabPrefterms: [PathItemConceptRelationshipSabPrefterm] = []
         query: str =\
             "MATCH (c:Concept {CUI: $query_concept_id})" \
@@ -252,9 +261,9 @@ class Neo4jManager(object):
             " RETURN path as path, final[0] AS item, final[1] AS concept, final[2] AS relationship, final[3] AS sab, prefterm.name as prefterm"
         with self.driver.session() as session:
             recds: neo4j.Result = session.run(query,
-                                              query_concept_id=concept_sab_rel.query_concept_id(),
-                                              sab=concept_sab_rel.sab(),
-                                              rel=concept_sab_rel.rel())
+                                              query_concept_id=concept_sab_rel.query_concept_id,
+                                              sab=concept_sab_rel.sab,
+                                              rel=concept_sab_rel.rel)
             for record in recds:
                 try:
                     pathItemConceptRelationshipSabPrefterm: PathItemConceptRelationshipSabPrefterm =\
@@ -267,6 +276,7 @@ class Neo4jManager(object):
         return pathItemConceptRelationshipSabPrefterms
 
     def concepts_trees_post(self, concept_sab_rel_depth: ConceptSabRelDepth) -> List[PathItemConceptRelationshipSabPrefterm]:
+        logger.info(f'concepts_trees_post: {concept_sab_rel_depth.to_str()}')
         pathItemConceptRelationshipSabPrefterms: [PathItemConceptRelationshipSabPrefterm] = []
         query: str =\
             "MATCH (c:Concept {CUI: $query_concept_id})" \
@@ -282,10 +292,10 @@ class Neo4jManager(object):
             " RETURN path as path, final[0] AS item, final[1] AS concept, final[2] AS relationship, final[3] AS sab, prefterm.name as prefterm"
         with self.driver.session() as session:
             recds: neo4j.Result = session.run(query,
-                                              query_concept_id=concept_sab_rel_depth.query_concept_id(),
-                                              sab=concept_sab_rel_depth.sab(),
-                                              rel=concept_sab_rel_depth.rel(),
-                                              depth=concept_sab_rel_depth.depth())
+                                              query_concept_id=concept_sab_rel_depth.query_concept_id,
+                                              sab=concept_sab_rel_depth.sab,
+                                              rel=concept_sab_rel_depth.rel,
+                                              depth=concept_sab_rel_depth.depth)
             for record in recds:
                 try:
                     pathItemConceptRelationshipSabPrefterm: PathItemConceptRelationshipSabPrefterm =\

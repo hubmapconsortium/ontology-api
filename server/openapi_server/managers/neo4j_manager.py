@@ -221,7 +221,7 @@ class Neo4jManager(object):
         return styTuiStns
 
     def concepts_expand_post(self, concept_sab_rel_depth: ConceptSabRelDepth) -> List[ConceptPrefterm]:
-        logger.info(f'concepts_expand_post: {concept_sab_rel_depth.to_dict()}')
+        #logger.info(f'concepts_expand_post: {concept_sab_rel_depth.to_dict()}')
         conceptPrefterms: [ConceptPrefterm] = []
         query: str =\
             "MATCH (c:Concept {CUI: $query_concept_id})" \
@@ -245,7 +245,7 @@ class Neo4jManager(object):
         return conceptPrefterms
 
     def concepts_path_post(self, concept_sab_rel: ConceptSabRel) -> List[PathItemConceptRelationshipSabPrefterm]:
-        logger.info(f'concepts_path_post: {concept_sab_rel.to_dict()}')
+        #logger.info(f'concepts_path_post: {concept_sab_rel.to_dict()}')
         pathItemConceptRelationshipSabPrefterms: [PathItemConceptRelationshipSabPrefterm] = []
         query: str =\
             "MATCH (c:Concept {CUI: $query_concept_id})" \
@@ -276,7 +276,7 @@ class Neo4jManager(object):
         return pathItemConceptRelationshipSabPrefterms
 
     def concepts_trees_post(self, concept_sab_rel_depth: ConceptSabRelDepth) -> List[PathItemConceptRelationshipSabPrefterm]:
-        logger.info(f'concepts_trees_post: {concept_sab_rel_depth.to_dict()}')
+        #logger.info(f'concepts_trees_post: {concept_sab_rel_depth.to_dict()}')
         pathItemConceptRelationshipSabPrefterms: [PathItemConceptRelationshipSabPrefterm] = []
         query: str =\
             "MATCH (c:Concept {CUI: $query_concept_id})" \

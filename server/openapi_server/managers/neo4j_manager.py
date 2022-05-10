@@ -234,18 +234,18 @@ class Neo4jManager(object):
             " WHERE ALL(r IN relationships(path) WHERE r.SAB IN $sab)" \
             " UNWIND nodes(path) AS con OPTIONAL MATCH (con)-[:PREF_TERM]->(pref:Term)" \
             " RETURN DISTINCT con.CUI as concept, pref.name as prefterm"
-        with self.driver.session() as session:
-            recds: neo4j.Result = session.run(query,
-                                              query_concept_id=concept_sab_rel_depth.query_concept_id,
-                                              sab=concept_sab_rel_depth.sab,
-                                              rel=concept_sab_rel_depth.rel,
-                                              depth=concept_sab_rel_depth.depth)
-            for record in recds:
-                try:
-                    conceptPrefterm: ConceptPrefterm = ConceptPrefterm(record.get('concept'), record.get('prefterm'))
-                    conceptPrefterms.append(conceptPrefterm)
-                except KeyError:
-                    pass
+        # with self.driver.session() as session:
+        #     recds: neo4j.Result = session.run(query,
+        #                                       query_concept_id=concept_sab_rel_depth.query_concept_id,
+        #                                       sab=concept_sab_rel_depth.sab,
+        #                                       rel=concept_sab_rel_depth.rel,
+        #                                       depth=concept_sab_rel_depth.depth)
+        #     for record in recds:
+        #         try:
+        #             conceptPrefterm: ConceptPrefterm = ConceptPrefterm(record.get('concept'), record.get('prefterm'))
+        #             conceptPrefterms.append(conceptPrefterm)
+        #         except KeyError:
+        #             pass
         return conceptPrefterms
 
     def concepts_path_post(self, concept_sab_rel: ConceptSabRel) -> List[PathItemConceptRelationshipSabPrefterm]:

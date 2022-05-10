@@ -17,12 +17,12 @@ from openapi_server.models.semantic_stn import SemanticStn  # noqa: E501
 from openapi_server.models.sty_tui_stn import StyTuiStn  # noqa: E501
 from openapi_server.models.termtype_code import TermtypeCode  # noqa: E501
 
-# import logging
+import logging
 
-# logging.basicConfig(format='[%(asctime)s] %(levelname)s in %(module)s:%(lineno)d: %(message)s',
-#                     datefmt='%Y-%m-%d %H:%M:%S',
-#                     level=logging.INFO)
-# logger = logging.getLogger(__name__)
+logging.basicConfig(format='[%(asctime)s] %(levelname)s in %(module)s:%(lineno)d: %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S',
+                    level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 cypher_tail: str = \
     " CALL apoc.when(rel = []," \
@@ -221,7 +221,11 @@ class Neo4jManager(object):
         return styTuiStns
 
     def concepts_expand_post(self, concept_sab_rel_depth: ConceptSabRelDepth) -> List[ConceptPrefterm]:
-        #logger.info(f'concepts_expand_post: {concept_sab_rel_depth.to_dict()}')
+        logger.info(f'query_concept_id: {concept_sab_rel_depth.query_concept_id}')
+        logger.info(f'sab: {concept_sab_rel_depth.sab}')
+        logger.info(f'rel: {concept_sab_rel_depth.rel}')
+        logger.info(f'depth: {concept_sab_rel_depth.depth}')
+        logger.info(f'concepts_expand_post: {concept_sab_rel_depth.to_dict()}')
         conceptPrefterms: [ConceptPrefterm] = []
         query: str =\
             "MATCH (c:Concept {CUI: $query_concept_id})" \

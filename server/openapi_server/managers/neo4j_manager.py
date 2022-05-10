@@ -17,12 +17,12 @@ from openapi_server.models.semantic_stn import SemanticStn  # noqa: E501
 from openapi_server.models.sty_tui_stn import StyTuiStn  # noqa: E501
 from openapi_server.models.termtype_code import TermtypeCode  # noqa: E501
 
-import logging
+# import logging
 
-logging.basicConfig(format='[%(asctime)s] %(levelname)s in %(module)s:%(lineno)d: %(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S',
-                    level=logging.INFO)
-logger = logging.getLogger(__name__)
+# logging.basicConfig(format='[%(asctime)s] %(levelname)s in %(module)s:%(lineno)d: %(message)s',
+#                     datefmt='%Y-%m-%d %H:%M:%S',
+#                     level=logging.INFO)
+# logger = logging.getLogger(__name__)
 
 cypher_tail: str = \
     " CALL apoc.when(rel = []," \

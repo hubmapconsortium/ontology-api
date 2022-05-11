@@ -241,7 +241,7 @@ class Neo4jManager(object):
                                                   query_concept_id=concept_sab_rel_depth.query_concept_id,
                                                   sab=sab,
                                                   rel=rel,
-                                                  depth=concept_sab_rel_depth.depth)
+                                                  depth=str(concept_sab_rel_depth.depth))
             except CypherSyntaxError as e:
                 logger.info(f'concepts_expand_post; CypherSyntaxError message: {e}')
             for record in recds:
@@ -258,7 +258,7 @@ class Neo4jManager(object):
         pathItemConceptRelationshipSabPrefterms: [PathItemConceptRelationshipSabPrefterm] = []
         query: str =\
             "MATCH (c:Concept {CUI: $query_concept_id})" \
-            " CALL apoc.path.expandConfig(c, {relationshipFilter: apoc.text.join([x in $rel | ‘<’+x], ‘,’),minLevel: size($rel),maxLevel: size($rel)})" \
+            " CALL apoc.path.expandConfig(c, {relationshipFilter: apoc.text.join([x in $rel | '<'+x], ','),minLevel: size($rel),maxLevel: size($rel)})" \
             " YIELD path" \
             " WHERE ALL(r IN relationships(path) WHERE r.SAB IN $sab)" \
             " WITH [n IN nodes(path) | n.CUI] AS concepts, [null]+[r IN relationships(path) |Type(r)] AS relationships, [null]+[r IN relationships(path) | r.SAB] AS sabs" \
@@ -289,7 +289,7 @@ class Neo4jManager(object):
         pathItemConceptRelationshipSabPrefterms: [PathItemConceptRelationshipSabPrefterm] = []
         query: str =\
             "MATCH (c:Concept {CUI: $query_concept_id})" \
-            " CALL apoc.path.spanningTree(c, {relationshipFilter: apoc.text.join([x in $rel | ‘<’+x], ‘|'),minLevel: 1,maxLevel: $depth})" \
+            " CALL apoc.path.spanningTree(c, {relationshipFilter: apoc.text.join([x in $rel | '<'+x], '|'),minLevel: 1,maxLevel: $depth})" \
             " YIELD path" \
             " WHERE ALL(r IN relationships(path) WHERE r.SAB IN $sab)" \
             " WITH [n IN nodes(path) | n.CUI] AS concepts, [null]+[r IN relationships(path) |Type(r)] AS relationships, [null]+[r IN relationships(path) | r.SAB] AS sabs" \

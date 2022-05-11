@@ -233,16 +233,16 @@ class Neo4jManager(object):
             " UNWIND nodes(path) AS con OPTIONAL MATCH (con)-[:PREF_TERM]->(pref:Term)" \
             " RETURN DISTINCT con.CUI as concept, pref.name as prefterm"
         # There seems to be a but in 'session.run' where it cannot handle arrays?!
-        sab: str = ', '.join("'{0}'".format(s) for s in concept_sab_rel_depth.sab)
-        query = query.replace('$sab', sab)
-        rel: str = ', '.join("'{0}'".format(s) for s in concept_sab_rel_depth.rel)
-        query = query.replace('$rel', rel)
-        logger.info(f'query: "{query}"')
+        # sab: str = ', '.join("'{0}'".format(s) for s in concept_sab_rel_depth.sab)
+        # query = query.replace('$sab', sab)
+        # rel: str = ', '.join("'{0}'".format(s) for s in concept_sab_rel_depth.rel)
+        # query = query.replace('$rel', rel)
+        # logger.info(f'query: "{query}"')
         with self.driver.session() as session:
             recds: neo4j.Result = session.run(query,
                                               query_concept_id=concept_sab_rel_depth.query_concept_id,
-                                              # sab=sab,
-                                              # rel=rel,
+                                              sab=concept_sab_rel_depth.sab,
+                                              rel=concept_sab_rel_depth.rel,
                                               depth=concept_sab_rel_depth.depth
                                               )
             for record in recds:

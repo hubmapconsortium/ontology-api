@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   description: This document describes the HuBMAP Ontology API
   title: HuBMAP Ontology API
-  version: 1.1.3
+  version: 1.1.4
 servers:
 - url: https://ontology.api.hubmapconsortium.org/
 paths:
@@ -67,6 +67,126 @@ paths:
                 type: array
           description: A JSON array of dictionaries
       summary: Returns a list of concepts {Concept, Prefterm} that the code_id codes
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /concepts/expand:
+    post:
+      operationId: concepts_expand_post
+      requestBody:
+        content:
+          application/json:
+            example:
+              query_concept_id: C2720507
+              sab:
+              - SNOMEDCT_US
+              - HGNC
+              rel:
+              - isa
+              - isa
+              depth: 2
+            schema:
+              $ref: '#/components/schemas/ConceptSabRelDepth'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/ConceptPrefterm'
+                type: array
+          description: Return all {concept, prefterm}
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /concepts/paths:
+    post:
+      operationId: concepts_path_post
+      requestBody:
+        content:
+          application/json:
+            example:
+              query_concept_id: C2720507
+              sab:
+              - SNOMEDCT_US
+              - HGNC
+              rel:
+              - isa
+              - isa
+            schema:
+              $ref: '#/components/schemas/ConceptSabRel'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/PathItemConceptRelationshipSabPrefterm'
+                type: array
+          description: Return all paths of the relationship pattern specified within
+            the selected sources
+      summary: Return all paths of the relationship pattern specified within the selected
+        sources
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /concepts/shortestpaths:
+    post:
+      operationId: concepts_shortestpaths_post
+      requestBody:
+        content:
+          application/json:
+            example:
+              query_concept_id: C2720507
+              target_concept_id: C1272753
+              sab:
+              - SNOMEDCT_US
+              - HGNC
+              rel:
+              - isa
+              - part_of
+            schema:
+              $ref: '#/components/schemas/QconceptTconceptSabRel'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/PathItemConceptRelationshipSabPrefterm'
+                type: array
+          description: Return all paths of the relationship pattern specified within
+            the selected sources
+      summary: Return all paths of the relationship pattern specified within the selected
+        sources
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /concepts/trees:
+    post:
+      operationId: concepts_trees_post
+      requestBody:
+        content:
+          application/json:
+            example:
+              query_concept_id: C2720507
+              sab:
+              - SNOMEDCT_US
+              - HGNC
+              rel:
+              - isa
+              - isa
+              depth: 2
+            schema:
+              $ref: '#/components/schemas/ConceptSabRelDepth'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/PathItemConceptRelationshipSabPrefterm'
+                type: array
+          description: Return all paths of the relationship pattern specified within
+            the selected sources
+      summary: Return all paths of the relationship pattern specified within the selected
+        sources
       x-openapi-router-controller: openapi_server.controllers.default_controller
   /concepts/{concept_id}/codes:
     get:
@@ -305,21 +425,6 @@ paths:
       x-openapi-router-controller: openapi_server.controllers.default_controller
 components:
   schemas:
-    ConceptDetail:
-      example:
-        concept: C0006142
-        prefterm: Malignant neoplasm of breast
-      properties:
-        concept:
-          example: C0006142
-          title: concept
-          type: string
-        prefterm:
-          example: Malignant neoplasm of breast
-          title: prefterm
-          type: string
-      title: ConceptDetail
-      type: object
     CodesCodesObj:
       example:
         code: CCS 2.5
@@ -340,21 +445,86 @@ components:
           type: string
       title: CodesCodesObj
       type: object
-    SabRelationshipConceptPrefterm:
+    ConceptDetail:
       example:
-        sab: ICD10AM
+        concept: C0006142
+        prefterm: Malignant neoplasm of breast
+      properties:
+        concept:
+          example: C0006142
+          title: concept
+          type: string
+        prefterm:
+          example: Malignant neoplasm of breast
+          title: prefterm
+          type: string
+      title: ConceptDetail
+      type: object
+    ConceptSabRel:
+      example:
+        sab:
+        - SNOMEDCT_US
+        - HGNC
+        rel:
+        - isa
+        - isa
+        query_concept_id: C2720507
+      properties:
+        query_concept_id:
+          example: C2720507
+          type: string
+        sab:
+          example:
+          - SNOMEDCT_US
+          - HGNC
+          items:
+            type: string
+          type: array
+        rel:
+          example:
+          - isa
+          - isa
+          items:
+            type: string
+          type: array
+      type: object
+    ConceptSabRelDepth:
+      example:
+        depth: 2
+        sab:
+        - SNOMEDCT_US
+        - HGNC
+        rel:
+        - isa
+        - isa
+        query_concept_id: C2720507
+      properties:
+        query_concept_id:
+          example: C2720507
+          type: string
+        sab:
+          example:
+          - SNOMEDCT_US
+          - HGNC
+          items:
+            type: string
+          type: array
+        rel:
+          example:
+          - isa
+          - isa
+          items:
+            type: string
+          type: array
+        depth:
+          example: 2
+          type: integer
+      type: object
+    ConceptPrefterm:
+      example:
         concept: C0006826
         prefterm: Malignant Neoplasms
-        relationship: CHD
       properties:
-        sab:
-          example: ICD10AM
-          title: sab
-          type: string
-        relationship:
-          example: CHD
-          title: relationship
-          type: string
         concept:
           example: C0006826
           title: concept
@@ -363,48 +533,87 @@ components:
           example: Malignant Neoplasms
           title: prefterm
           type: string
-      title: SabRelationshipConceptPrefterm
+      title: ConceptPrefterm
       type: object
-    SabDefinition:
+    ConceptTerm:
       example:
-        sab: NCI
-        definition: A primary or metastatic malignant neoplasm involving the breast.
-          The vast majority of cases are carcinomas arising from the breast parenchyma
-          or the nipple. Malignant breast neoplasms occur more frequently in females
-          than in males.
+        concept: C0006826
+        term: LNC LA14283-8
       properties:
+        concept:
+          example: C0006826
+          title: concept
+          type: string
+        term:
+          example: LNC LA14283-8
+          title: term
+          type: string
+      title: ConceptTerm
+      type: object
+    PathItemConceptRelationshipSabPrefterm:
+      example:
+        path: path
+        item: item
+        sab: ICD10AM
+        concept: C0006826
+        prefterm: Malignant Neoplasms
+        relationship: CHD
+      properties:
+        path:
+          title: path
+          type: string
+        item:
+          title: item
+          type: string
+        concept:
+          example: C0006826
+          title: concept
+          type: string
+        relationship:
+          example: CHD
+          title: relationship
+          type: string
         sab:
-          example: NCI
+          example: ICD10AM
           title: sab
           type: string
-        definition:
-          example: A primary or metastatic malignant neoplasm involving the breast.
-            The vast majority of cases are carcinomas arising from the breast parenchyma
-            or the nipple. Malignant breast neoplasms occur more frequently in females
-            than in males.
-          title: definition
+        prefterm:
+          example: Malignant Neoplasms
+          title: prefterm
           type: string
-      title: SabDefinition
+      title: PathItemConceptRelationshipSabPrefterm
       type: object
-    StyTuiStn:
+    QconceptTconceptSabRel:
       example:
-        sty: Organic Chemical
-        tui: T109
-        stn: A1.4.1.2.1
+        target_concept_id: C1272753
+        sab:
+        - SNOMEDCT_US
+        - HGNC
+        rel:
+        - isa
+        - part_of
+        query_concept_id: C2720507
       properties:
-        sty:
-          example: Organic Chemical
-          title: sty
+        query_concept_id:
+          example: C2720507
           type: string
-        tui:
-          example: T109
-          title: tui
+        target_concept_id:
+          example: C1272753
           type: string
-        stn:
-          example: A1.4.1.2.1
-          title: stn
-          type: string
-      title: StyTuiStn
+        sab:
+          example:
+          - SNOMEDCT_US
+          - HGNC
+          items:
+            type: string
+          type: array
+        rel:
+          example:
+          - isa
+          - part_of
+          items:
+            type: string
+          type: array
       type: object
     QQST:
       example:
@@ -436,6 +645,52 @@ components:
           type: string
       title: QQST
       type: object
+    SabDefinition:
+      example:
+        sab: NCI
+        definition: A primary or metastatic malignant neoplasm involving the breast.
+          The vast majority of cases are carcinomas arising from the breast parenchyma
+          or the nipple. Malignant breast neoplasms occur more frequently in females
+          than in males.
+      properties:
+        sab:
+          example: NCI
+          title: sab
+          type: string
+        definition:
+          example: A primary or metastatic malignant neoplasm involving the breast.
+            The vast majority of cases are carcinomas arising from the breast parenchyma
+            or the nipple. Malignant breast neoplasms occur more frequently in females
+            than in males.
+          title: definition
+          type: string
+      title: SabDefinition
+      type: object
+    SabRelationshipConceptPrefterm:
+      example:
+        sab: ICD10AM
+        concept: C0006826
+        prefterm: Malignant Neoplasms
+        relationship: CHD
+      properties:
+        sab:
+          example: ICD10AM
+          title: sab
+          type: string
+        relationship:
+          example: CHD
+          title: relationship
+          type: string
+        concept:
+          example: C0006826
+          title: concept
+          type: string
+        prefterm:
+          example: Malignant Neoplasms
+          title: prefterm
+          type: string
+      title: SabRelationshipConceptPrefterm
+      type: object
     SemanticStn:
       example:
         semantic: Entity
@@ -451,6 +706,26 @@ components:
           type: string
       title: SemanticStn
       type: object
+    StyTuiStn:
+      example:
+        sty: Organic Chemical
+        tui: T109
+        stn: A1.4.1.2.1
+      properties:
+        sty:
+          example: Organic Chemical
+          title: sty
+          type: string
+        tui:
+          example: T109
+          title: tui
+          type: string
+        stn:
+          example: A1.4.1.2.1
+          title: stn
+          type: string
+      title: StyTuiStn
+      type: object
     TermtypeCode:
       example:
         code: LNC LA14283-8
@@ -465,19 +740,4 @@ components:
           title: code
           type: string
       title: TermtypeCode
-      type: object
-    ConceptTerm:
-      example:
-        concept: C0006826
-        term: LNC LA14283-8
-      properties:
-        concept:
-          example: C0006826
-          title: concept
-          type: string
-        term:
-          example: LNC LA14283-8
-          title: term
-          type: string
-      title: ConceptTerm
       type: object

@@ -3,8 +3,13 @@ import six
 
 from openapi_server.models.codes_codes_obj import CodesCodesObj  # noqa: E501
 from openapi_server.models.concept_detail import ConceptDetail  # noqa: E501
+from openapi_server.models.concept_prefterm import ConceptPrefterm  # noqa: E501
+from openapi_server.models.concept_sab_rel import ConceptSabRel  # noqa: E501
+from openapi_server.models.concept_sab_rel_depth import ConceptSabRelDepth  # noqa: E501
 from openapi_server.models.concept_term import ConceptTerm  # noqa: E501
+from openapi_server.models.path_item_concept_relationship_sab_prefterm import PathItemConceptRelationshipSabPrefterm  # noqa: E501
 from openapi_server.models.qqst import QQST  # noqa: E501
+from openapi_server.models.qconcept_tconcept_sab_rel import QconceptTconceptSabRel  # noqa: E501
 from openapi_server.models.sab_definition import SabDefinition  # noqa: E501
 from openapi_server.models.sab_relationship_concept_prefterm import SabRelationshipConceptPrefterm  # noqa: E501
 from openapi_server.models.semantic_stn import SemanticStn  # noqa: E501
@@ -97,6 +102,55 @@ def concepts_concept_id_semantics_get(concept_id):  # noqa: E501
     :rtype: List[StyTuiStn]
     """
     return neo4jManager.concepts_concept_id_semantics_get(concept_id)
+
+
+# https://github.com/OpenAPITools/openapi-generator/issues/6039
+def concepts_expand_post():  # noqa: E501
+    """concepts_expand_post
+
+     # noqa: E501
+
+    :rtype: List[ConceptPrefterm]
+    """
+    if connexion.request.is_json:
+        concept_sab_rel_depth = ConceptSabRelDepth.from_dict(connexion.request.get_json())  # noqa: E501
+    return neo4jManager.concepts_expand_post(concept_sab_rel_depth)
+
+
+def concepts_path_post():  # noqa: E501
+    """Return all paths of the relationship pattern specified within the selected sources
+
+     # noqa: E501
+
+    :rtype: List[PathItemConceptRelationshipSabPrefterm]
+    """
+    if connexion.request.is_json:
+        concept_sab_rel = ConceptSabRel.from_dict(connexion.request.get_json())  # noqa: E501
+    return neo4jManager.concepts_path_post(concept_sab_rel)
+
+
+def concepts_shortestpaths_post():  # noqa: E501
+    """Return all paths of the relationship pattern specified within the selected sources
+
+     # noqa: E501
+
+    :rtype: List[PathItemConceptRelationshipSabPrefterm]
+    """
+    if connexion.request.is_json:
+        qconcept_tconcept_sab_rel = QconceptTconceptSabRel.from_dict(connexion.request.get_json())  # noqa: E501
+    return neo4jManager.concepts_shortestpaths_post(qconcept_tconcept_sab_rel)
+
+
+def concepts_trees_post():  # noqa: E501
+    """Return all paths of the relationship pattern specified within the selected sources
+
+     # noqa: E501
+
+    :rtype: List[PathItemConceptRelationshipSabPrefterm]
+    """
+    if connexion.request.is_json:
+        concept_sab_rel_depth = ConceptSabRelDepth.from_dict(connexion.request.get_json())  # noqa: E501
+    return neo4jManager.concepts_trees_post(concept_sab_rel_depth)
 
 
 def semantics_semantic_id_semantics_get(semantic_id):  # noqa: E501

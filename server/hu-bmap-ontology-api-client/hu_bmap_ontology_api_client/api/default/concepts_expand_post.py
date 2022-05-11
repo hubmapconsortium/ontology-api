@@ -3,34 +3,38 @@ from typing import Any, Dict, List, Optional
 import httpx
 
 from ...client import Client
-from ...models.sty_tui_stn import StyTuiStn
+from ...models.concept_prefterm import ConceptPrefterm
+from ...models.concept_sab_rel_depth import ConceptSabRelDepth
 from ...types import Response
 
 
 def _get_kwargs(
-    concept_id: str,
     *,
     client: Client,
+    json_body: ConceptSabRelDepth,
 ) -> Dict[str, Any]:
-    url = "{}/concepts/{concept_id}/semantics".format(client.base_url, concept_id=concept_id)
+    url = "{}/concepts/expand".format(client.base_url)
 
     headers: Dict[str, Any] = client.get_headers()
     cookies: Dict[str, Any] = client.get_cookies()
+
+    json_json_body = json_body.to_dict()
 
     return {
         "url": url,
         "headers": headers,
         "cookies": cookies,
         "timeout": client.get_timeout(),
+        "json": json_json_body,
     }
 
 
-def _parse_response(*, response: httpx.Response) -> Optional[List[StyTuiStn]]:
+def _parse_response(*, response: httpx.Response) -> Optional[List[ConceptPrefterm]]:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
         for response_200_item_data in _response_200:
-            response_200_item = StyTuiStn.from_dict(response_200_item_data)
+            response_200_item = ConceptPrefterm.from_dict(response_200_item_data)
 
             response_200.append(response_200_item)
 
@@ -38,7 +42,7 @@ def _parse_response(*, response: httpx.Response) -> Optional[List[StyTuiStn]]:
     return None
 
 
-def _build_response(*, response: httpx.Response) -> Response[List[StyTuiStn]]:
+def _build_response(*, response: httpx.Response) -> Response[List[ConceptPrefterm]]:
     return Response(
         status_code=response.status_code,
         content=response.content,
@@ -48,25 +52,24 @@ def _build_response(*, response: httpx.Response) -> Response[List[StyTuiStn]]:
 
 
 def sync_detailed(
-    concept_id: str,
     *,
     client: Client,
-) -> Response[List[StyTuiStn]]:
-    """Returns a list of semantic_types {Sty, Tui, Stn} of the concept
-
+    json_body: ConceptSabRelDepth,
+) -> Response[List[ConceptPrefterm]]:
+    """
     Args:
-        concept_id (str):  Example: C0304055.
+        json_body (ConceptSabRelDepth):
 
     Returns:
-        Response[List[StyTuiStn]]
+        Response[List[ConceptPrefterm]]
     """
 
     kwargs = _get_kwargs(
-        concept_id=concept_id,
         client=client,
+        json_body=json_body,
     )
 
-    response = httpx.get(
+    response = httpx.post(
         verify=client.verify_ssl,
         **kwargs,
     )
@@ -75,67 +78,64 @@ def sync_detailed(
 
 
 def sync(
-    concept_id: str,
     *,
     client: Client,
-) -> Optional[List[StyTuiStn]]:
-    """Returns a list of semantic_types {Sty, Tui, Stn} of the concept
-
+    json_body: ConceptSabRelDepth,
+) -> Optional[List[ConceptPrefterm]]:
+    """
     Args:
-        concept_id (str):  Example: C0304055.
+        json_body (ConceptSabRelDepth):
 
     Returns:
-        Response[List[StyTuiStn]]
+        Response[List[ConceptPrefterm]]
     """
 
     return sync_detailed(
-        concept_id=concept_id,
         client=client,
+        json_body=json_body,
     ).parsed
 
 
 async def asyncio_detailed(
-    concept_id: str,
     *,
     client: Client,
-) -> Response[List[StyTuiStn]]:
-    """Returns a list of semantic_types {Sty, Tui, Stn} of the concept
-
+    json_body: ConceptSabRelDepth,
+) -> Response[List[ConceptPrefterm]]:
+    """
     Args:
-        concept_id (str):  Example: C0304055.
+        json_body (ConceptSabRelDepth):
 
     Returns:
-        Response[List[StyTuiStn]]
+        Response[List[ConceptPrefterm]]
     """
 
     kwargs = _get_kwargs(
-        concept_id=concept_id,
         client=client,
+        json_body=json_body,
     )
 
     async with httpx.AsyncClient(verify=client.verify_ssl) as _client:
-        response = await _client.get(**kwargs)
+        response = await _client.post(**kwargs)
 
     return _build_response(response=response)
 
 
 async def asyncio(
-    concept_id: str,
     *,
     client: Client,
-) -> Optional[List[StyTuiStn]]:
-    """Returns a list of semantic_types {Sty, Tui, Stn} of the concept
-
+    json_body: ConceptSabRelDepth,
+) -> Optional[List[ConceptPrefterm]]:
+    """
     Args:
-        concept_id (str):  Example: C0304055.
+        json_body (ConceptSabRelDepth):
 
     Returns:
-        Response[List[StyTuiStn]]
+        Response[List[ConceptPrefterm]]
     """
 
     return (
         await asyncio_detailed(
-            concept_id=concept_id,
             client=client,
+            json_body=json_body,
         )
     ).parsed

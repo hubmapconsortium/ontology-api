@@ -3,17 +3,17 @@ from typing import Any, Dict, List, Optional
 import httpx
 
 from ...client import Client
-from ...models.concept_prefterm import ConceptPrefterm
-from ...models.concept_sab_rel_depth import ConceptSabRelDepth
+from ...models.path_item_concept_relationship_sab_prefterm import PathItemConceptRelationshipSabPrefterm
+from ...models.qconcept_tconcept_sab_rel import QconceptTconceptSabRel
 from ...types import Response
 
 
 def _get_kwargs(
     *,
     client: Client,
-    json_body: ConceptSabRelDepth,
+    json_body: QconceptTconceptSabRel,
 ) -> Dict[str, Any]:
-    url = "{}/concepts/expand".format(client.base_url)
+    url = "{}/concepts/shortestpaths".format(client.base_url)
 
     headers: Dict[str, Any] = client.get_headers()
     cookies: Dict[str, Any] = client.get_cookies()
@@ -29,12 +29,12 @@ def _get_kwargs(
     }
 
 
-def _parse_response(*, response: httpx.Response) -> Optional[List[ConceptPrefterm]]:
+def _parse_response(*, response: httpx.Response) -> Optional[List[PathItemConceptRelationshipSabPrefterm]]:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
         for response_200_item_data in _response_200:
-            response_200_item = ConceptPrefterm.from_dict(response_200_item_data)
+            response_200_item = PathItemConceptRelationshipSabPrefterm.from_dict(response_200_item_data)
 
             response_200.append(response_200_item)
 
@@ -42,7 +42,7 @@ def _parse_response(*, response: httpx.Response) -> Optional[List[ConceptPrefter
     return None
 
 
-def _build_response(*, response: httpx.Response) -> Response[List[ConceptPrefterm]]:
+def _build_response(*, response: httpx.Response) -> Response[List[PathItemConceptRelationshipSabPrefterm]]:
     return Response(
         status_code=response.status_code,
         content=response.content,
@@ -54,14 +54,15 @@ def _build_response(*, response: httpx.Response) -> Response[List[ConceptPrefter
 def sync_detailed(
     *,
     client: Client,
-    json_body: ConceptSabRelDepth,
-) -> Response[List[ConceptPrefterm]]:
-    """
+    json_body: QconceptTconceptSabRel,
+) -> Response[List[PathItemConceptRelationshipSabPrefterm]]:
+    """Return all paths of the relationship pattern specified within the selected sources
+
     Args:
-        json_body (ConceptSabRelDepth):
+        json_body (QconceptTconceptSabRel):
 
     Returns:
-        Response[List[ConceptPrefterm]]
+        Response[List[PathItemConceptRelationshipSabPrefterm]]
     """
 
     kwargs = _get_kwargs(
@@ -80,14 +81,15 @@ def sync_detailed(
 def sync(
     *,
     client: Client,
-    json_body: ConceptSabRelDepth,
-) -> Optional[List[ConceptPrefterm]]:
-    """
+    json_body: QconceptTconceptSabRel,
+) -> Optional[List[PathItemConceptRelationshipSabPrefterm]]:
+    """Return all paths of the relationship pattern specified within the selected sources
+
     Args:
-        json_body (ConceptSabRelDepth):
+        json_body (QconceptTconceptSabRel):
 
     Returns:
-        Response[List[ConceptPrefterm]]
+        Response[List[PathItemConceptRelationshipSabPrefterm]]
     """
 
     return sync_detailed(
@@ -99,14 +101,15 @@ def sync(
 async def asyncio_detailed(
     *,
     client: Client,
-    json_body: ConceptSabRelDepth,
-) -> Response[List[ConceptPrefterm]]:
-    """
+    json_body: QconceptTconceptSabRel,
+) -> Response[List[PathItemConceptRelationshipSabPrefterm]]:
+    """Return all paths of the relationship pattern specified within the selected sources
+
     Args:
-        json_body (ConceptSabRelDepth):
+        json_body (QconceptTconceptSabRel):
 
     Returns:
-        Response[List[ConceptPrefterm]]
+        Response[List[PathItemConceptRelationshipSabPrefterm]]
     """
 
     kwargs = _get_kwargs(
@@ -123,14 +126,15 @@ async def asyncio_detailed(
 async def asyncio(
     *,
     client: Client,
-    json_body: ConceptSabRelDepth,
-) -> Optional[List[ConceptPrefterm]]:
-    """
+    json_body: QconceptTconceptSabRel,
+) -> Optional[List[PathItemConceptRelationshipSabPrefterm]]:
+    """Return all paths of the relationship pattern specified within the selected sources
+
     Args:
-        json_body (ConceptSabRelDepth):
+        json_body (QconceptTconceptSabRel):
 
     Returns:
-        Response[List[ConceptPrefterm]]
+        Response[List[PathItemConceptRelationshipSabPrefterm]]
     """
 
     return (

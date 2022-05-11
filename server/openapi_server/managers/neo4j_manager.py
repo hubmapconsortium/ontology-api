@@ -236,6 +236,7 @@ class Neo4jManager(object):
         sab: str = ', '.join("'{0}'".format(s) for s in concept_sab_rel_depth.sab)
         # query = query.replace('$sab', sab)
         rel: str = ', '.join("'{0}'".format(s) for s in concept_sab_rel_depth.rel)
+        logger.info(f'Converted from array to string... sab: {sab} ; rel: {rel}')
         # query = query.replace('$rel', rel)
         # logger.info(f'query: "{query}"')
         with self.driver.session() as session:

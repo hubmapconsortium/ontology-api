@@ -232,18 +232,18 @@ class Neo4jManager(object):
             " WHERE ALL(r IN relationships(path) WHERE r.SAB IN [$sab])" \
             " UNWIND nodes(path) AS con OPTIONAL MATCH (con)-[:PREF_TERM]->(pref:Term)" \
             " RETURN DISTINCT con.CUI as concept, pref.name as prefterm"
-        # There seems to be a but in 'session.run' where it cannot handle arrays?!
+        # TODO: There seems to be a BUG in 'session.run' where it cannot handle arrays correctly?!
         sab: str = ', '.join("'{0}'".format(s) for s in concept_sab_rel_depth.sab)
-        # query = query.replace('$sab', sab)
+        query = query.replace('$sab', sab)
         rel: str = ', '.join("'{0}'".format(s) for s in concept_sab_rel_depth.rel)
-        logger.info(f'Converted from array to string... sab: {sab} ; rel: {rel}')
-        # query = query.replace('$rel', rel)
-        # logger.info(f'query: "{query}"')
+        # logger.info(f'Converted from array to string... sab: {sab} ; rel: {rel}')
+        query = query.replace('$rel', rel)
+        logger.info(f'query: "{query}"')
         with self.driver.session() as session:
             recds: neo4j.Result = session.run(query,
                                               query_concept_id=concept_sab_rel_depth.query_concept_id,
-                                              sab=sab,
-                                              rel=rel,
+                                              # sab=sab,
+                                              # rel=rel,
                                               depth=concept_sab_rel_depth.depth
                                               )
             for record in recds:

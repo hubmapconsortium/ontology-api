@@ -2,6 +2,7 @@ import neo4j
 import configparser
 from typing import List
 import re
+import json
 
 from openapi_server.models.codes_codes_obj import CodesCodesObj  # noqa: E501
 from openapi_server.models.concept_detail import ConceptDetail  # noqa: E501
@@ -230,8 +231,8 @@ class Neo4jManager(object):
             " WHERE ALL(r IN relationships(path) WHERE r.SAB IN $sab)" \
             " UNWIND nodes(path) AS con OPTIONAL MATCH (con)-[:PREF_TERM]->(pref:Term)" \
             " RETURN DISTINCT con.CUI as concept, pref.name as prefterm"
-        sab: str = '[' + ', '.join(concept_sab_rel_depth.sab) + ']'
-        rel: str = '[' + ', '.join(concept_sab_rel_depth.rel) + ']'
+        sab: str = json.dumps(concept_sab_rel_depth.sab)
+        rel: str = json.dumps(concept_sab_rel_depth.rel)
         logger.info(f'sab: {sab} ; rel: {rel}')
         with self.driver.session() as session:
             recds: neo4j.Result = session.run(query,

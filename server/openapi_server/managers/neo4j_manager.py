@@ -2,6 +2,7 @@ import neo4j
 import configparser
 from typing import List
 import re
+from neo4j.exceptions import CypherSyntaxError
 import json
 
 from openapi_server.models.codes_codes_obj import CodesCodesObj  # noqa: E501
@@ -226,7 +227,7 @@ class Neo4jManager(object):
         conceptPrefterms: [ConceptPrefterm] = []
         query: str =\
             "MATCH (c:Concept {CUI: $query_concept_id})" \
-            " CALL apoc.path.expand(c, apoc.text.join([x IN [$rel] | ‘<’+x], ‘|'), ‘Concept’, 1, $depth)" \
+            " CALL apoc.path.expand(c, apoc.text.join([x IN [$rel] | '<'+x], ‘|'), 'Concept', 1, $depth)" \
             " YIELD path" \
             " WHERE ALL(r IN relationships(path) WHERE r.SAB IN [$sab])" \
             " UNWIND nodes(path) AS con OPTIONAL MATCH (con)-[:PREF_TERM]->(pref:Term)" \
@@ -235,11 +236,14 @@ class Neo4jManager(object):
         rel: str = ', '.join("'{0}'".format(s) for s in concept_sab_rel_depth.rel)
         logger.info(f'sab: "{sab}" ; rel: "{rel}"')
         with self.driver.session() as session:
-            recds: neo4j.Result = session.run(query,
-                                              query_concept_id=concept_sab_rel_depth.query_concept_id,
-                                              sab=sab,
-                                              rel=rel,
-                                              depth=concept_sab_rel_depth.depth)
+            try:
+                recds: neo4j.Result = session.run(query,
+                                                  query_concept_id=concept_sab_rel_depth.query_concept_id,
+                                                  sab=sab,
+                                                  rel=rel,
+                                                  depth=concept_sab_rel_depth.depth)
+            except CypherSyntaxError as e:
+                logger.info(f'concepts_expand_post; CypherSyntaxError message: {e}')
             for record in recds:
                 try:
                     conceptPrefterm: ConceptPrefterm =\

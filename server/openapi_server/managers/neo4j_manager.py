@@ -225,23 +225,19 @@ class Neo4jManager(object):
     def concepts_expand_post(self, concept_sab_rel_depth: ConceptSabRelDepth) -> List[ConceptPrefterm]:
         logger.info(f'concepts_expand_post; Request Body: {concept_sab_rel_depth.to_dict()}')
         conceptPrefterms: [ConceptPrefterm] = []
-        # query: str =\
-        #     "MATCH (c:Concept {CUI: $query_concept_id})" \
-        #     " CALL apoc.path.expand(c, apoc.text.join([x IN [$rel] | '<'+x], '|'), 'Concept', 1, $depth)" \
-        #     " YIELD path" \
-        #     " WHERE ALL(r IN relationships(path) WHERE r.SAB IN [$sab])" \
-        #     " UNWIND nodes(path) AS con OPTIONAL MATCH (con)-[:PREF_TERM]->(pref:Term)" \
-        #     " RETURN DISTINCT con.CUI as concept, pref.name as prefterm"
         query: str =\
             "MATCH (c:Concept {CUI: $query_concept_id})" \
-            " CALL apoc.path.expand(c, apoc.text.join([x IN ['isa', 'isa'] | '<'+x], '|'), 'Concept', 1, $depth)" \
+            " CALL apoc.path.expand(c, apoc.text.join([x IN [$rel] | '<'+x], '|'), 'Concept', 1, $depth)" \
             " YIELD path" \
-            " WHERE ALL(r IN relationships(path) WHERE r.SAB IN ['SNOMEDCT_US', 'HGNC'])" \
+            " WHERE ALL(r IN relationships(path) WHERE r.SAB IN [$sab])" \
             " UNWIND nodes(path) AS con OPTIONAL MATCH (con)-[:PREF_TERM]->(pref:Term)" \
             " RETURN DISTINCT con.CUI as concept, pref.name as prefterm"
+        # There seems to be a but in 'session.run' where it cannot handle arrays?!
         sab: str = ', '.join("'{0}'".format(s) for s in concept_sab_rel_depth.sab)
+        query = query.replace('$sab', sab)
         rel: str = ', '.join("'{0}'".format(s) for s in concept_sab_rel_depth.rel)
-        logger.info(f'sab: "{sab}" ; rel: "{rel}"')
+        query = query.replace('$rel', rel)
+        logger.info(f'query: "{query}"')
         with self.driver.session() as session:
             recds: neo4j.Result = session.run(query,
                                               query_concept_id=concept_sab_rel_depth.query_concept_id,

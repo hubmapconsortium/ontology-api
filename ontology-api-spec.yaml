@@ -146,6 +146,10 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/ConceptSabRel"
+            example:
+              query_concept_id: C2720507
+              sab: [SNOMEDCT_US, HGNC]
+              rel: [isa, isa]
       responses:
         '200':
           description: Return all paths of the relationship pattern specified within the selected sources
@@ -165,6 +169,11 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/ConceptSabRelDepth"
+            example:
+              query_concept_id: C2720507
+              sab: [SNOMEDCT_US, HGNC]
+              rel: [isa, isa]
+              depth: 2
       responses:
         '200':
           description: Return all paths of the relationship pattern specified within the selected sources

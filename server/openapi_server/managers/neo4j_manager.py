@@ -221,11 +221,7 @@ class Neo4jManager(object):
         return styTuiStns
 
     def concepts_expand_post(self, concept_sab_rel_depth: ConceptSabRelDepth) -> List[ConceptPrefterm]:
-        logger.info(f'query_concept_id: {concept_sab_rel_depth.query_concept_id}')
-        logger.info(f'sab: {concept_sab_rel_depth.sab}')
-        logger.info(f'rel: {concept_sab_rel_depth.rel}')
-        logger.info(f'depth: {concept_sab_rel_depth.depth}')
-        logger.info(f'concepts_expand_post: {concept_sab_rel_depth.to_dict()}')
+        logger.info(f'concepts_expand_post; Request Body: {concept_sab_rel_depth.to_dict()}')
         conceptPrefterms: [ConceptPrefterm] = []
         query: str =\
             "MATCH (c:Concept {CUI: $query_concept_id})" \
@@ -234,22 +230,25 @@ class Neo4jManager(object):
             " WHERE ALL(r IN relationships(path) WHERE r.SAB IN $sab)" \
             " UNWIND nodes(path) AS con OPTIONAL MATCH (con)-[:PREF_TERM]->(pref:Term)" \
             " RETURN DISTINCT con.CUI as concept, pref.name as prefterm"
-        # with self.driver.session() as session:
-        #     recds: neo4j.Result = session.run(query,
-        #                                       query_concept_id=concept_sab_rel_depth.query_concept_id,
-        #                                       sab=concept_sab_rel_depth.sab,
-        #                                       rel=concept_sab_rel_depth.rel,
-        #                                       depth=concept_sab_rel_depth.depth)
-        #     for record in recds:
-        #         try:
-        #             conceptPrefterm: ConceptPrefterm = ConceptPrefterm(record.get('concept'), record.get('prefterm'))
-        #             conceptPrefterms.append(conceptPrefterm)
-        #         except KeyError:
-        #             pass
+        sab: str = '[' + ', '.join(concept_sab_rel_depth.sab) + ']'
+        rel: str = '[' + ', '.join(concept_sab_rel_depth.rel) + ']'
+        logger.info(f'sab: {sab} ; rel: {rel}')
+        with self.driver.session() as session:
+            recds: neo4j.Result = session.run(query,
+                                              query_concept_id=concept_sab_rel_depth.query_concept_id,
+                                              sab=sab,
+                                              rel=rel,
+                                              depth=concept_sab_rel_depth.depth)
+            for record in recds:
+                try:
+                    conceptPrefterm: ConceptPrefterm = ConceptPrefterm(record.get('concept'), record.get('prefterm'))
+                    conceptPrefterms.append(conceptPrefterm)
+                except KeyError:
+                    pass
         return conceptPrefterms
 
     def concepts_path_post(self, concept_sab_rel: ConceptSabRel) -> List[PathItemConceptRelationshipSabPrefterm]:
-        #logger.info(f'concepts_path_post: {concept_sab_rel.to_dict()}')
+        logger.info(f'concepts_path_post; Request Body: {concept_sab_rel.to_dict()}')
         pathItemConceptRelationshipSabPrefterms: [PathItemConceptRelationshipSabPrefterm] = []
         query: str =\
             "MATCH (c:Concept {CUI: $query_concept_id})" \
@@ -280,7 +279,7 @@ class Neo4jManager(object):
         return pathItemConceptRelationshipSabPrefterms
 
     def concepts_trees_post(self, concept_sab_rel_depth: ConceptSabRelDepth) -> List[PathItemConceptRelationshipSabPrefterm]:
-        #logger.info(f'concepts_trees_post: {concept_sab_rel_depth.to_dict()}')
+        logger.info(f'concepts_trees_post; Request Body: {concept_sab_rel_depth.to_dict()}')
         pathItemConceptRelationshipSabPrefterms: [PathItemConceptRelationshipSabPrefterm] = []
         query: str =\
             "MATCH (c:Concept {CUI: $query_concept_id})" \

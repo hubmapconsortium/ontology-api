@@ -227,7 +227,7 @@ class Neo4jManager(object):
         conceptPrefterms: [ConceptPrefterm] = []
         query: str =\
             "MATCH (c:Concept {CUI: $query_concept_id})" \
-            " CALL apoc.path.expand(c, apoc.text.join([x IN [$rel] | '<'+x], ‘|'), 'Concept', 1, $depth)" \
+            " CALL apoc.path.expand(c, apoc.text.join([x IN [$rel] | '<'+x], '|'), 'Concept', 1, $depth)" \
             " YIELD path" \
             " WHERE ALL(r IN relationships(path) WHERE r.SAB IN [$sab])" \
             " UNWIND nodes(path) AS con OPTIONAL MATCH (con)-[:PREF_TERM]->(pref:Term)" \

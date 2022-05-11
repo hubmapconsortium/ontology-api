@@ -2,8 +2,11 @@
 set -e
 set -u
 
+#SERVER=https://ontology-api.dev.hubmapconsortium.org
+SERVER=https://ontology.api.hubmapconsortium.org
+
 curl --verbose --request POST \
- --url https://ontology-api.dev.hubmapconsortium.org/concepts/expand \
+ --url $SERVER/concepts/expand \
  --header 'Content-Type: application/json' \
  --data '{
     "query_concept_id": "C2720507",
@@ -14,7 +17,7 @@ curl --verbose --request POST \
 echo
 
 curl --verbose --request POST \
- --url https://ontology-api.dev.hubmapconsortium.org/concepts/paths \
+ --url $SERVER/concepts/paths \
  --header 'Content-Type: application/json' \
  --data '{
     "query_concept_id": "C2720507",
@@ -24,7 +27,7 @@ curl --verbose --request POST \
 echo
 
 curl --verbose --request POST \
- --url https://ontology-api.dev.hubmapconsortium.org/concepts/shortestpaths \
+ --url $SERVER/concepts/shortestpaths \
  --header 'Content-Type: application/json' \
  --data '{
       "query_concept_id": "C2720507",
@@ -35,7 +38,7 @@ curl --verbose --request POST \
 echo
 
 curl --verbose --request POST \
- --url https://ontology-api.dev.hubmapconsortium.org/concepts/trees \
+ --url $SERVER/concepts/trees \
  --header 'Content-Type: application/json' \
  --data '{
     "query_concept_id": "C2720507",

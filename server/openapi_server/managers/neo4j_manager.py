@@ -233,8 +233,8 @@ class Neo4jManager(object):
         #     " UNWIND nodes(path) AS con OPTIONAL MATCH (con)-[:PREF_TERM]->(pref:Term)" \
         #     " RETURN DISTINCT con.CUI as concept, pref.name as prefterm"
         query: str =\
-            "MATCH (c:Concept {CUI: 'C2720507'})" \
-            " CALL apoc.path.expand(c, apoc.text.join([x IN ['isa', 'isa'] | '<'+x], '|'), 'Concept', 1, 2)" \
+            "MATCH (c:Concept {CUI: $query_concept_id})" \
+            " CALL apoc.path.expand(c, apoc.text.join([x IN ['isa', 'isa'] | '<'+x], '|'), 'Concept', 1, $depth)" \
             " YIELD path" \
             " WHERE ALL(r IN relationships(path) WHERE r.SAB IN ['SNOMEDCT_US', 'HGNC'])" \
             " UNWIND nodes(path) AS con OPTIONAL MATCH (con)-[:PREF_TERM]->(pref:Term)" \
@@ -244,10 +244,10 @@ class Neo4jManager(object):
         logger.info(f'sab: "{sab}" ; rel: "{rel}"')
         with self.driver.session() as session:
             recds: neo4j.Result = session.run(query,
-                                              # query_concept_id=concept_sab_rel_depth.query_concept_id,
+                                              query_concept_id=concept_sab_rel_depth.query_concept_id,
                                               # sab=sab,
                                               # rel=rel,
-                                              # depth=concept_sab_rel_depth.depth
+                                              depth=concept_sab_rel_depth.depth
                                               )
             for record in recds:
                 try:

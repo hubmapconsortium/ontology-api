@@ -9,6 +9,7 @@ from openapi_server.models.concept_sab_rel_depth import ConceptSabRelDepth  # no
 from openapi_server.models.concept_term import ConceptTerm  # noqa: E501
 from openapi_server.models.path_item_concept_relationship_sab_prefterm import PathItemConceptRelationshipSabPrefterm  # noqa: E501
 from openapi_server.models.qqst import QQST  # noqa: E501
+from openapi_server.models.qconcept_tconcept_sab_rel import QconceptTconceptSabRel  # noqa: E501
 from openapi_server.models.sab_definition import SabDefinition  # noqa: E501
 from openapi_server.models.sab_relationship_concept_prefterm import SabRelationshipConceptPrefterm  # noqa: E501
 from openapi_server.models.semantic_stn import SemanticStn  # noqa: E501
@@ -109,9 +110,6 @@ def concepts_expand_post():  # noqa: E501
 
      # noqa: E501
 
-    :param concept_sab_rel_depth:
-    :type concept_sab_rel_depth: dict | bytes
-
     :rtype: List[ConceptPrefterm]
     """
     if connexion.request.is_json:
@@ -124,9 +122,6 @@ def concepts_path_post():  # noqa: E501
 
      # noqa: E501
 
-    :param concept_sab_rel:
-    :type concept_sab_rel: dict | bytes
-
     :rtype: List[PathItemConceptRelationshipSabPrefterm]
     """
     if connexion.request.is_json:
@@ -134,13 +129,22 @@ def concepts_path_post():  # noqa: E501
     return neo4jManager.concepts_path_post(concept_sab_rel)
 
 
-def concepts_trees_post():  # noqa: E501
+def concepts_shortestpaths_post():  # noqa: E501
     """Return all paths of the relationship pattern specified within the selected sources
 
      # noqa: E501
 
-    :param concept_sab_rel_depth:
-    :type concept_sab_rel_depth: dict | bytes
+    :rtype: List[PathItemConceptRelationshipSabPrefterm]
+    """
+    if connexion.request.is_json:
+        qconcept_tconcept_sab_rel = QconceptTconceptSabRel.from_dict(connexion.request.get_json())  # noqa: E501
+    return neo4jManager.concepts_shortestpaths_post(qconcept_tconcept_sab_rel)
+
+
+def concepts_trees_post():  # noqa: E501
+    """Return all paths of the relationship pattern specified within the selected sources
+
+     # noqa: E501
 
     :rtype: List[PathItemConceptRelationshipSabPrefterm]
     """

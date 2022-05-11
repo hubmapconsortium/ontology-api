@@ -13,6 +13,7 @@ from openapi_server.models.concept_sab_rel_depth import ConceptSabRelDepth  # no
 from openapi_server.models.concept_term import ConceptTerm  # noqa: E501
 from openapi_server.models.path_item_concept_relationship_sab_prefterm import PathItemConceptRelationshipSabPrefterm  # noqa: E501
 from openapi_server.models.qqst import QQST  # noqa: E501
+from openapi_server.models.qconcept_tconcept_sab_rel import QconceptTconceptSabRel  # noqa: E501
 from openapi_server.models.sab_definition import SabDefinition  # noqa: E501
 from openapi_server.models.sab_relationship_concept_prefterm import SabRelationshipConceptPrefterm  # noqa: E501
 from openapi_server.models.semantic_stn import SemanticStn  # noqa: E501
@@ -281,6 +282,46 @@ class Neo4jManager(object):
                                               query_concept_id=concept_sab_rel.query_concept_id,
                                               # sab=concept_sab_rel.sab,
                                               # rel=concept_sab_rel.rel
+                                              )
+            for record in recds:
+                try:
+                    pathItemConceptRelationshipSabPrefterm: PathItemConceptRelationshipSabPrefterm =\
+                        PathItemConceptRelationshipSabPrefterm(record.get('path'), record.get('item'),
+                                                               record.get('concept'), record.get('relationship'),
+                                                               record.get('sab'), record.get('prefterm'))
+                    pathItemConceptRelationshipSabPrefterms.append(pathItemConceptRelationshipSabPrefterm)
+                except KeyError:
+                    pass
+        return pathItemConceptRelationshipSabPrefterms
+
+    def concepts_shortestpaths_post(self, qconcept_tconcept_sab_rel: QconceptTconceptSabRel) -> List[PathItemConceptRelationshipSabPrefterm]:
+        logger.info(f'concepts_shortestpath_post; Request Body: {qconcept_tconcept_sab_rel.to_dict()}')
+        pathItemConceptRelationshipSabPrefterms: [PathItemConceptRelationshipSabPrefterm] = []
+        query: str =\
+            "MATCH (c:Concept {CUI: $query_concept_id})" \
+            " MATCH (d:Concept {CUI: $target_concept_id})" \
+            " CALL apoc.algo.dijkstraWithDefaultWeight(c, d, apoc.text.join([x in [$rel] | '<'+x], '|'), 'none', 10)" \
+            " YIELD path" \
+            " WHERE ALL(r IN relationships(path) WHERE r.SAB IN [$sab])" \
+            " WITH [n IN nodes(path) | n.CUI] AS concepts, [null]+[r IN relationships(path) |Type(r)] AS relationships, [null]+[r IN relationships(path) | r.SAB] AS sabs" \
+            " CALL{WITH concepts,relationships,sabs UNWIND RANGE(0, size(concepts)-1) AS items WITH items AS item, concepts[items] AS concept, relationships[items] AS relationship, sabs[items] AS sab RETURN COLLECT([item,concept,relationship,sab]) AS paths}" \
+            " WITH COLLECT(paths) AS rollup" \
+            " UNWIND RANGE(0, size(rollup)-1) AS path" \
+            " UNWIND rollup[path] as final" \
+            " OPTIONAL MATCH (:Concept{CUI:final[1]})-[:PREF_TERM]->(prefterm:Term)" \
+            " RETURN path as path, final[0] AS item, final[1] AS concept, final[2] AS relationship, final[3] AS sab, prefterm.name as prefterm"
+        # TODO: There seems to be a BUG in 'session.run' where it cannot handle arrays correctly?!
+        sab: str = ', '.join("'{0}'".format(s) for s in qconcept_tconcept_sab_rel.sab)
+        query = query.replace('$sab', sab)
+        rel: str = ', '.join("'{0}'".format(s) for s in qconcept_tconcept_sab_rel.rel)
+        query = query.replace('$rel', rel)
+        logger.info(f'query: "{query}"')
+        with self.driver.session() as session:
+            recds: neo4j.Result = session.run(query,
+                                              query_concept_id=qconcept_tconcept_sab_rel.query_concept_id,
+                                              # sab=concept_sab_rel.sab,
+                                              # rel=concept_sab_rel.rel,
+                                              target_concept_id=qconcept_tconcept_sab_rel.target_concept_id
                                               )
             for record in recds:
                 try:

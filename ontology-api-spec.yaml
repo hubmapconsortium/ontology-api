@@ -159,6 +159,30 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/PathItemConceptRelationshipSabPrefterm'
+  /concepts/shortestpaths:
+    post:
+      operationId: concepts_shortestpaths_post
+      summary: Return all paths of the relationship pattern specified within the selected sources
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QconceptTconceptSabRel"
+            example:
+              query_concept_id: C2720507
+              target_concept_id: C1272753
+              sab: [SNOMEDCT_US, HGNC]
+              rel: [isa, part_of]
+      responses:
+        '200':
+          description: Return all paths of the relationship pattern specified within the selected sources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PathItemConceptRelationshipSabPrefterm'
   /concepts/trees:
     post:
       operationId: concepts_trees_post
@@ -369,7 +393,7 @@ components:
           type: array
           items:
             type: string
-          example: ["isa","isa"]
+          example: ["isa", "isa"]
     ConceptSabRelDepth:    # Schema name
       type: object
       properties:
@@ -426,6 +450,25 @@ components:
         prefterm:
           type: string
           example: Malignant Neoplasms
+    QconceptTconceptSabRel:    # Schema name
+      type: object
+      properties:
+        query_concept_id:
+          type: string
+          example: C2720507
+        target_concept_id:
+          type: string
+          example: C1272753
+        sab:
+          type: array
+          items:
+            type: string
+          example: ["SNOMEDCT_US", "HGNC"]
+        rel:
+          type: array
+          items:
+            type: string
+          example: ["isa", "part_of"]
     QQST: # Schema name
       type: object
       properties:

@@ -74,6 +74,15 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              query_concept_id: C2720507
+              sab:
+              - SNOMEDCT_US
+              - HGNC
+              rel:
+              - isa
+              - isa
+              depth: 2
             schema:
               $ref: '#/components/schemas/ConceptSabRelDepth'
         required: true
@@ -93,8 +102,47 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              query_concept_id: C2720507
+              sab:
+              - SNOMEDCT_US
+              - HGNC
+              rel:
+              - isa
+              - isa
             schema:
               $ref: '#/components/schemas/ConceptSabRel'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/PathItemConceptRelationshipSabPrefterm'
+                type: array
+          description: Return all paths of the relationship pattern specified within
+            the selected sources
+      summary: Return all paths of the relationship pattern specified within the selected
+        sources
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /concepts/shortestpaths:
+    post:
+      operationId: concepts_shortestpaths_post
+      requestBody:
+        content:
+          application/json:
+            example:
+              query_concept_id: C2720507
+              target_concept_id: C1272753
+              sab:
+              - SNOMEDCT_US
+              - HGNC
+              rel:
+              - isa
+              - part_of
+            schema:
+              $ref: '#/components/schemas/QconceptTconceptSabRel'
         required: true
       responses:
         "200":
@@ -115,6 +163,15 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              query_concept_id: C2720507
+              sab:
+              - SNOMEDCT_US
+              - HGNC
+              rel:
+              - isa
+              - isa
+              depth: 2
             schema:
               $ref: '#/components/schemas/ConceptSabRelDepth'
         required: true
@@ -525,6 +582,38 @@ components:
           title: prefterm
           type: string
       title: PathItemConceptRelationshipSabPrefterm
+      type: object
+    QconceptTconceptSabRel:
+      example:
+        target_concept_id: C1272753
+        sab:
+        - SNOMEDCT_US
+        - HGNC
+        rel:
+        - isa
+        - part_of
+        query_concept_id: C2720507
+      properties:
+        query_concept_id:
+          example: C2720507
+          type: string
+        target_concept_id:
+          example: C1272753
+          type: string
+        sab:
+          example:
+          - SNOMEDCT_US
+          - HGNC
+          items:
+            type: string
+          type: array
+        rel:
+          example:
+          - isa
+          - part_of
+          items:
+            type: string
+          type: array
       type: object
     QQST:
       example:

@@ -116,6 +116,7 @@ paths:
   /concepts/expand:
     post:
       operationId: concepts_expand_post
+      summary: Returns a unique list of concepts (Concept, Preferred Term) on all paths including starting concept (query_concept_id) restricted by list of relationship types (rel), list of relationship sources (sab), and depth of travel.
       requestBody:
         required: true
         content:

@@ -226,14 +226,14 @@ class Neo4jManager(object):
         conceptPrefterms: [ConceptPrefterm] = []
         query: str =\
             "MATCH (c:Concept {CUI: $query_concept_id})" \
-            " CALL apoc.path.expand(c, apoc.text.join([x in $rel | ‘<’+x], ‘|'), ‘Concept’, 1, $depth)" \
+            " CALL apoc.path.expand(c, apoc.text.join([x IN [$rel] | ‘<’+x], ‘|'), ‘Concept’, 1, $depth)" \
             " YIELD path" \
-            " WHERE ALL(r IN relationships(path) WHERE r.SAB IN $sab)" \
+            " WHERE ALL(r IN relationships(path) WHERE r.SAB IN [$sab])" \
             " UNWIND nodes(path) AS con OPTIONAL MATCH (con)-[:PREF_TERM]->(pref:Term)" \
             " RETURN DISTINCT con.CUI as concept, pref.name as prefterm"
-        sab: str = json.dumps(concept_sab_rel_depth.sab)
-        rel: str = json.dumps(concept_sab_rel_depth.rel)
-        logger.info(f'sab: {sab} ; rel: {rel}')
+        sab: str = ', '.join("'{0}'".format(s) for s in concept_sab_rel_depth.sab)
+        rel: str = ', '.join("'{0}'".format(s) for s in concept_sab_rel_depth.rel)
+        logger.info(f'sab: "{sab}" ; rel: "{rel}"')
         with self.driver.session() as session:
             recds: neo4j.Result = session.run(query,
                                               query_concept_id=concept_sab_rel_depth.query_concept_id,
@@ -242,7 +242,8 @@ class Neo4jManager(object):
                                               depth=concept_sab_rel_depth.depth)
             for record in recds:
                 try:
-                    conceptPrefterm: ConceptPrefterm = ConceptPrefterm(record.get('concept'), record.get('prefterm'))
+                    conceptPrefterm: ConceptPrefterm =\
+                        ConceptPrefterm(record.get('concept'), record.get('prefterm'))
                     conceptPrefterms.append(conceptPrefterm)
                 except KeyError:
                     pass

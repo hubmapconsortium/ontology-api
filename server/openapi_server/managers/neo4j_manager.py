@@ -260,9 +260,9 @@ class Neo4jManager(object):
         pathItemConceptRelationshipSabPrefterms: [PathItemConceptRelationshipSabPrefterm] = []
         query: str =\
             "MATCH (c:Concept {CUI: $query_concept_id})" \
-            " CALL apoc.path.expandConfig(c, {relationshipFilter: apoc.text.join([x in $rel | '<'+x], ','),minLevel: size($rel),maxLevel: size($rel)})" \
+            " CALL apoc.path.expandConfig(c, {relationshipFilter: apoc.text.join([x in [$rel] | '<'+x], ','),minLevel: size([$rel]),maxLevel: size([$rel])})" \
             " YIELD path" \
-            " WHERE ALL(r IN relationships(path) WHERE r.SAB IN $sab)" \
+            " WHERE ALL(r IN relationships(path) WHERE r.SAB IN [$sab])" \
             " WITH [n IN nodes(path) | n.CUI] AS concepts, [null]+[r IN relationships(path) |Type(r)] AS relationships, [null]+[r IN relationships(path) | r.SAB] AS sabs" \
             " CALL{WITH concepts,relationships,sabs UNWIND RANGE(0, size(concepts)-1) AS items WITH items AS item, concepts[items] AS concept, relationships[items] AS relationship, sabs[items] AS sab RETURN COLLECT([item,concept,relationship,sab]) AS paths}" \
             " WITH COLLECT(paths) AS rollup" \
@@ -270,11 +270,18 @@ class Neo4jManager(object):
             " UNWIND rollup[path] as final" \
             " OPTIONAL MATCH (:Concept{CUI:final[1]})-[:PREF_TERM]->(prefterm:Term)" \
             " RETURN path as path, final[0] AS item, final[1] AS concept, final[2] AS relationship, final[3] AS sab, prefterm.name as prefterm"
+        # TODO: There seems to be a BUG in 'session.run' where it cannot handle arrays correctly?!
+        sab: str = ', '.join("'{0}'".format(s) for s in concept_sab_rel.sab)
+        query = query.replace('$sab', sab)
+        rel: str = ', '.join("'{0}'".format(s) for s in concept_sab_rel.rel)
+        query = query.replace('$rel', rel)
+        logger.info(f'query: "{query}"')
         with self.driver.session() as session:
             recds: neo4j.Result = session.run(query,
                                               query_concept_id=concept_sab_rel.query_concept_id,
-                                              sab=concept_sab_rel.sab,
-                                              rel=concept_sab_rel.rel)
+                                              # sab=concept_sab_rel.sab,
+                                              # rel=concept_sab_rel.rel
+                                              )
             for record in recds:
                 try:
                     pathItemConceptRelationshipSabPrefterm: PathItemConceptRelationshipSabPrefterm =\
@@ -291,9 +298,9 @@ class Neo4jManager(object):
         pathItemConceptRelationshipSabPrefterms: [PathItemConceptRelationshipSabPrefterm] = []
         query: str =\
             "MATCH (c:Concept {CUI: $query_concept_id})" \
-            " CALL apoc.path.spanningTree(c, {relationshipFilter: apoc.text.join([x in $rel | '<'+x], '|'),minLevel: 1,maxLevel: $depth})" \
+            " CALL apoc.path.spanningTree(c, {relationshipFilter: apoc.text.join([x in [$rel] | '<'+x], '|'),minLevel: 1,maxLevel: $depth})" \
             " YIELD path" \
-            " WHERE ALL(r IN relationships(path) WHERE r.SAB IN $sab)" \
+            " WHERE ALL(r IN relationships(path) WHERE r.SAB IN [$sab])" \
             " WITH [n IN nodes(path) | n.CUI] AS concepts, [null]+[r IN relationships(path) |Type(r)] AS relationships, [null]+[r IN relationships(path) | r.SAB] AS sabs" \
             " CALL{WITH concepts,relationships,sabs UNWIND RANGE(0, size(concepts)-1) AS items WITH items AS item, concepts[items] AS concept, relationships[items] AS relationship, sabs[items] AS sab RETURN COLLECT([item,concept,relationship,sab]) AS paths}" \
             " WITH COLLECT(paths) AS rollup" \
@@ -301,12 +308,19 @@ class Neo4jManager(object):
             " UNWIND rollup[path] as final" \
             " OPTIONAL MATCH (:Concept{CUI:final[1]})-[:PREF_TERM]->(prefterm:Term)" \
             " RETURN path as path, final[0] AS item, final[1] AS concept, final[2] AS relationship, final[3] AS sab, prefterm.name as prefterm"
+        # TODO: There seems to be a BUG in 'session.run' where it cannot handle arrays correctly?!
+        sab: str = ', '.join("'{0}'".format(s) for s in concept_sab_rel_depth.sab)
+        query = query.replace('$sab', sab)
+        rel: str = ', '.join("'{0}'".format(s) for s in concept_sab_rel_depth.rel)
+        query = query.replace('$rel', rel)
+        logger.info(f'query: "{query}"')
         with self.driver.session() as session:
             recds: neo4j.Result = session.run(query,
                                               query_concept_id=concept_sab_rel_depth.query_concept_id,
-                                              sab=concept_sab_rel_depth.sab,
-                                              rel=concept_sab_rel_depth.rel,
-                                              depth=concept_sab_rel_depth.depth)
+                                              # sab=concept_sab_rel_depth.sab,
+                                              # rel=concept_sab_rel_depth.rel,
+                                              depth=concept_sab_rel_depth.depth
+                                              )
             for record in recds:
                 try:
                     pathItemConceptRelationshipSabPrefterm: PathItemConceptRelationshipSabPrefterm =\

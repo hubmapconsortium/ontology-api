@@ -108,5 +108,9 @@
     "owl_url": "http://www.variationontology.org/vario_download/vario.owl",
     "home_url": "http://www.variationontology.org/download.shtml",
     "comment": "A Variation Ontology: for standardized, systematic description of effects, consequences and mechanisms of variations"
+  },
+  "HUBMAP": {
+    "sab": "HUBMAP",
+    "execute": "./skowlnets/skowlnets.py"
   }
 }

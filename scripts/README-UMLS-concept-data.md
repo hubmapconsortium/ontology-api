@@ -15,10 +15,10 @@ Thus, the CSV extract from Neptune establishes the currency (initial set of .csv
 The nodes and relationships in our [Neo4J](https://neo4j.com/) graph will only be as current as are the relationships in the source UMLS (above) data.
 
 You pull a copy of the UMLS CSVs from Neptune and use them in the "Jonathan" script.
-That script uses both the UMLS CSVs and the OWLNETS TSVs (which process OWL files) to generate a new set of custom ontology CSVs
-that can then be imported into a new neo4j graph. You can also use the output CSVs as the input to this
-process to create another set of CSVs that contain relationships found in the input CSVs as well as the
-input OWLNETS TSVs. In this manner, you itteratively add OWL relationships to the CSVs.
+That script uses both the UMLS CSVs and the [OWLNETS](https://github.com/callahantiff/owl-nets) TSVs (extrated from OWL files) to generate a new set of custom ontology CSVs
+that can then be imported into a new Neo4J graph.
+You can also use the output CSVs as the input to this process to create another set of CSVs that contain relationships
+found in the input CSVs as well as the input OWLNETS TSVs. In this manner, you iteratively add OWL relationships to the CSVs.
 
 You could generate a new neo4j just from the UMLS CSVs. However, it would only contain data on the ontologies that are managed directly by the UMLS.
 The OWLNETS TSV files enhance the UMLS ontology data.

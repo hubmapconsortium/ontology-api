@@ -1,7 +1,9 @@
 relation_id	relation_namespace	relation_label	relation_definition
-http://purl.obolibrary.org/obo/OBI_0002815	bo/OBI	has representation 	
-http://purl.obolibrary.org/obo/RO_0001019	bo/RO	contains 	
-http://www.ebi.ac.uk/efo/swo/SWO_0000740	http://www.ebi.ac.uk/efo/swo/SWO	implements 	
+http://purl.obolibrary.org/obo/OBI_0002815	OBI	has representation 	
+http://purl.obolibrary.org/obo/RO_0001019	RO	contains 	
+http://www.ebi.ac.uk/efo/swo/SWO_0000740	SWO	implements 	
 http://purl.org/ccf/assay_type	CCF	assay_type 	
-http://www.bioassayontology.org/bao#BAO_0002897	http://www.bioassayontology.org/bao#BAO	has preparation method 	
-http://www.bioassayontology.org/bao#BAO_0002008	http://www.bioassayontology.org/bao#BAO	has form 	
+http://www.bioassayontology.org/bao#BAO_0002897	BAO	has preparation method 	
+http://www.bioassayontology.org/bao#BAO_0002008	BAO	has form 	
+http://purl.obolibrary.org/obo/CHMO_0002748	CHMO	has analyte 	
+http://snomed.info/id/704322002	SNOMEDCT	process agent 	

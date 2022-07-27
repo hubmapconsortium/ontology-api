@@ -7,7 +7,7 @@
 # 
 # User guide to build the SimpleKnowledge Editor spreadsheet: https://docs.google.com/document/d/1wjsOzJYRV2FRehX7NQI74ZKRXvH45l0QmClBBF_VypM/edit?usp=sharing
 
-# In[2]:
+# In[3]:
 
 
 #!/usr/bin/env python
@@ -27,7 +27,7 @@ import numpy as np
 import os
 
 
-# In[10]:
+# In[4]:
 
 
 #Read input spreadsheet.

@@ -1,236 +1,237 @@
 node_id	node_namespace	node_label	node_definition	node_synonyms	node_dbxrefs
-C000001	HubMAP	assay	A planned process with the objective to produce information about the material entity that is the evaluant, by physically examining it or its proxies.		
-C000002	HubMAP	imaging_assay	An assay that produces a picture of an entity.		
-C000003	HubMAP	imaging_technology	imaging technology		
-C000004	HubMAP	image_processing	image processing method		
-C000005	HubMAP	primary	primary		
-C000006	HubMAP	vis-only	visualization only		
-C000007	HubMAP	pii	personally identifiable information		
-C000008	HubMAP	vitesse-hints	identifiers for Vitesse visualization		
-C000009	HubMAP	biospecimen	resolution of assay (size of biospecimen)		
-C000010	HubMAP	single-cell-specimen	single cell specimen		
-C000011	HubMAP	bulk-specimen	bulk specimen		
-C000012	HubMAP	spatial	spatial/3D		
-C000013	HubMAP	AF	Autofluorescence Microscopy		
-C000014	HubMAP	AF_pyramid	Autofluorescence Microscopy [Image Pyramid]		
-C000015	HubMAP	pyramid_representation	An image processing method where an image is decomposed into multi-resolution representations allowing for analysis and manipulation of the image over a range of spatial scales.		
-C000016	HubMAP	pyramid	vitesse hint: pyramid		
-C000017	HubMAP	ATACseq	Assay for Transposase Accessible Chromatin with High-Throughput Sequencing		
-C000018	HubMAP	ATACseq-bulk	Bulk ATAC-seq		
-C000019	HubMAP	algorithm	
-A plan specification which describes the inputs and output of mathematical functions as well as workflow of execution for achieving an predefined objective. Algorithms are realized usually by means of implementation as computer programs for execution by automata.		
-C000020	HubMAP	Burrows-Wheeler_Aligner_algorithm	An algorithm which performs mapping of low-divergent sequences against a large reference genome, such as the human genome.		
-C000021	HubMAP	DNA_analysis	Sequence Analysis, DNA		
-C000022	HubMAP	ChIP-Seq	A molecular genetic technique that combines chromatin immunoprecipitation (ChIP) with massively parallel DNA sequencing to map the binding sites of DNA-associated proteins in a sample of cells. First, crosslinked protein-DNA complexes are isolated using ChIP. Next, the crosslinks are broken, the proteins are removed and the purified DNA is modified with adaptor oligonucleotides to facilitate massively parallel DNA sequencing. Following sequencing, the DNA sequences that are obtained can be mapped to their genomic locations.		
-C000023	HubMAP	analysis_method	A means, manner of procedure, or systematic course of actions that are performed in order to examine and interpret an event or entity.		
-C000024	HubMAP	MACS2	Model-based Analysis of ChIP-seq		
-C000025	HubMAP	bulk_atacseq 	ATACseq-bulk_BWA_MACS2		
-C000026	HubMAP	multiplexed_fluorescent_antibody_imaging_assay	An imaging assay in which multiple cycles consisting of fluorescent labeling, imaging, and fluorophor deactivation are used to detect multiple proteins and their locations in a given sample of tissues or cells.		
-C000027	HubMAP	cell-dive	A multiplexed fluorescent antibody imaging assay that involves an iterative staining, imaging and dye inactivation workflow for over 60 biomarkers on a single fixed tissue section.		
-C000028	HubMAP	sprm	Spatial Process Relationship Mapping		
-C000029	HubMAP	anndata	Vitesse hint		
-C000030	HubMAP	is_image	Vitesse hint		
-C000031	HubMAP	is_tiled	Vitesse hint		
-C000032	HubMAP	celldive_deepcell	CellDIVE [DeepCell + SPRM]		
-C000033	HubMAP	CODEX	co-detection by indexing assay		
-C000034	HubMAP	CODEX2	CODEX (CODEX2 assay type)		
-C000035	HubMAP	cytokit	A single-cell analysis toolkit for high dimensional fluorescent microscopy imaging		
-C000036	HubMAP	codex_cytokit_v1	CODEX [Cytokit + SPRM]		
-C000037	HubMAP	codex_cytokit	CODEX [Cytokit + SPRM]		
-C000038	HubMAP	FISH	
+ HuBMAP C000001	HubMAP	assay	A planned process with the objective to produce information about the material entity that is the evaluant, by physically examining it or its proxies.		
+ HuBMAP C000002	HubMAP	imaging_assay	An assay that produces a picture of an entity.		
+ HuBMAP C000003	HubMAP	imaging_technology	imaging technology		
+ HuBMAP C000004	HubMAP	image_processing	image processing method		
+ HuBMAP C000005	HubMAP	primary	primary		
+ HuBMAP C000006	HubMAP	vis-only	visualization only		
+ HuBMAP C000007	HubMAP	pii	personally identifiable information		
+ HuBMAP C000008	HubMAP	vitesse-hints	identifiers for Vitesse visualization		
+ HuBMAP C000009	HubMAP	biospecimen	resolution of assay (size of biospecimen)		
+ HuBMAP C000010	HubMAP	single-cell-specimen	single cell specimen		
+ HuBMAP C000011	HubMAP	bulk-specimen	bulk specimen		
+ HuBMAP C000012	HubMAP	spatial	spatial/3D		
+ HuBMAP C000013	HubMAP	AF	Autofluorescence Microscopy		
+ HuBMAP C000014	HubMAP	AF_pyramid	Autofluorescence Microscopy [Image Pyramid]		
+ HuBMAP C000015	HubMAP	pyramid_representation	An image processing method where an image is decomposed into multi-resolution representations allowing for analysis and manipulation of the image over a range of spatial scales.		
+ HuBMAP C000016	HubMAP	pyramid	vitesse hint: pyramid		
+ HuBMAP C000017	HubMAP	ATACseq	Assay for Transposase Accessible Chromatin with High-Throughput Sequencing		
+ HuBMAP C000018	HubMAP	ATACseq-bulk	Bulk ATAC-seq		
+ HuBMAP C000019	HubMAP	algorithm	
+A plan specification which describes the inputs and output of mathematical functions as well as workflow of execution for achieving an predefined objective. 		
+ HuBMAP C000020	HubMAP	Burrows-Wheeler_Aligner_algorithm	An algorithm which performs mapping of low-divergent sequences against a large reference genome, such as the human genome.		
+ HuBMAP C000021	HubMAP	DNA_analysis	Sequence Analysis, DNA		
+ HuBMAP C000022	HubMAP	ChIP-Seq	A molecular genetic technique that combines chromatin immunoprecipitation (ChIP) with massively parallel DNA sequencing to map the binding sites of DNA-associated proteins in a sample of cells.		
+ HuBMAP C000023	HubMAP	analysis_method	A means, manner of procedure, or systematic course of actions that are performed in order to examine and interpret an event or entity.		
+ HuBMAP C000024	HubMAP	MACS2	Model-based Analysis of ChIP-seq		
+ HuBMAP C000025	HubMAP	bulk_atacseq 	ATACseq-bulk_BWA_MACS2		
+ HuBMAP C000026	HubMAP	multiplexed_fluorescent_antibody_imaging_assay	An imaging assay in which multiple cycles consisting of fluorescent labeling, imaging, and fluorophor deactivation are used to detect multiple proteins and their locations in a given sample of tissues or cells.		
+ HuBMAP C000027	HubMAP	cell-dive	A multiplexed fluorescent antibody imaging assay that involves an iterative staining, imaging and dye inactivation workflow for over 60 biomarkers on a single fixed tissue section.		
+ HuBMAP C000028	HubMAP	sprm	Spatial Process Relationship Mapping		
+ HuBMAP C000029	HubMAP	anndata	Vitesse hint		
+ HuBMAP C000030	HubMAP	is_image	Vitesse hint		
+ HuBMAP C000031	HubMAP	is_tiled	Vitesse hint		
+ HuBMAP C000032	HubMAP	celldive_deepcell	CellDIVE [DeepCell + SPRM]		
+ HuBMAP C000033	HubMAP	CODEX	co-detection by indexing assay		
+ HuBMAP C000034	HubMAP	CODEX2	CODEX (CODEX2 assay type)		
+ HuBMAP C000035	HubMAP	cytokit	A single-cell analysis toolkit for high dimensional fluorescent microscopy imaging		
+ HuBMAP C000036	HubMAP	codex_cytokit_v1	CODEX [Cytokit + SPRM]		
+ HuBMAP C000037	HubMAP	codex_cytokit	CODEX [Cytokit + SPRM]		
+ HuBMAP C000038	HubMAP	FISH	
 Fluorescence in situ hybridization		
-C000039	HubMAP	DART-FISH	TMT-LC-MS		
-C000040	HubMAP	image_pyramid 	nan		
-C000041	HubMAP	IMC	imaging mass cytometry assay		
-C000042	HubMAP	IMC2D	Imaging Mass Cytometry (2D)		
-C000043	HubMAP	IMC3D	Imaging Mass Cytometry (3D)		
-C000044	HubMAP	IMC2D_pyramid 	Imaging Mass Cytometry (2D) [Image Pyramid]		
-C000045	HubMAP	IMC3D_pyramid 	Imaging Mass Cytometry (3D) [Image Pyramid]		
-C000046	HubMAP	mass_spectrometry	An analytical technique wherein ions are separated according to their ratio of charge to mass. From the mass spectrum produced, the atomic weight of the particle can be deduced.		
-C000047	HubMAP	LC	Liquid Chromatography Mass Spectrometry 		
-C000048	HubMAP	labelled	Isotope-Coded Protein Label 		
-C000049	HubMAP	label-free	Label-Free Mass Spectrometry		
-C000050	HubMAP	lc-ms_label-free	Label-free LC-MS		
-C000051	HubMAP	lc-ms_labeled	Labeled LC-MS		
-C000052	HubMAP	LC-MS/MS	Liquid Chromatography/Tandem Mass Spectrometry		
-C000053	HubMAP	targeted	targeted sequencing		
-C000054	HubMAP	untargeted	untargeted (metabolomics)		
-C000055	HubMAP	lc-ms-ms_label-free	Label-free LC-MS/MS		
-C000056	HubMAP	lc-ms-ms_labeled	Labeled LC-MS/MS		
-C000057	HubMAP	LC-MS-untargeted	Untargeted LC-MS		
-C000058	HubMAP	microscopy	nan		
-C000059	HubMAP	Lightsheet	Lightsheet Microscopy		
-C000060	HubMAP	maldi	Matrix-Assisted Laser Desorption Ionization Mass Spectrometry		
-C000061	HubMAP	MALDI-IMS	MALDI IMS		
-C000062	HubMAP	MALDI-IMS_pyramid	MALDI IMS [Image Pyramid]		
-C000063	HubMAP	SIMS-IMS	SIMS-IMS		
-C000064	HubMAP	MIBI	Multiplex Ion Beam Imaging		
-C000065	HubMAP	mibi_deepcell	Multiplex Ion Beam Imaging [DeepCell + SPRM]		
-C000066	HubMAP	NanoDESI	NanoDESI 		
-C000067	HubMAP	NanoDESI_pyramid	NanoDESI [Image Pyramid]		
-C000068	HubMAP	NanoPOTS	NanoPOTS 		
-C000069	HubMAP	NanoPOTS_pyramid	NanoPOTS [Image Pyramid]		
-C000070	HubMAP	MxIF	Multiplexed IF Microscopy		
-C000071	HubMAP	MxIF_pyramid	Multiplexed IF Microscopy [Image Pyramid]		
-C000072	HubMAP	tissue_stain	nan		
-C000073	HubMAP	Periodic_acid_Schiff stain	nan		
-C000074	HubMAP	PAS	PAS Stained Microscopy		
-C000075	HubMAP	PAS_pyramid 	PAS Stained Microscopy [Image Pyramid]		
-C000076	HubMAP	RNA-seq	Whole Transcriptome Sequencing		
-C000077	HubMAP	bulk-RNA	Bulk RNA-seq		
-C000078	HubMAP	Salmon	Salmon transcript quantification		
-C000079	HubMAP	salmon_rnaseq_bulk	Bulk RNA-seq [Salmon]		
-C000080	HubMAP	RNA_analysis	Molecular biology procedures, including Northern Blot, Differential display, RT-PCR, and RNase protection for qualifying or quantifying RNA. 		
-C000081	HubMAP	SNARE-seq	nan		
-C000082	HubMAP	scRNA-seq	single-cell RNA sequencing assay		
-C000083	HubMAP	snRNA-seq	single nucleus RNA sequencing		
-C000084	HubMAP	snATAC-seq	single-nucleus ATAC-seq		
-C000085	HubMAP	scATAC-seq	single-cell ATAC-seq		
-C000086	HubMAP	SNARE-ATACseq2	snATACseq (SNARE-seq2)		
-C000087	HubMAP	SNARE-RNAseq2	snRNAseq (SNARE-seq2)		
-C000088	HubMAP	sc_atac_seq_snare_lab	snATAC-seq (SNARE-seq2) [Lab Processed]		
-C000089	HubMAP	sc_rna_seq_snare_lab	snATAC-seq (SNARE-seq2) [Lab Processed]		
-C000090	HubMAP	is_sc	Vitesse hint		
-C000091	HubMAP	rna	Vitesse hint		
-C000092	HubMAP	atac	Vitesse hint		
-C000093	HubMAP	salmon_rnaseq_snareseq	snRNA-seq (SNARE-seq2) [Salmon]		
-C000094	HubMAP	sc_atac_seq_snare	snATAC-seq (SNARE-seq2) [SnapATAC]		
-C000095	HubMAP	10x_genomics	nan		
-C000096	HubMAP	10x_genomics_v2	nan		
-C000097	HubMAP	10x_genomics_v3	nan		
-C000098	HubMAP	scRNAseq-10xGenomics-v2	scRNA-seq (10x Genomics v2)		
-C000099	HubMAP	scRNAseq-10xGenomics-v3	scRNA-seq (10x Genomics v3)		
-C000100	HubMAP	salmon_rnaseq_10x	scRNA-seq (10x Genomics) [Salmon]		
-C000101	HubMAP	SCI-seq	
+ HuBMAP C000039	HubMAP	DART-FISH	TMT-LC-MS		
+ HuBMAP C000040	HubMAP	image_pyramid 	nan		
+ HuBMAP C000041	HubMAP	IMC	imaging mass cytometry assay		
+ HuBMAP C000042	HubMAP	IMC2D	Imaging Mass Cytometry (2D)		
+ HuBMAP C000043	HubMAP	IMC3D	Imaging Mass Cytometry (3D)		
+ HuBMAP C000044	HubMAP	IMC2D_pyramid 	Imaging Mass Cytometry (2D) [Image Pyramid]		
+ HuBMAP C000045	HubMAP	IMC3D_pyramid 	Imaging Mass Cytometry (3D) [Image Pyramid]		
+ HuBMAP C000046	HubMAP	mass_spectrometry	An analytical technique wherein ions are separated according to their ratio of charge to mass. From the mass spectrum produced, the atomic weight of the particle can be deduced.		
+ HuBMAP C000047	HubMAP	LC	Liquid Chromatography Mass Spectrometry 		
+ HuBMAP C000048	HubMAP	labeled	Isotope-Coded Protein Label 		
+ HuBMAP C000049	HubMAP	label-free	Label-Free Mass Spectrometry		
+ HuBMAP C000050	HubMAP	lc-ms_label-free	Label-free LC-MS		
+ HuBMAP C000051	HubMAP	lc-ms_labeled	Labeled LC-MS		
+ HuBMAP C000052	HubMAP	LC-MS/MS	Liquid Chromatography/Tandem Mass Spectrometry		
+ HuBMAP C000053	HubMAP	targeted	targeted sequencing		
+ HuBMAP C000054	HubMAP	untargeted	untargeted (metabolomics)		
+ HuBMAP C000055	HubMAP	lc-ms-ms_label-free	Label-free LC-MS/MS		
+ HuBMAP C000056	HubMAP	lc-ms-ms_labeled	Labeled LC-MS/MS		
+ HuBMAP C000057	HubMAP	LC-MS-untargeted	Untargeted LC-MS		
+ HuBMAP C000058	HubMAP	microscopy	nan		
+ HuBMAP C000059	HubMAP	Lightsheet	Lightsheet Microscopy		
+ HuBMAP C000060	HubMAP	maldi	Matrix-Assisted Laser Desorption Ionization Mass Spectrometry		
+ HuBMAP C000061	HubMAP	MALDI-IMS	MALDI IMS		
+ HuBMAP C000062	HubMAP	MALDI-IMS_pyramid	MALDI IMS [Image Pyramid]		
+ HuBMAP C000063	HubMAP	SIMS-IMS	SIMS-IMS		
+ HuBMAP C000064	HubMAP	MIBI	Multiplex Ion Beam Imaging		
+ HuBMAP C000065	HubMAP	mibi_deepcell	Multiplex Ion Beam Imaging [DeepCell + SPRM]		
+ HuBMAP C000066	HubMAP	NanoDESI	NanoDESI 		
+ HuBMAP C000067	HubMAP	NanoDESI_pyramid	NanoDESI [Image Pyramid]		
+ HuBMAP C000068	HubMAP	NanoPOTS	NanoPOTS 		
+ HuBMAP C000069	HubMAP	NanoPOTS_pyramid	NanoPOTS [Image Pyramid]		
+ HuBMAP C000070	HubMAP	MxIF	Multiplexed IF Microscopy		
+ HuBMAP C000071	HubMAP	MxIF_pyramid	Multiplexed IF Microscopy [Image Pyramid]		
+ HuBMAP C000072	HubMAP	tissue_stain	nan		
+ HuBMAP C000073	HubMAP	Periodic_acid_Schiff stain	nan		
+ HuBMAP C000074	HubMAP	PAS	PAS Stained Microscopy		
+ HuBMAP C000075	HubMAP	PAS_pyramid 	PAS Stained Microscopy [Image Pyramid]		
+ HuBMAP C000076	HubMAP	RNA-seq	Whole Transcriptome Sequencing		
+ HuBMAP C000077	HubMAP	bulk-RNA	Bulk RNA-seq		
+ HuBMAP C000078	HubMAP	Salmon	Salmon transcript quantification		
+ HuBMAP C000079	HubMAP	salmon_rnaseq_bulk	Bulk RNA-seq [Salmon]		
+ HuBMAP C000080	HubMAP	RNA_analysis	Molecular biology procedures, including Northern Blot, Differential display, RT-PCR, and RNase protection for qualifying or quantifying RNA. 		
+ HuBMAP C000081	HubMAP	SNARE-seq	nan		
+ HuBMAP C000082	HubMAP	scRNA-seq	single-cell RNA sequencing assay		
+ HuBMAP C000083	HubMAP	snRNA-seq	single nucleus RNA sequencing		
+ HuBMAP C000084	HubMAP	snATAC-seq	single-nucleus ATAC-seq		
+ HuBMAP C000085	HubMAP	scATAC-seq	single-cell ATAC-seq		
+ HuBMAP C000086	HubMAP	SNARE-ATACseq2	snATACseq (SNARE-seq2)		
+ HuBMAP C000087	HubMAP	SNARE-RNAseq2	snRNAseq (SNARE-seq2)		
+ HuBMAP C000088	HubMAP	sc_atac_seq_snare_lab	snATAC-seq (SNARE-seq2) [Lab Processed]		
+ HuBMAP C000089	HubMAP	sc_rna_seq_snare_lab	snATAC-seq (SNARE-seq2) [Lab Processed]		
+ HuBMAP C000090	HubMAP	is_sc	Vitesse hint		
+ HuBMAP C000091	HubMAP	rna	Vitesse hint		
+ HuBMAP C000092	HubMAP	atac	Vitesse hint		
+ HuBMAP C000093	HubMAP	salmon_rnaseq_snareseq	snRNA-seq (SNARE-seq2) [Salmon]		
+ HuBMAP C000094	HubMAP	sc_atac_seq_snare	snATAC-seq (SNARE-seq2) [SnapATAC]		
+ HuBMAP C000095	HubMAP	10x_genomics	nan		
+ HuBMAP C000096	HubMAP	10x_genomics_v2	nan		
+ HuBMAP C000097	HubMAP	10x_genomics_v3	nan		
+ HuBMAP C000098	HubMAP	scRNAseq-10xGenomics-v2	scRNA-seq (10x Genomics v2)		
+ HuBMAP C000099	HubMAP	scRNAseq-10xGenomics-v3	scRNA-seq (10x Genomics v3)		
+ HuBMAP C000100	HubMAP	salmon_rnaseq_10x	scRNA-seq (10x Genomics) [Salmon]		
+ HuBMAP C000101	HubMAP	SCI-seq	
 Single-cell combinatorial indexed sequencing		
-C000102	HubMAP	sciATACseq 	sciATAC-seq		
-C000103	HubMAP	sc_atac_seq_sci 	sciATAC-seq [SnapATAC]		
-C000104	HubMAP	sciRNAseq 	sciRNA-seq		
-C000105	HubMAP	salmon_rnaseq_sciseq	sciRNA-seq [Salmon]		
-C000106	HubMAP	seqFish	seqFISH 		
-C000107	HubMAP	seqFish_pyramid	seqFISH [Image Pyramid]		
-C000108	HubMAP	seqFish_lab_processed 	seqFISH [Lab Processed]		
-C000109	HubMAP	snATACseq	snATAC-seq		
-C000110	HubMAP	sn_atac_seq	snATAC-seq [SnapATAC]		
-C000111	HubMAP	snRNAseq-10xGenomics-v2	snRNA-seq (10x Genomics v2)		
-C000112	HubMAP	snRNAseq-10xGenomics-v3	snRNA-seq (10x Genomics v3)		
-C000113	HubMAP	salmon_sn_rnaseq_10x	snRNA-seq [Salmon]		
-C000114	HubMAP	Slide-seq	Slide-seq		
-C000115	HubMAP	salmon_rnaseq_slideseq 	Slide-seq [Salmon]		
-C000116	HubMAP	TMT	tandem mass tag		
-C000117	HubMAP	HPLC/MS/MS	High-performance Liquid Chromatography/Tandem Mass Spectrometry		
-C000118	HubMAP	flow_injection_analysis	flow injection analysis		
-C000119	HubMAP	Targeted-Shotgun-LC-MS	Targeted Shotgun / Flow-injection LC-MS		
-C000120	HubMAP	TMT-LC-MS	TMT LC-MS		
-C000121	HubMAP	WGS	Whole Genome Sequencing		
-C000122	HubMAP	LC-MS	LC-MS		
-C000123	HubMAP	MS 	MS 		
-C000124	HubMAP	bottom_up	Proteolytic Processing		
-C000125	HubMAP	top_down	protein separation apparatus		
-C000126	HubMAP	LC-MS_bottom_up	LC-MS Bottom Up		
-C000127	HubMAP	MS_bottom_up	MS Bottom Up		
-C000128	HubMAP	LC-MS_top_down	LC-MS Top Down		
-C000129	HubMAP	MS_top_down 	MS Top Down		
-C000130	HubMAP	liquid_chromatography	liquid chromatography		
-C000131	HubMAP	sample	sample		
-C000132	HubMAP	atacseq 	ATACseq		
-C000133	HubMAP	biopsy 	Biopsy 		
-C000134	HubMAP	blood 	nan		
-C000135	HubMAP	cell_lysate	nan		
-C000136	HubMAP	clarity_hydrogel 	nan		
-C000137	HubMAP	medium	nan		
-C000138	HubMAP	OCT	Optimal Cutting Temperature Compound		
-C000139	HubMAP	cryosections_curls_from_fresh_frozen_oct	Cryosections/curls from fresh frozen OCT		
-C000140	HubMAP	RNAlater	Trade name for an aqueous, non-toxic tissue storage reagent that rapidly permeates tissues to stabilize and protect cellular RNA.		
-C000141	HubMAP	cryosections_curls_rnalater	Cryosections/curls RNAlater		
-C000142	HubMAP	fixative	nan		
-C000143	HubMAP	formalin	nan		
-C000144	HubMAP	PFA	nan		
-C000145	HubMAP	FFPE	formalin-fixed polyethlylene		
-C000146	HubMAP	form	nan		
-C000147	HubMAP	block	nan		
-C000148	HubMAP	slide	nan		
-C000149	HubMAP	piece	nan		
-C000150	HubMAP	section	nan		
-C000151	HubMAP	freezing_method	nan		
-C000152	HubMAP	fresh_frozen	nan		
-C000153	HubMAP	flash_frozen	nan		
-C000154	HubMAP	unfrozen	nan		
-C000155	HubMAP	frozen	nan		
-C000156	HubMAP	ffpe_block 	FFPE block		
-C000157	HubMAP	ffpe_slide 	FFPE slide		
-C000158	HubMAP	fixed_frozen_section_slide 	Fixed frozen section slide		
-C000159	HubMAP	fixed_tissue_piece 	Fixed tissue piece		
-C000160	HubMAP	flash_frozen_liquid_nitrogen	Flash frozen, liquid nitrogen		
-C000161	HubMAP	formalin_fixed_oct_block 	Formalin fixed OCT block		
-C000162	HubMAP	fresh_frozen_oct_block 	Fresh frozen OCT block		
-C000163	HubMAP	fresh_frozen_section_slide 	Fresh frozen section slide		
-C000164	HubMAP	fresh_frozen_tissue 	Fresh frozen tissue		
-C000165	HubMAP	fresh_frozen_tissue_section 	Fresh frozen tissue section		
-C000166	HubMAP	fresh_tissue 	Fresh tissue		
-C000167	HubMAP	cell_pellet	cell pellet		
-C000168	HubMAP	frozen_cell_pellet_buffy_coat	Frozen cell pellet (Buffy coat)		
-C000169	HubMAP	gDNA	gDNA 		
-C000170	HubMAP	module 	Module 		
-C000171	HubMAP	nuclei	Nuclei 		
-C000172	HubMAP	nuclei_rnalater 	Nuclei RNAlater		
-C000173	HubMAP	organ	Organ		
-C000174	HubMAP	organ_piece 	Organ piece		
-C000175	HubMAP	other	Other 		
-C000176	HubMAP	pbmc	PBMC		
-C000177	HubMAP	pfa_fixed_frozen_oct_block 	PFA fixed frozen OCT block		
-C000178	HubMAP	plasma 	Plasma		
-C000179	HubMAP	protein	Protein		
-C000180	HubMAP	ran_poly_a_enriched 	RNA, poly-A enriched		
-C000181	HubMAP	rna_total 	RNA, total		
-C000182	HubMAP	rnalater_treated_and_stored 	RNAlater treated and stored		
-C000183	HubMAP	rnaseq	RNAseq		
-C000184	HubMAP	scatacseq 	scATACseq		
-C000185	HubMAP	scrnaseq 	scRNAseq 		
-C000186	HubMAP	segment 	Segment 		
-C000187	HubMAP	seqfish 	seqFISH		
-C000188	HubMAP	sequence_library	Sequence library		
-C000189	HubMAP	serum 	Serum		
-C000190	HubMAP	single_cell_cryopreserved 	Single cell cryopreserved		
-C000191	HubMAP	snatacseq 	snATACseq 		
-C000192	HubMAP	snrnaseq 	snRNAseq 		
-C000193	HubMAP	tissue_lysate 	Tissue lysate		
-C000194	HubMAP	AO 	Aorta 		
-C000195	HubMAP	BL 	Bladder 		
-C000196	HubMAP	BD 	Blood 		
-C000197	HubMAP	BM	Bone Marrow		
-C000198	HubMAP	BR 	Brain		
-C000199	HubMAP	LF 	Fallopian Tube (Left)		
-C000200	HubMAP	RF 	Fallopian Tube (Right)		
-C000201	HubMAP	HT 	Heart 		
-C000202	HubMAP	LB 	Bronchus (Left)		
-C000203	HubMAP	LE 	Eye (Left)		
-C000204	HubMAP	LI 	Large Intestine		
-C000205	HubMAP	LK 	Kidney (Left)		
-C000206	HubMAP	LL 	Lung (Left)		
-C000207	HubMAP	LN 	Knee (Left)		
-C000208	HubMAP	LV 	Liver 		
-C000209	HubMAP	LY 	Lymph Node		
-C000210	HubMAP	LO 	Ovary (Left)		
-C000211	HubMAP	RO 	Ovary (Right)		
-C000212	HubMAP	OT 	Other 		
-C000213	HubMAP	PA	Pancreas		
-C000214	HubMAP	PL 	Placenta 		
-C000215	HubMAP	RB	Bronchus (Right)		
-C000216	HubMAP	RE	Eye (Right)		
-C000217	HubMAP	RK	Kidney (Right)		
-C000218	HubMAP	RL	Lung (Right)		
-C000219	HubMAP	RN 	Knee (Right)		
-C000220	HubMAP	SI	Small Intestine		
-C000221	HubMAP	SK	Skin 		
-C000222	HubMAP	SP 	Spleen		
-C000223	HubMAP	ST 	Sternum 		
-C000224	HubMAP	TH	Thymus		
-C000225	HubMAP	TR	Trachea 		
-C000226	HubMAP	UR	Ureter 		
-C000227	HubMAP	UT	Uterus		
-C000228	HubMAP	analyte	analyte		
-C000229	HubMAP	lipid	lipid		
-C000230	HubMAP	metabolite	metabolite		
-C000231	HubMAP	peptide	peptide		
-C000232	HubMAP	nucleic_acid_sequencing	nucleic acid sequencing		
+ HuBMAP C000102	HubMAP	sciATACseq 	sciATAC-seq		
+ HuBMAP C000103	HubMAP	sc_atac_seq_sci 	sciATAC-seq [SnapATAC]		
+ HuBMAP C000104	HubMAP	sciRNAseq 	sciRNA-seq		
+ HuBMAP C000105	HubMAP	salmon_rnaseq_sciseq	sciRNA-seq [Salmon]		
+ HuBMAP C000106	HubMAP	seqFish	seqFISH 		
+ HuBMAP C000107	HubMAP	seqFish_pyramid	seqFISH [Image Pyramid]		
+ HuBMAP C000108	HubMAP	seqFish_lab_processed 	seqFISH [Lab Processed]		
+ HuBMAP C000109	HubMAP	snATACseq	snATAC-seq		
+ HuBMAP C000110	HubMAP	sn_atac_seq	snATAC-seq [SnapATAC]		
+ HuBMAP C000111	HubMAP	snRNAseq-10xGenomics-v2	snRNA-seq (10x Genomics v2)		
+ HuBMAP C000112	HubMAP	snRNAseq-10xGenomics-v3	snRNA-seq (10x Genomics v3)		
+ HuBMAP C000113	HubMAP	salmon_sn_rnaseq_10x	snRNA-seq [Salmon]		
+ HuBMAP C000114	HubMAP	Slide-seq	Slide-seq		
+ HuBMAP C000115	HubMAP	salmon_rnaseq_slideseq 	Slide-seq [Salmon]		
+ HuBMAP C000116	HubMAP	TMT	tandem mass tag		
+ HuBMAP C000117	HubMAP	HPLC/MS/MS	High-performance Liquid Chromatography/Tandem Mass Spectrometry		
+ HuBMAP C000118	HubMAP	flow_injection_analysis	flow injection analysis		
+ HuBMAP C000119	HubMAP	Targeted-Shotgun-LC-MS	Targeted Shotgun / Flow-injection LC-MS		
+ HuBMAP C000120	HubMAP	TMT-LC-MS	TMT LC-MS		
+ HuBMAP C000121	HubMAP	WGS	Whole Genome Sequencing		
+ HuBMAP C000122	HubMAP	LC-MS	LC-MS		
+ HuBMAP C000123	HubMAP	MS 	MS 		
+ HuBMAP C000124	HubMAP	bottom_up	Proteolytic Processing		
+ HuBMAP C000125	HubMAP	top_down	protein separation apparatus		
+ HuBMAP C000126	HubMAP	LC-MS_bottom_up	LC-MS Bottom Up		
+ HuBMAP C000127	HubMAP	MS_bottom_up	MS Bottom Up		
+ HuBMAP C000128	HubMAP	LC-MS_top_down	LC-MS Top Down		
+ HuBMAP C000129	HubMAP	MS_top_down 	MS Top Down		
+ HuBMAP C000130	HubMAP	liquid_chromatography	liquid chromatography		
+ HuBMAP C000131	HubMAP	sample	sample		
+ HuBMAP C000132	HubMAP	atacseq 	ATACseq		
+ HuBMAP C000133	HubMAP	biopsy 	Biopsy 		
+ HuBMAP C000134	HubMAP	blood 	nan		
+ HuBMAP C000135	HubMAP	cell_lysate	nan		
+ HuBMAP C000136	HubMAP	clarity_hydrogel 	nan		
+ HuBMAP C000137	HubMAP	medium	nan		
+ HuBMAP C000138	HubMAP	OCT	Optimal Cutting Temperature Compound		
+ HuBMAP C000139	HubMAP	cryosections_curls_from_fresh_frozen_oct	Cryosections/curls from fresh frozen OCT		
+ HuBMAP C000140	HubMAP	RNAlater	Trade name for an aqueous, non-toxic tissue storage reagent that rapidly permeates tissues to stabilize and protect cellular RNA.		
+ HuBMAP C000141	HubMAP	cryosections_curls_rnalater	Cryosections/curls RNAlater		
+ HuBMAP C000142	HubMAP	fixative	nan		
+ HuBMAP C000143	HubMAP	formalin	nan		
+ HuBMAP C000144	HubMAP	PFA	nan		
+ HuBMAP C000145	HubMAP	FFPE	formalin-fixed polyethlylene		
+ HuBMAP C000146	HubMAP	form	nan		
+ HuBMAP C000147	HubMAP	block	nan		
+ HuBMAP C000148	HubMAP	slide	nan		
+ HuBMAP C000149	HubMAP	piece	nan		
+ HuBMAP C000150	HubMAP	section	nan		
+ HuBMAP C000151	HubMAP	freezing_method	nan		
+ HuBMAP C000152	HubMAP	fresh_frozen	nan		
+ HuBMAP C000153	HubMAP	flash_frozen	nan		
+ HuBMAP C000154	HubMAP	unfrozen	nan		
+ HuBMAP C000155	HubMAP	frozen	nan		
+ HuBMAP C000156	HubMAP	ffpe_block 	FFPE block		
+ HuBMAP C000157	HubMAP	ffpe_slide 	FFPE slide		
+ HuBMAP C000158	HubMAP	fixed_frozen_section_slide 	Fixed frozen section slide		
+ HuBMAP C000159	HubMAP	fixed_tissue_piece 	Fixed tissue piece		
+ HuBMAP C000160	HubMAP	flash_frozen_liquid_nitrogen	Flash frozen, liquid nitrogen		
+ HuBMAP C000161	HubMAP	formalin_fixed_oct_block 	Formalin fixed OCT block		
+ HuBMAP C000162	HubMAP	fresh_frozen_oct_block 	Fresh frozen OCT block		
+ HuBMAP C000163	HubMAP	fresh_frozen_section_slide 	Fresh frozen section slide		
+ HuBMAP C000164	HubMAP	fresh_frozen_tissue 	Fresh frozen tissue		
+ HuBMAP C000165	HubMAP	fresh_frozen_tissue_section 	Fresh frozen tissue section		
+ HuBMAP C000166	HubMAP	fresh_tissue 	Fresh tissue		
+ HuBMAP C000167	HubMAP	cell_pellet	cell pellet		
+ HuBMAP C000168	HubMAP	frozen_cell_pellet_buffy_coat	Frozen cell pellet (Buffy coat)		
+ HuBMAP C000169	HubMAP	gDNA	gDNA 		
+ HuBMAP C000170	HubMAP	module 	Module 		
+ HuBMAP C000171	HubMAP	nuclei	Nuclei 		
+ HuBMAP C000172	HubMAP	nuclei_rnalater 	Nuclei RNAlater		
+ HuBMAP C000173	HubMAP	organ	Organ		
+ HuBMAP C000174	HubMAP	organ_piece 	Organ piece		
+ HuBMAP C000175	HubMAP	other	Other 		
+ HuBMAP C000176	HubMAP	pbmc	PBMC		
+ HuBMAP C000177	HubMAP	pfa_fixed_frozen_oct_block 	PFA fixed frozen OCT block		
+ HuBMAP C000178	HubMAP	plasma 	Plasma		
+ HuBMAP C000179	HubMAP	protein	Protein		
+ HuBMAP C000180	HubMAP	ran_poly_a_enriched 	RNA, poly-A enriched		
+ HuBMAP C000181	HubMAP	rna_total 	RNA, total		
+ HuBMAP C000182	HubMAP	rnalater_treated_and_stored 	RNAlater treated and stored		
+ HuBMAP C000183	HubMAP	rnaseq	RNAseq		
+ HuBMAP C000184	HubMAP	scatacseq 	scATACseq		
+ HuBMAP C000185	HubMAP	scrnaseq 	scRNAseq 		
+ HuBMAP C000186	HubMAP	segment 	Segment 		
+ HuBMAP C000187	HubMAP	seqfish 	seqFISH		
+ HuBMAP C000188	HubMAP	sequence_library	Sequence library		
+ HuBMAP C000189	HubMAP	serum 	Serum		
+ HuBMAP C000190	HubMAP	single_cell_cryopreserved 	Single cell cryopreserved		
+ HuBMAP C000191	HubMAP	snatacseq 	snATACseq 		
+ HuBMAP C000192	HubMAP	snrnaseq 	snRNAseq 		
+ HuBMAP C000193	HubMAP	tissue_lysate 	Tissue lysate		
+ HuBMAP C000194	HubMAP	AO 	Aorta 		
+ HuBMAP C000195	HubMAP	BL 	Bladder 		
+ HuBMAP C000196	HubMAP	BD 	Blood 		
+ HuBMAP C000197	HubMAP	BM	Bone Marrow		
+ HuBMAP C000198	HubMAP	BR 	Brain		
+ HuBMAP C000199	HubMAP	LF 	Fallopian Tube (Left)		
+ HuBMAP C000200	HubMAP	RF 	Fallopian Tube (Right)		
+ HuBMAP C000201	HubMAP	HT 	Heart 		
+ HuBMAP C000202	HubMAP	LB 	Bronchus (Left)		
+ HuBMAP C000203	HubMAP	LE 	Eye (Left)		
+ HuBMAP C000204	HubMAP	LI 	Large Intestine		
+ HuBMAP C000205	HubMAP	LK 	Kidney (Left)		
+ HuBMAP C000206	HubMAP	LL 	Lung (Left)		
+ HuBMAP C000207	HubMAP	LN 	Knee (Left)		
+ HuBMAP C000208	HubMAP	LV 	Liver 		
+ HuBMAP C000209	HubMAP	LY 	Lymph Node		
+ HuBMAP C000210	HubMAP	LO 	Ovary (Left)		
+ HuBMAP C000211	HubMAP	RO 	Ovary (Right)		
+ HuBMAP C000212	HubMAP	OT 	Other 		
+ HuBMAP C000213	HubMAP	PA	Pancreas		
+ HuBMAP C000214	HubMAP	PL 	Placenta 		
+ HuBMAP C000215	HubMAP	RB	Bronchus (Right)		
+ HuBMAP C000216	HubMAP	RE	Eye (Right)		
+ HuBMAP C000217	HubMAP	RK	Kidney (Right)		
+ HuBMAP C000218	HubMAP	RL	Lung (Right)		
+ HuBMAP C000219	HubMAP	RN 	Knee (Right)		
+ HuBMAP C000220	HubMAP	SI	Small Intestine		
+ HuBMAP C000221	HubMAP	SK	Skin 		
+ HuBMAP C000222	HubMAP	SP 	Spleen		
+ HuBMAP C000223	HubMAP	ST 	Sternum 		
+ HuBMAP C000224	HubMAP	TH	Thymus		
+ HuBMAP C000225	HubMAP	TR	Trachea 		
+ HuBMAP C000226	HubMAP	UR	Ureter 		
+ HuBMAP C000227	HubMAP	UT	Uterus		
+ HuBMAP C000228	HubMAP	analyte	analyte		
+ HuBMAP C000229	HubMAP	lipid	lipid		
+ HuBMAP C000230	HubMAP	metabolite	metabolite		
+ HuBMAP C000231	HubMAP	peptide	peptide		
+ HuBMAP C000232	HubMAP	nucleic_acid_sequencing	nucleic acid sequencing		
+ HuBMAP C000233	HubMAP	DeepCell	DeepCell		

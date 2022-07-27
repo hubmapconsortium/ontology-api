@@ -5,3 +5,5 @@ http://www.ebi.ac.uk/efo/swo/SWO_0000740	SWO	implements
 http://purl.org/ccf/assay_type	CCF	assay_type 	
 http://www.bioassayontology.org/bao#BAO_0002897	BAO	has preparation method 	
 http://www.bioassayontology.org/bao#BAO_0002008	BAO	has form 	
+http://purl.obolibrary.org/obo/CHMO_0002748	CHMO	has analyte 	
+http://snomed.info/id/704322002	SNOMEDCT	process agent 	

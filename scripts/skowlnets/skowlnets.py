@@ -7,7 +7,7 @@
 # 
 # User guide to build the SimpleKnowledge Editor spreadsheet: https://docs.google.com/document/d/1wjsOzJYRV2FRehX7NQI74ZKRXvH45l0QmClBBF_VypM/edit?usp=sharing
 
-# In[36]:
+# In[2]:
 
 
 #!/usr/bin/env python
@@ -27,7 +27,7 @@ import numpy as np
 import os
 
 
-# In[67]:
+# In[10]:
 
 
 #Read input spreadsheet.
@@ -134,12 +134,15 @@ with open(relation_filename,'w') as out:
         #Parse the namespace, which depends on the ontology URI.
         if predicate_uri.find('ccf') > 0:
             relation_namespace = 'CCF'
+        elif predicate_uri.find('CHMO') > 0:
+            relation_namespace = 'CHMO'
+        elif predicate_uri.find('snomed') > 0:
+            relation_namespace = 'SNOMEDCT'
         else:
             relation_namespace = predicate_uri.split('/')[-1]
             relation_namespace = relation_namespace.replace('#','_')
             relation_namespace = relation_namespace.split('_')[0].upper()
         relation_definition = ''
-        
         out.write(predicate_uri + '\t' + relation_namespace + '\t' + label + '\t' + relation_definition + '\n')
 
 

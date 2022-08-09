@@ -1,9 +1,14 @@
 relation_id	relation_namespace	relation_label	relation_definition
-http://purl.obolibrary.org/obo/OBI_0002815	OBI	has_representation 	
-http://purl.obolibrary.org/obo/RO_0001019	RO	contains 	
-http://www.ebi.ac.uk/efo/swo/SWO_0000740	SWO	implements 	
-http://www.ebi.ac.uk/swo/SWO_0004001	SWO	vitesse_hint 	
-http://purl.org/ccf/assay_type	CCF	assay_type 	
-http://www.bioassayontology.org/bao#BAO_0002897	BAO	has_preparation_method 	
-http://www.bioassayontology.org/bao#BAO_0002008	BAO	has_form 	
-http://purl.obolibrary.org/obo/CHMO_0002748	CHMO	has_analyte 	
+referenced_in	HuBMAP	referenced_in	
+contains	HuBMAP	contains	
+uses_image_processing_method	HuBMAP	uses_image_processing_method	
+uses_primary_algorithm	HuBMAP	uses_primary_algorithm	
+processed_with_pipeline	HuBMAP	processed_with_pipeline	
+has_vitessce_hint	HuBMAP	has_vitessce_hint	
+has_biospecimen_type	HuBMAP	has_biospecimen_type	
+has_preparation_method	HuBMAP	has_preparation_method	
+has_specimen_form	HuBMAP	has_specimen_form	
+has_analyte	HuBMAP	has_analyte	
+has_directory_schema_yaml	HuBMAP	has_directory_schema_yaml	
+has_field_schema_yaml	HuBMAP	has_field_schema_yaml	
+has_description_URL	HuBMAP	has_description_URL	

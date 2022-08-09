@@ -11,11 +11,11 @@ The script expects a file in the application directory named SimpleKnowledgeHuBM
 
 - Column A: term
 - Column B: concept code in local ontology
-- Column C: definition
+- Column C: definition for concept
 - Column D: pipe-delimited list of synonyms
-- Column E: pipe-delimited list of references to other ontologies. Format of each list element is *<ontology SAB>*:*<concept code>*
+- Column E: pipe-delimited list of references to other ontologies. 
 
-Columns after F describe relationships. Column F corresponds to *isa*; the column headers for columns after F contain the relationship URI.
+Columns after F describe relationships. Column F corresponds to *isa*.
 
 Each cell in a relationship column contains a comma-delimited list of object concepts that relate.
 

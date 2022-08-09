@@ -7,7 +7,7 @@
 # 
 # User guide to build the SimpleKnowledge Editor spreadsheet: https://docs.google.com/document/d/1wjsOzJYRV2FRehX7NQI74ZKRXvH45l0QmClBBF_VypM/edit?usp=sharing
 
-# In[3]:
+# In[2]:
 
 
 #!/usr/bin/env python
@@ -27,7 +27,7 @@ import numpy as np
 import os
 
 
-# In[4]:
+# In[8]:
 
 
 #Read input spreadsheet.
@@ -41,9 +41,13 @@ df_sk = pd.read_excel(SIMPLEKNOWLEDGE_FILE,sheet_name='SimpleKnowledgeEditor')
 
 #subject <tab> predicate <tab> object
 #subject: code in HuBMAP ontology
-#predicate: URI for relation, a relation property a standard OBO ontology
-#object: code in HuBMAP ontology
+#predicate: relationship
+#
+#  (In canonical OWLNETS, the relationship is a URI for a relation 
+#  property in a standard OBO ontology, such as RO.) For the HuBMAP
+#  ontology, we use custom relationship strings.)
 
+#object: code in HuBMAP ontology
 
 edge_list_filename = './OWLNETS_edgelist.txt'
 
@@ -72,14 +76,14 @@ with open(edge_list_filename,'w') as out:
             subject = str(row['code'])
             
             for col in range(5,len(row)):
-                #Obtain relationship property URI. This is in the format
-                #term (URI)
+                #Obtain relationship.
                 if col == 5:
                     predicate_uri = 'isa'
                 else:
                     colhead = df_sk.columns[col]
-                    predicate_uri = colhead[colhead.find('(')+1:colhead.find(')')]
-
+                    #predicate_uri = colhead[colhead.find('(')+1:colhead.find(')')]
+                    predicate_uri = colhead
+                    
                 #Obtain codes in the proposed ontology for object concepts involved
                 #in subject-predicate-object relationships.
                 objects = row.iloc[col]
@@ -89,7 +93,7 @@ with open(edge_list_filename,'w') as out:
                     listobjects = objects.split(',')
                     
                     for obj in listobjects:
-                        #Match object terms with theire respective codes (Column A), 
+                        #Match object terms with their respective codes (Column A), 
                         #which will result in a dataframe of one row.
                         objcode = df_sk[df_sk['term']==obj].iloc[0,1]
                         out.write(subject + '\t' + predicate_uri + '\t' + objcode + '\n')
@@ -120,8 +124,6 @@ with open(node_metadata_filename,'w') as out:
             
 #RELATION METADATA
 #Create a row for each type of relationship.
-#Relationship URIs are defined in the headers of columns that occur after F in the 
-#spreadsheet.
 
 relation_filename = './OWLNETS_relations.txt'
 with open(relation_filename,'w') as out:
@@ -129,8 +131,12 @@ with open(relation_filename,'w') as out:
     
     for col in range(6,len(df_sk.columns)):
         colhead = df_sk.columns[col]
-        predicate_uri = colhead[colhead.find('(')+1:colhead.find(')')]
-        label = colhead[0:colhead.find('(')]
+        #predicate_uri = colhead[colhead.find('(')+1:colhead.find(')')]
+        predicate_uri = colhead
+        
+        relation_namespace = 'HuBMAP'
+        
+        """label = colhead[0:colhead.find('(')]
         #Parse the namespace, which depends on the ontology URI.
         if predicate_uri.find('ccf') > 0:
             relation_namespace = 'CCF'
@@ -142,8 +148,10 @@ with open(relation_filename,'w') as out:
             relation_namespace = predicate_uri.split('/')[-1]
             relation_namespace = relation_namespace.replace('#','_')
             relation_namespace = relation_namespace.split('_')[0].upper()
+        """
         relation_definition = ''
-        out.write(predicate_uri + '\t' + relation_namespace + '\t' + label + '\t' + relation_definition + '\n')
+        #out.write(predicate_uri + '\t' + relation_namespace + '\t' + label + '\t' + relation_definition + '\n')
+        out.write(predicate_uri + '\t' + relation_namespace + '\t' + predicate_uri + '\t' + relation_definition + '\n')
 
 
 # In[ ]:

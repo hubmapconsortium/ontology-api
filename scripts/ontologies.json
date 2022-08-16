@@ -110,8 +110,8 @@
     "comment": "A Variation Ontology: for standardized, systematic description of effects, consequences and mechanisms of variations"
   },
   "HUBMAP": {
-    "sab": "HUBMAP",
-    "execute": "./skowlnets/skowlnets.py"
+    "sab": "HuBMAP",
+    "execute": "./skowlnets/skowlnets.py SimpleKnowledgeHuBMAP.xlsx HuBMAP"
   },
   "SWO"
   {

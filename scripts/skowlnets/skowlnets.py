@@ -14,11 +14,16 @@
 
 # Uses the input spreadsheet for the SimpleKnowledge Editor to generate text files that comply with the OWLNETS format.
 
+# This script is designed to align with the PheKnowLator logic executed in the build_csv.py script--e.g., outputs
+# to owlnets_output, etc.
+
 import argparse
 import sys
 import pandas as pd
 import numpy as np
 import os
+import glob
+import logging.config
 
 
 # Parse an argument that identifies the version of the UMLS in Neptune from which to build
@@ -34,14 +39,28 @@ parser = argparse.ArgumentParser(
     description='Builds ontology files in OWLNETS format from a spreadsheet in SimpleKnowledge format.',
     formatter_class=RawTextArgumentDefaultsHelpFormatter)
 parser.add_argument("skfile", help="SimpleKnowledge spreadsheet name")
-parser.add_argument("ontology", help="Name of ontology")
+parser.add_argument("sab", help="Name of SimpleKnowledge ontology")
+parser.add_argument("-s", "--sk_dir", type=str, default='../../neo4j/import/current',
+                    help="directory containing the SimpleKnowledge spreadsheet")
+parser.add_argument("-l", "--owlnets_dir", type=str, default="../owlnets_output",
+                    help="directory containing the owlnets output directories")
 args = parser.parse_args()
 
+# Use existing logging from build_csv.
+log_dir, log, log_config = '../builds/logs', 'pkt_build_log.log', glob.glob('../**/logging.ini', recursive=True)
+logger = logging.getLogger(__name__)
+logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
+
+def print_and_logger_info(message: str) -> None:
+    print(message)
+    logger.info(message)
+
 # Read input spreadsheet.
+input_path: str = os.path.join(args.sk_dir, args.skfile)
 try:
-    df_sk = pd.read_excel(args.skfile, sheet_name='SimpleKnowledgeEditor')
+    df_sk = pd.read_excel(input_path, sheet_name='SimpleKnowledgeEditor')
 except FileNotFoundError:
-    err = 'Missing input spreadsheet: ' + args.skfile
+    err = 'Missing input spreadsheet: ' + input_path
     raise SystemExit(err)
 
 # Build OWLNETS text files.
@@ -57,10 +76,14 @@ except FileNotFoundError:
 #  (In canonical OWLNETS, the relationship is a URI for a relation 
 #  property in a standard OBO ontology, such as RO.) For custom
 #  ontologies such as HuBMAP, we use custom relationship strings.)
+owlnets_path: str = os.path.join(args.owlnets_dir, args.sab)
+print('owlnets_path:', owlnets_path)
+os.system(f"mkdir -p {owlnets_path}")
 
-edge_list_filename = './OWLNETS_edgelist.txt'
-print('Building OWLNETS_edge')
-with open(edge_list_filename, 'w') as out:
+edgelist_path: str = os.path.join(owlnets_path, 'OWLNETS_edgelist.txt')
+print_and_logger_info('Building: ' + edgelist_path)
+
+with open(edgelist_path, 'w') as out:
     out.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
 
     # Each column after E in the spreadsheet (isa, etc.) represents a type of
@@ -104,6 +127,7 @@ with open(edge_list_filename, 'w') as out:
                             err = 'Error: row for \'' + subject + '\' indicates relationship \'' + predicate_uri
                             err = err + '\' with node \'' + obj + '\', but this node is not defined in the \'term\' '
                             err = err + 'column. (Check for spelling and case of node name.)'
+                            print_and_logger_info(err)
                             raise SystemExit(err)
 
                         objcode = match.iloc[0, 1]
@@ -112,9 +136,10 @@ with open(edge_list_filename, 'w') as out:
 # NODE METADATA
 # Write a row for each unique concept in in the 'code' column.
 
-node_metadata_filename = './OWLNETS_node_metadata.txt'
-print('Building OWLNETS_node_metadata')
-with open(node_metadata_filename, 'w') as out:
+node_metadata_path: str = os.path.join(owlnets_path, 'OWLNETS_node_metadata.txt')
+print_and_logger_info('Building: ' + node_metadata_path)
+
+with open(node_metadata_path, 'w') as out:
     out.write(
         'node_id' + '\t' + 'node_namespace' + '\t' + 'node_label' + '\t' + 'node_definition' + '\t' + 'node_synonyms' + '\t' + 'node_dbxrefs' + '\n')
 
@@ -137,9 +162,10 @@ with open(node_metadata_filename, 'w') as out:
 # RELATION METADATA
 # Create a row for each type of relationship.
 
-relation_filename = './OWLNETS_relations.txt'
-print('Building OWLNETS_node_metadata')
-with open(relation_filename, 'w') as out:
+relation_path: str = os.path.join(owlnets_path, 'OWLNETS_relations.txt')
+print_and_logger_info('Building: ' + relation_path)
+
+with open(relation_path, 'w') as out:
     out.write(
         'relation_id' + '\t' + 'relation_namespace' + '\t' + 'relation_label' + '\t' + 'relation_definition' + '\n')
 
@@ -148,7 +174,7 @@ with open(relation_filename, 'w') as out:
         # predicate_uri = colhead[colhead.find('(')+1:colhead.find(')')]
         predicate_uri = colhead
 
-        relation_namespace = args.ontology
+        relation_namespace = args.sab
 
         relation_definition = ''
         # out.write(predicate_uri + '\t' + relation_namespace + '\t' + label + '\t' + relation_definition + '\n')

@@ -103,7 +103,7 @@ with open(edgelist_path, 'w') as out:
 
     for index, row in df_sk.iterrows():
 
-        if index > 0:  # non-header
+        if index >= 0:  # non-header
             subject = str(row['code'])
 
             for col in range(5, len(row)):
@@ -148,7 +148,7 @@ with open(node_metadata_path, 'w') as out:
         'node_id' + '\t' + 'node_namespace' + '\t' + 'node_label' + '\t' + 'node_definition' + '\t' + 'node_synonyms' + '\t' + 'node_dbxrefs' + '\n')
 
     for index, row in df_sk.iterrows():
-        if index > 0:  # non-header
+        if index >= 0:  # non-header
             node_id = str(row['code'])
             node_namespace = 'HubMAP'
             node_label = row['term']

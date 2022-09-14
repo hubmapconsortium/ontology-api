@@ -40,14 +40,19 @@ parser = argparse.ArgumentParser(
     formatter_class=RawTextArgumentDefaultsHelpFormatter)
 parser.add_argument("skfile", help="SimpleKnowledge spreadsheet name")
 parser.add_argument("sab", help="Name of SimpleKnowledge ontology")
-parser.add_argument("-s", "--sk_dir", type=str, default='../../neo4j/import/current',
+parser.add_argument("-s", "--sk_dir", type=str, default='../neo4j/import/current',
                     help="directory containing the SimpleKnowledge spreadsheet")
-parser.add_argument("-l", "--owlnets_dir", type=str, default="../owlnets_output",
+parser.add_argument("-l", "--owlnets_dir", type=str, default="./owlnets_output",
                     help="directory containing the owlnets output directories")
 args = parser.parse_args()
 
 # Use existing logging from build_csv.
-log_dir, log, log_config = '../builds/logs', 'pkt_build_log.log', glob.glob('../**/logging.ini', recursive=True)
+# Note: To run this script directly as part of development or debugging
+# (i.e., instead of calling it from build_csv.py), change the relative paths as follows:
+# log_config = '../builds/logs'
+# glob.glob('../**/logging.ini'...
+
+log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
 logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
@@ -60,7 +65,7 @@ input_path: str = os.path.join(args.sk_dir, args.skfile)
 try:
     df_sk = pd.read_excel(input_path, sheet_name='SimpleKnowledgeEditor')
 except FileNotFoundError:
-    err = 'Missing input spreadsheet: ' + input_path
+    err = 'Missing input spreadsheet: ' + os.path.abspath(input_path)
     raise SystemExit(err)
 
 # Build OWLNETS text files.
@@ -77,11 +82,10 @@ except FileNotFoundError:
 #  property in a standard OBO ontology, such as RO.) For custom
 #  ontologies such as HuBMAP, we use custom relationship strings.)
 owlnets_path: str = os.path.join(args.owlnets_dir, args.sab)
-print('owlnets_path:', owlnets_path)
 os.system(f"mkdir -p {owlnets_path}")
 
 edgelist_path: str = os.path.join(owlnets_path, 'OWLNETS_edgelist.txt')
-print_and_logger_info('Building: ' + edgelist_path)
+print_and_logger_info('Building: ' + os.path.abspath(edgelist_path))
 
 with open(edgelist_path, 'w') as out:
     out.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
@@ -137,7 +141,7 @@ with open(edgelist_path, 'w') as out:
 # Write a row for each unique concept in in the 'code' column.
 
 node_metadata_path: str = os.path.join(owlnets_path, 'OWLNETS_node_metadata.txt')
-print_and_logger_info('Building: ' + node_metadata_path)
+print_and_logger_info('Building: ' + os.path.abspath(node_metadata_path))
 
 with open(node_metadata_path, 'w') as out:
     out.write(
@@ -150,10 +154,16 @@ with open(node_metadata_path, 'w') as out:
             node_label = row['term']
             node_definition = str(row['definition'])
             node_synonyms = str(row['synonyms'])
-            if not pd.isna(node_synonyms):
+
+            # The synonym field is an optional pipe-delimited list of string values.
+            if node_synonyms in (np.nan,'nan'):
                 node_synonyms = ''
+
+            # The dbxrefs field is an optional list of references to concept IDs in other vocabularies, delimited
+            # with a colon between SAB and ID and a pipe between entries--e.g,
+            # SNOMEDCT_US:999999|UMLS:C99999
             node_dbxrefs = str(row['dbxrefs'])
-            if not pd.isna(node_dbxrefs):
+            if node_dbxrefs in (np.nan,'nan'):
                 node_dbxrefs = ''
 
             out.write(
@@ -163,7 +173,7 @@ with open(node_metadata_path, 'w') as out:
 # Create a row for each type of relationship.
 
 relation_path: str = os.path.join(owlnets_path, 'OWLNETS_relations.txt')
-print_and_logger_info('Building: ' + relation_path)
+print_and_logger_info('Building: ' + os.path.abspath(relation_path))
 
 with open(relation_path, 'w') as out:
     out.write(

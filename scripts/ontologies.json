@@ -110,26 +110,22 @@
     "comment": "A Variation Ontology: for standardized, systematic description of effects, consequences and mechanisms of variations"
   },
   "HUBMAP": {
-    "sab": "HuBMAP",
-    "execute": "./skowlnets/skowlnets.py SimpleKnowledgeHuBMAP.xlsx HuBMAP"
+    "comment": "HubMAP application ontology, obtained from input spreadsheet in SimpleKnowledge format",
+    "execute": "./skowlnets/skowlnets.py SimpleKnowledgeHuBMAP.xlsx HUBMAP"
   },
-  "SWO"
-  {
+  "SWO": {
     "owl_url": "http://purl.obolibrary.org/obo/swo.owl",
     "home_url": "https://github.com/allysonlister/swo",
     "comment": "The Software Ontology (SWO): a resource for reproducibility in biomedical data analysis, curation and digital preservation"
-
   },
-  "BAO"
-  {
+  "BAO": {
     "owl_url": "https://data.bioontology.org/ontologies/BAO/submissions/41/download?apikey=8b5b7825-538d-40e0-9e9e-5ab9274a9aeb",
     "home_url": "https://bioportal.bioontology.org/ontologies/BAO",
     "comment": "The BioAssay Ontology (BAO) describes chemical biology screening assays and their results"
-  }
-  "CCF"
-  {
+  },
+  "CCF": {
     "owl_url": "https://hubmapconsortium.github.io/hubmap-ontology/ccf.owl",
-    "home_url": "https://hubmapconsortium.github.io/ccf/pages/ccf-ontology.html"
+    "home_url": "https://hubmapconsortium.github.io/ccf/pages/ccf-ontology.html",
     "comment": "HuBMAP CCF Ontology"
   }
 }

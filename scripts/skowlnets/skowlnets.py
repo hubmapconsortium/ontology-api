@@ -25,6 +25,16 @@ import os
 import glob
 import logging.config
 
+def codeReplacements(x):
+    return x.replace('NCIT ', 'NCI ').replace('MESH ', 'MSH ')\
+        .replace('GO ', 'GO GO:')\
+        .replace('NCBITaxon ', 'NCBI ')\
+        .replace('SNOMED ', 'SNOMEDCT_US ')\
+        .replace('HP ', 'HPO HP:')\
+        .replace('^fma', 'FMA ')\
+        .replace('Hugo.owl HGNC ', 'HGNC ')\
+        .replace('HGNC ', 'HGNC HGNC:')\
+        .replace('gene symbol report?hgnc id=', 'HGNC HGNC:')
 
 # Parse an argument that identifies the version of the UMLS in Neptune from which to build
 # the CSV files.
@@ -92,8 +102,14 @@ with open(edgelist_path, 'w') as out:
 
     # Each column after E in the spreadsheet (isa, etc.) represents a type of
     # subject-predicate_object relationship.
-    #   1. Column F represents the isa relationship. 
-    #   2. Columns after F represent relationships other than isa.
+    #   1. Column E represents the dbxrefs. The dbxrefs field is an optional list of references to
+    #      concept IDs in other vocabularies, delimited
+    #      with a comma between SAB and ID and a pipe between entries--e.g,
+    #      SNOMEDCT_US:999999,UMLS:C99999. This list should be exploded and then subClassOf relationship rows
+    #      written.
+    #   2. Column F represents the isa relationship. This corresponds to a isa relationship within the
+    #      custom ontology.
+    #   3. Columns after F represent relationships other than isa in the custom ontology.
 
     # Cells in relationship columns contain comma-separated lists of object nodes.
 
@@ -107,10 +123,13 @@ with open(edgelist_path, 'w') as out:
             subject = str(row['code'])
 
             for col in range(5, len(row)):
-                # Obtain relationship.
+                # Obtain relationship (predicate)
                 if col == 5:
-                    predicate_uri = 'isa'
+                    # The OWLNETS-UMLS-GRAPH script converts subClassOf into isa and inverse_isa relationships.
+                    predicate_uri = "subClassOf"
+
                 else:
+                    # custom relationship (predicate)
                     colhead = df_sk.columns[col]
                     # predicate_uri = colhead[colhead.find('(')+1:colhead.find(')')]
                     predicate_uri = colhead
@@ -122,23 +141,24 @@ with open(edgelist_path, 'w') as out:
                 if not pd.isna(objects):
 
                     listobjects = objects.split(',')
-
                     for obj in listobjects:
-                        # Match object terms with their respective codes (Column A),
-                        # which will result in a dataframe of one row.
-                        match = df_sk[df_sk['term'] == obj]
-                        if match.size == 0:
-                            err = 'Error: row for \'' + subject + '\' indicates relationship \'' + predicate_uri
-                            err = err + '\' with node \'' + obj + '\', but this node is not defined in the \'term\' '
-                            err = err + 'column. (Check for spelling and case of node name.)'
-                            print_and_logger_info(err)
-                            raise SystemExit(err)
+                        if col == 4:
+                            objcode = codeReplacements(obj)
+                        else:
+                            # Match object terms with their respective codes (Column A),
+                            # which will result in a dataframe of one row.
+                            match = df_sk[df_sk['term'] == obj]
+                            if match.size == 0:
+                                err = 'Error: row for \'' + subject + '\' indicates relationship \'' + predicate_uri
+                                err = err + '\' with node \'' + obj + '\', but this node is not defined in the \'term\' '
+                                err = err + 'column. (Check for spelling and case of node name.)'
+                                print_and_logger_info(err)
+                            objcode = match.iloc[0, 1]
 
-                        objcode = match.iloc[0, 1]
                         out.write(subject + '\t' + predicate_uri + '\t' + str(objcode) + '\n')
 
 # NODE METADATA
-# Write a row for each unique concept in in the 'code' column.
+# Write a row for each unique concept in the 'code' column.
 
 node_metadata_path: str = os.path.join(owlnets_path, 'OWLNETS_node_metadata.txt')
 print_and_logger_info('Building: ' + os.path.abspath(node_metadata_path))
@@ -159,12 +179,12 @@ with open(node_metadata_path, 'w') as out:
             if node_synonyms in (np.nan,'nan'):
                 node_synonyms = ''
 
-            # The dbxrefs field is an optional list of references to concept IDs in other vocabularies, delimited
-            # with a colon between SAB and ID and a pipe between entries--e.g,
-            # SNOMEDCT_US:999999|UMLS:C99999
-            node_dbxrefs = str(row['dbxrefs'])
-            if node_dbxrefs in (np.nan,'nan'):
-                node_dbxrefs = ''
+            # node_dbxrefs = str(row['dbxrefs'])
+            # if node_dbxrefs in (np.nan,'nan'):
+
+            # Clear the dbxrefs column. The values from this column will be used to construct additional
+            # subClassOf relationships.
+            node_dbxrefs = ''
 
             out.write(
                 node_id + '\t' + node_namespace + '\t' + node_label + '\t' + node_definition + '\t' + node_synonyms + '\t' + node_dbxrefs + '\n')
@@ -176,16 +196,26 @@ relation_path: str = os.path.join(owlnets_path, 'OWLNETS_relations.txt')
 print_and_logger_info('Building: ' + os.path.abspath(relation_path))
 
 with open(relation_path, 'w') as out:
+    # header
     out.write(
         'relation_id' + '\t' + 'relation_namespace' + '\t' + 'relation_label' + '\t' + 'relation_definition' + '\n')
 
+    #The first relationship is a subClassOf, which the OWLNETS-UMLS-GRAPH script will convert to an isa.
+    out.write('subClassOf' + '\t' + 'HUBMAP' + '\t' +'subClassOf' + '\t' + '' + '\n' )
+
+    # The values from the dbxref column correspond to a pipe-delimited, colon-delimited set
+    # of concepts in other vocabularies in the onotology. These will be expanded to a set of
+    # subClassOf relationships to establish the polyhierarchy.
+
+
+    # Establish the remaining custom relationships.
     for col in range(6, len(df_sk.columns)):
         colhead = df_sk.columns[col]
-        # predicate_uri = colhead[colhead.find('(')+1:colhead.find(')')]
-        predicate_uri = colhead
 
-        relation_namespace = args.sab
-
-        relation_definition = ''
-        # out.write(predicate_uri + '\t' + relation_namespace + '\t' + label + '\t' + relation_definition + '\n')
-        out.write(predicate_uri + '\t' + relation_namespace + '\t' + predicate_uri + '\t' + relation_definition + '\n')
+        if colhead != 'dbxrefs':
+            # predicate_uri = colhead[colhead.find('(')+1:colhead.find(')')]
+            predicate_uri = colhead
+            relation_namespace = args.sab
+            relation_definition = ''
+            # out.write(predicate_uri + '\t' + relation_namespace + '\t' + label + '\t' + relation_definition + '\n')
+            out.write(predicate_uri + '\t' + relation_namespace + '\t' + predicate_uri + '\t' + relation_definition + '\n')

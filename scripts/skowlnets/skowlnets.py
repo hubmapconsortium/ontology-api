@@ -122,7 +122,7 @@ with open(edgelist_path, 'w') as out:
         if index >= 0:  # non-header
             subject = str(row['code'])
 
-            for col in range(5, len(row)):
+            for col in range(4, len(row)):
                 # Obtain relationship (predicate)
                 if col == 5:
                     # The OWLNETS-UMLS-GRAPH script converts subClassOf into isa and inverse_isa relationships.
@@ -171,7 +171,7 @@ with open(node_metadata_path, 'w') as out:
         if index >= 0:  # non-header
             node_id = str(row['code'])
             node_namespace = 'HubMAP'
-            node_label = row['term']
+            node_label = str(row['term'])
             node_definition = str(row['definition'])
             node_synonyms = str(row['synonyms'])
 
@@ -185,7 +185,6 @@ with open(node_metadata_path, 'w') as out:
             # Clear the dbxrefs column. The values from this column will be used to construct additional
             # subClassOf relationships.
             node_dbxrefs = ''
-
             out.write(
                 node_id + '\t' + node_namespace + '\t' + node_label + '\t' + node_definition + '\t' + node_synonyms + '\t' + node_dbxrefs + '\n')
 

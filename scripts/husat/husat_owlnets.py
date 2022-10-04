@@ -1,31 +1,27 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# Converts the CSV file downloaded from BioPortal for the HuBMAP Samples Added Terms (HUSAT) ontology to
-# OWLNETS format.
+# Converts the CSV file downloaded (as a GZ archive) from BioPortal for the HuBMAP Samples Added Terms (HUSAT)
+# ontology to OWLNETS format.
 
-# This script is designed to align with the PheKnowLator logic executed in the build_csv.py script--e.g., outputs
-# to owlnets_output, etc.
+# This script is designed to align with the conversion logic executed in the build_csv.py script--e.g., outputs to
+# owlnets_output, etc. This means: 1. The HUSAT CSV file will be extracted from GZ and downloaded to the OWL folder
+# path, even though it is not an OWL file. 2. The OWLNETS output will be stored in the OWLNETS folder path.
+
+# Because the HUSAT file will likely be small, the script will always download it. In addition,
+# the script will not build a MD5 checksum.
+
 
 import argparse
-import sys
+import gzip
 import pandas as pd
 import numpy as np
 import os
 import glob
 import logging.config
-import subprocess
-import hashlib
+import urllib
+from urllib.request import Request
 
-# Setup and running the script...
-#
-# $ cd scripts
-# $ python3 -m venv venv
-# $ source venv/bin/activate
-# $ python --version
-# Python 3.9.5
-# $ pip install -r requirements.txt
-# $ brew install wget
 
 class RawTextArgumentDefaultsHelpFormatter(
     argparse.ArgumentDefaultsHelpFormatter,
@@ -34,11 +30,21 @@ class RawTextArgumentDefaultsHelpFormatter(
     pass
 
 
+# https://docs.python.org/3/howto/argparse.html
 parser = argparse.ArgumentParser(
-    description='Builds ontology files in OWLNETS format from the HUSAT ontology.',
+    description='Convert the CSV file of the HUSAT (of which the URL is the required parameter) ontology to OWLNETs .\n'
+                'In general you should not have the change any of the optional arguments',
     formatter_class=RawTextArgumentDefaultsHelpFormatter)
-parser.add_argument("-l", "--owlnets_dir", type=str, default="./owlnets_output",
-                    help="directory containing the owlnets output directories")
+parser.add_argument('owl_url', type=str,
+                    help='url for the CSV file to process')
+parser.add_argument('owl_sab', type=str,
+                    help='directory in --owlnets_dir and --owl_dir to save information from this run')
+parser.add_argument("-l", "--owlnets_dir", type=str, default='./owlnets_output',
+                    help='directory used for the owlnets output files')
+parser.add_argument("-o", "--owl_dir", type=str, default='./owl',
+                    help='directory used for the owl input files')
+parser.add_argument("-v", "--verbose", action="store_true",
+                    help='increase output verbosity')
 args = parser.parse_args()
 
 # Use existing logging from build_csv.
@@ -47,50 +53,131 @@ args = parser.parse_args()
 # log_config = '../builds/logs'
 # glob.glob('../**/logging.ini'...
 
-log_dir, log, log_config = '..builds/logs', 'pkt_build_log.log', glob.glob('../**/logging.ini', recursive=True)
+log_dir, log, log_config = '/builds/logs', 'pkt_build_log.log', glob.glob('/**/logging.ini', recursive=True)
 logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
+
 
 def print_and_logger_info(message: str) -> None:
     print(message)
     logger.info(message)
 
-def download_owl(url: str, loc: str, working_file: str, force_empty=True) -> str:
-    logger.info(f'Downloading owl file from \'{url}\' to \'{loc}\'')
 
-    cwd: str = os.getcwd()
+if args.verbose is True:
+    print('Parameters:')
+    print(f" * Verbose mode")
+    # if args.clean is True:
+    # print(" * Cleaning owlnets directory")
+    print(f" * CSV URL: {args.owl_url}")
+    print(f" * CSV sab: {args.owl_sab}")
+    print(f" * Owlnets directory: {args.owlnets_dir} (exists: {os.path.isdir(args.owlnets_dir)})")
+    # print(f" * Owltools directory: {args.owltools_dir} (exists: {os.path.isdir(args.owltools_dir)})")
+    print(f" * Owl directory: {args.owl_dir} (exists: {os.path.isdir(args.owl_dir)})")
+    print('')
 
-    os.system(f"mkdir -p {loc}")
-    os.chdir(loc)
+owl_dir: str = os.path.join(args.owl_dir, args.owl_sab)
+os.system(f"mkdir -p {owl_dir}")
 
-    wgetResults: bytes = subprocess.check_output([f'wget {url}'], shell=True, stderr=subprocess.STDOUT)
-    wgetResults_str: str = wgetResults.decode('utf-8')
-    for line in wgetResults_str.strip().split('\n'):
-        if 'Length: unspecified' in line:
-            logger.error(f'Failed to download {uri}')
-            print(f'Failed to download {uri}')
-            print(wgetResults_str)
-            exit(1)
-    if args.verbose:
-        print(wgetResults_str)
+# Download HUSAT GZ from BioPortal.
+request = Request(args.owl_url)
+request.add_header('Accept-encoding', 'gzip')
+response = urllib.request.urlopen(request)
+zip_path = os.path.join(owl_dir, 'HUSAT.GZ')
+with open(zip_path, 'wb') as fzip:
+    while True:
+        data = response.read()
+        if len(data) == 0:
+            break
+        fzip.write(data)
+print_and_logger_info("Downloaded HUSAT zip file.")
 
-    md5: str = hashlib.md5(open(working_file, 'rb').read()).hexdigest()
-    md5_file: str = f'{working_file}.md5'
-    logger.info('MD5 for owl file {md5} saved to {md5_file}')
-    with open(md5_file, 'w', newline='') as fp:
-        fp.write(md5)
+# Extract CSV file from Zip.
+csv_path = os.path.join(owl_dir, 'HUSAT.CSV')
+with gzip.open(zip_path, 'rt') as fzip:
+    file_content = fzip.read()
+with open(csv_path, 'w') as fout:
+    fout.write(file_content)
+print_and_logger_info("Extracted and stored HUSAT.CSV file.")
 
-    os.chdir(cwd)
+dfHUSAT = pd.read_csv(csv_path)
 
+# Build OWLNETS text files.
+# The OWLNETS format represents ontology data in a TSV in format:
 
-# Download HUSAT CSV file from BioPortal.
-# Note: This script will alwoys download the file, and will not compare MD5.
-working_dir: str = os.path.join(args.owlnets_dir, 'HUSAT')
-logger.info("Make sure working directory '%s' exists", working_dir)
-os.system(f"mkdir -p {working_dir}")
+# subject <tab> predicate <tab> object
+#
+# where:
+#   subject - code for node in custom ontology
+#   predicate - relationship
+#   object: another code in the custom ontology
 
-print_and_logger_info('Loading ontology')
+#  (In canonical OWLNETS, the relationship is a URI for a relation
+#  property in a standard OBO ontology, such as RO.) For custom
+#  ontologies such as HuBMAP, we use custom relationship strings.)
 
-if args.verbose:
-    print_and_logger_info(f"Downloading .owl file to {owl_file} (force .owl download specified)")
-download_owl(uri, owl_dir, working_file)
+# For HUSAT, the only relationship is subClassOf.
+
+owlnets_path: str = os.path.join(args.owlnets_dir, args.owl_sab)
+os.system(f"mkdir -p {owlnets_path}")
+
+edgelist_path: str = os.path.join(owlnets_path, 'OWLNETS_edgelist.txt')
+print_and_logger_info('Building: ' + os.path.abspath(edgelist_path))
+
+with open(edgelist_path, 'w') as out:
+    out.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
+    for index, row in dfHUSAT.iterrows():
+
+        if index >= 0:  # non-header
+            subjIRI = str(row['Class ID'])
+            subj = args.owl_sab + '_' + subjIRI[subjIRI.rfind('/') + 1:len(subjIRI)]
+            if str(row['Parents']) in (np.nan, 'nan'):
+                obj = args.owl_sab + '_top'
+            else:
+                # Assumes 1 parent
+                objIRI = str(row['Parents'])
+                obj = args.owl_sab + '_' + objIRI[objIRI.rfind('/') + 1:len(objIRI)]
+            predicate = 'subClassOf'
+        out.write(subj + '\t' + predicate + '\t' + obj + '\n')
+
+# NODE METADATA
+# Write a row for each unique concept in the 'code' column.
+
+node_metadata_path: str = os.path.join(owlnets_path, 'OWLNETS_node_metadata.txt')
+print_and_logger_info('Building: ' + os.path.abspath(node_metadata_path))
+
+with open(node_metadata_path, 'w') as out:
+    out.write(
+        'node_id' + '\t' + 'node_namespace' + '\t' + 'node_label' + '\t' + 'node_definition' + '\t' + 'node_synonyms' + '\t' + 'node_dbxrefs' + '\n')
+    # Root node
+    out.write(args.owl_sab + '_top' + '\t' + args.owl_sab + '\t' + 'top node' + '\t' + 'top node' + '\t' + '\t' '\n')
+    for index, row in dfHUSAT.iterrows():
+        if index >= 0:  # non-header
+            nodeIRI = str(row['Class ID'])
+            node_id = args.owl_sab + '_' + nodeIRI[nodeIRI.rfind('/') + 1:len(nodeIRI)]
+            node_namespace = args.owl_sab
+            node_label = str(row['Preferred Label'])
+            node_definition = str(row['Definitions'])
+            node_synonyms = str(row['Synonyms'])
+
+            # The synonym field is an optional pipe-delimited list of string values.
+            if node_synonyms in (np.nan, 'nan'):
+                node_synonyms = ''
+
+            # Clear the dbxrefs column. The values from this column will be used to construct additional
+            # subClassOf relationships.
+            node_dbxrefs = ''
+            out.write(
+                node_id + '\t' + node_namespace + '\t' + node_label + '\t' + node_definition + '\t' + node_synonyms + '\t' + node_dbxrefs + '\n')
+
+# RELATION METADATA
+# Create a row for each type of relationship.
+
+relation_path: str = os.path.join(owlnets_path, 'OWLNETS_relations.txt')
+print_and_logger_info('Building: ' + os.path.abspath(relation_path))
+
+with open(relation_path, 'w') as out:
+    # header
+    out.write(
+        'relation_id' + '\t' + 'relation_namespace' + '\t' + 'relation_label' + '\t' + 'relation_definition' + '\n')
+    # The only relationship is a subClassOf, which the OWLNETS-UMLS-GRAPH script will convert to an isa.
+    out.write('subClassOf' + '\t' + 'HUSAT' + '\t' + 'subClassOf' + '\t' + '' + '\n')

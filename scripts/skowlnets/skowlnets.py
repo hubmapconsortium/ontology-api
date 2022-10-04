@@ -170,21 +170,19 @@ with open(node_metadata_path, 'w') as out:
     for index, row in df_sk.iterrows():
         if index >= 0:  # non-header
             node_id = str(row['code'])
-            node_namespace = 'HubMAP'
+            node_namespace = 'HUBMAP'
             node_label = str(row['term'])
             node_definition = str(row['definition'])
-            node_synonyms = str(row['synonyms'])
 
+            node_synonyms = str(row['synonyms'])
             # The synonym field is an optional pipe-delimited list of string values.
             if node_synonyms in (np.nan,'nan'):
                 node_synonyms = ''
 
-            # node_dbxrefs = str(row['dbxrefs'])
-            # if node_dbxrefs in (np.nan,'nan'):
+            node_dbxrefs = str(row['dbxrefs'])
+            if node_dbxrefs in (np.nan,'nan'):
+                node_dbxrefs = ''
 
-            # Clear the dbxrefs column. The values from this column will be used to construct additional
-            # subClassOf relationships.
-            node_dbxrefs = ''
             out.write(
                 node_id + '\t' + node_namespace + '\t' + node_label + '\t' + node_definition + '\t' + node_synonyms + '\t' + node_dbxrefs + '\n')
 

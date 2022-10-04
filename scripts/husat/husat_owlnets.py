@@ -47,13 +47,16 @@ parser.add_argument("-v", "--verbose", action="store_true",
                     help='increase output verbosity')
 args = parser.parse_args()
 
+#owl_url ="https://data.bioontology.org/ontologies/HUSAT/download?apikey=4983e1fe-1f54-412e-99bb-74764d659cb0&download_format=csv"
+
+
 # Use existing logging from build_csv.
 # Note: To run this script directly as part of development or debugging
 # (i.e., instead of calling it from build_csv.py), change the relative paths as follows:
 # log_config = '../builds/logs'
 # glob.glob('../**/logging.ini'...
 
-log_dir, log, log_config = '/builds/logs', 'pkt_build_log.log', glob.glob('/**/logging.ini', recursive=True)
+log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
 logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
@@ -130,14 +133,12 @@ with open(edgelist_path, 'w') as out:
         if index >= 0:  # non-header
             subjIRI = str(row['Class ID'])
             subj = args.owl_sab + '_' + subjIRI[subjIRI.rfind('/') + 1:len(subjIRI)]
-            if str(row['Parents']) in (np.nan, 'nan'):
-                obj = args.owl_sab + '_top'
-            else:
+            if str(row['Parents']) not in (np.nan, 'nan'):
                 # Assumes 1 parent
                 objIRI = str(row['Parents'])
                 obj = args.owl_sab + '_' + objIRI[objIRI.rfind('/') + 1:len(objIRI)]
-            predicate = 'subClassOf'
-        out.write(subj + '\t' + predicate + '\t' + obj + '\n')
+                predicate = 'subClassOf'
+                out.write(subj + '\t' + predicate + '\t' + obj + '\n')
 
 # NODE METADATA
 # Write a row for each unique concept in the 'code' column.
@@ -149,7 +150,7 @@ with open(node_metadata_path, 'w') as out:
     out.write(
         'node_id' + '\t' + 'node_namespace' + '\t' + 'node_label' + '\t' + 'node_definition' + '\t' + 'node_synonyms' + '\t' + 'node_dbxrefs' + '\n')
     # Root node
-    out.write(args.owl_sab + '_top' + '\t' + args.owl_sab + '\t' + 'top node' + '\t' + 'top node' + '\t' + '\t' '\n')
+    #out.write(args.owl_sab + '_top' + '\t' + args.owl_sab + '\t' + 'top node' + '\t' + 'top node' + '\t' + '\t' '\n')
     for index, row in dfHUSAT.iterrows():
         if index >= 0:  # non-header
             nodeIRI = str(row['Class ID'])
@@ -161,11 +162,11 @@ with open(node_metadata_path, 'w') as out:
 
             # The synonym field is an optional pipe-delimited list of string values.
             if node_synonyms in (np.nan, 'nan'):
-                node_synonyms = ''
+                node_synonyms = 'None'
 
             # Clear the dbxrefs column. The values from this column will be used to construct additional
             # subClassOf relationships.
-            node_dbxrefs = ''
+            node_dbxrefs = 'None'
             out.write(
                 node_id + '\t' + node_namespace + '\t' + node_label + '\t' + node_definition + '\t' + node_synonyms + '\t' + node_dbxrefs + '\n')
 
@@ -180,4 +181,4 @@ with open(relation_path, 'w') as out:
     out.write(
         'relation_id' + '\t' + 'relation_namespace' + '\t' + 'relation_label' + '\t' + 'relation_definition' + '\n')
     # The only relationship is a subClassOf, which the OWLNETS-UMLS-GRAPH script will convert to an isa.
-    out.write('subClassOf' + '\t' + 'HUSAT' + '\t' + 'subClassOf' + '\t' + '' + '\n')
+    out.write('subClassOf' + '\t' + args.owl_sab + '\t' + 'subClassOf' + '\t' + '' + '\n')

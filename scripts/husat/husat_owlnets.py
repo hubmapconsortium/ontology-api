@@ -132,11 +132,11 @@ with open(edgelist_path, 'w') as out:
 
         if index >= 0:  # non-header
             subjIRI = str(row['Class ID'])
-            subj = args.owl_sab + '_' + subjIRI[subjIRI.rfind('/') + 1:len(subjIRI)]
+            subj = args.owl_sab + ' ' + subjIRI[subjIRI.rfind('/') + 1:len(subjIRI)]
             if str(row['Parents']) not in (np.nan, 'nan'):
                 # Assumes 1 parent
                 objIRI = str(row['Parents'])
-                obj = args.owl_sab + '_' + objIRI[objIRI.rfind('/') + 1:len(objIRI)]
+                obj = args.owl_sab + ' ' + objIRI[objIRI.rfind('/') + 1:len(objIRI)]
                 predicate = 'subClassOf'
                 out.write(subj + '\t' + predicate + '\t' + obj + '\n')
 
@@ -154,7 +154,7 @@ with open(node_metadata_path, 'w') as out:
     for index, row in dfHUSAT.iterrows():
         if index >= 0:  # non-header
             nodeIRI = str(row['Class ID'])
-            node_id = args.owl_sab + '_' + nodeIRI[nodeIRI.rfind('/') + 1:len(nodeIRI)]
+            node_id = args.owl_sab + ' ' + nodeIRI[nodeIRI.rfind('/') + 1:len(nodeIRI)]
             node_namespace = args.owl_sab
             node_label = str(row['Preferred Label'])
             node_definition = str(row['Definitions'])

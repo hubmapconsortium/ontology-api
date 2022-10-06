@@ -161,6 +161,8 @@ node_metadata['node_id'] = codeReplacements(node_metadata['node_id'])
 node_metadata.loc[node_metadata['node_synonyms'].notna(), 'node_synonyms'] = node_metadata[node_metadata['node_synonyms'].notna()]['node_synonyms'].astype('str').str.split('|')
 
 # dbxref .loc of notna to control for owl with no dbxref
+# 5 OCT 2022 - JAS: notice the conversion to uppercase. This requires a corresponding
+#                   conversion when merging with CUI-CODEs data.
 node_metadata.loc[node_metadata['node_dbxrefs'].notna(), 'node_dbxrefs'] = node_metadata[node_metadata['node_dbxrefs'].notna()]['node_dbxrefs'].astype('str').str.upper().str.replace(':', ' ')
 node_metadata['node_dbxrefs'] = node_metadata['node_dbxrefs'].str.split('|')
 explode_dbxrefs = node_metadata.explode('node_dbxrefs')[['node_id','node_dbxrefs']].dropna().astype(str).drop_duplicates().reset_index(drop=True)
@@ -197,11 +199,17 @@ CUI_CODEs = CUI_CODEs.dropna().drop_duplicates().reset_index(drop=True)
 
 # #### A big groupby - ran a couple minutes - changed groupby to not sort the keys to speed it up
 
+# JAS 5 OCT 2022
+# In general, the code for a concept in an ontology can be mixed case. Examples include:
+# 1. EDAM: operation_00004
+# 2. HUSAT: SampleMedia
+# An earlier step converts the codes to uppercase in node_metadata, so later merges with node_metadata
+# on node_id requires that the right side also be uppercase. Without this conversion, dbxrefs
+# for which the code is mixed case will be ignored.
 # In[14]:
 
-
 CODE_CUIs = CUI_CODEs.groupby(':END_ID', sort=False)[':START_ID'].apply(list).reset_index(name='CUI_CODEs')
-node_metadata = node_metadata.merge(CODE_CUIs, how='left', left_on='node_id', right_on=':END_ID')
+node_metadata = node_metadata.merge(CODE_CUIs, how='left', left_on='node_id', right_on=CODE_CUIs[':END_ID'].str.upper())
 del CODE_CUIs
 del node_metadata[':END_ID']
 
@@ -210,8 +218,16 @@ del node_metadata[':END_ID']
 
 # In[15]:
 
+# JAS 5 OCT 2022
+# In general, the code for a concept in an ontology can be mixed case. Examples include:
+# 1. EDAM: operation_00004
+# 2. HUSAT: SampleMedia
+# An earlier step converts the codes to uppercase in node_metadata, so later merges with node_metadata
+# on node_id requires that the right side also be uppercase. Without this conversion, dbxrefs
+# for which the code is mixed case will be ignored.
 
-node_xref_cui = explode_dbxrefs.merge(CUI_CODEs, how='inner', left_on='node_dbxrefs', right_on=':END_ID')
+# original code ->node_xref_cui = explode_dbxrefs.merge(CUI_CODEs, how='inner', left_on='node_dbxrefs', right_on=':END_ID')
+node_xref_cui = explode_dbxrefs.merge(CUI_CODEs, how='inner', left_on='node_dbxrefs', right_on=CUI_CODEs[':END_ID'].str.upper())
 node_xref_cui = node_xref_cui.groupby('node_id', sort=False)[':START_ID'].apply(list).reset_index(name='XrefCUIs')
 node_xref_cui['XrefCUIs'] = node_xref_cui['XrefCUIs'].apply(lambda x: pd.unique(x)).apply(list)
 node_metadata = node_metadata.merge(node_xref_cui, how='left', on='node_id')

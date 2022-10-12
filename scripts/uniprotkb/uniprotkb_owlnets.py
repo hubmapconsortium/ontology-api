@@ -33,9 +33,9 @@ parser = argparse.ArgumentParser(
     description='Convert the TSV file downloaded from UniProt ontology to OWLNETs .\n'
                 'In general you should not have the change any of the optional arguments',
     formatter_class=RawTextArgumentDefaultsHelpFormatter)
-parser.add_argument('-l', '--owlnets_dir', type=str, default='../owlnets_output',
+parser.add_argument('-l', '--owlnets_dir', type=str, default='./owlnets_output',
                     help='directory used for the owlnets output files')
-parser.add_argument('-o', '--owl_dir', type=str, default='../owl',
+parser.add_argument('-o', '--owl_dir', type=str, default='./owl',
                     help='directory used for the owl input files')
 parser.add_argument('-s', '--skip_download', action='store_true',
                     help='skip downloading of the UNIPROTKB file before processing')
@@ -49,7 +49,7 @@ args = parser.parse_args()
 # log_config = '../builds/logs'
 # glob.glob('../**/logging.ini'...
 
-log_dir, log, log_config = '../builds/logs', 'pkt_build_log.log', glob.glob('../**/logging.ini', recursive=True)
+log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
 logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
@@ -80,6 +80,7 @@ def download_extract_UniProtKB(zip_file: str, extract_file: str):
     # Entry Name
     # Protein Names
     # Gene Names
+    # Reviewed (distinguishes between manually-curated Swiss proteins and automatically-annotated TREMBL proteins)
 
     # The query is limited to Organism = "Homo sapiens (Human)".
     request_url = 'https://rest.uniprot.org/uniprotkb/stream?compressed=true&fields=accession%2Creviewed%2Cid%2Cprotein_name%2Cgene_names%2Corganism_name%2Clength&format=tsv&query=%28%2A%29%20AND%20%28model_organism%3A9606%29'
@@ -109,7 +110,7 @@ def download_extract_UniProtKB(zip_file: str, extract_file: str):
 
 
 def getAllHGNCID(hgnc_file):
-    # Downloads all HGNC IDs.
+    # Downloads all HGNC IDs from genenames.org.
 
     print_and_logger_info('Downloading HGNC ID file from genenames.org')
     url = 'http://genenames.org/cgi-bin/download/custom?col=gd_hgnc_id&col=gd_app_sym&status=Approved&hgnc_dbtag=on&order_by' \
@@ -128,6 +129,7 @@ def getAllHGNCID(hgnc_file):
 
 def getHGNCID(HGNCacronym: str):
     # Queries the HGNC REST API to obtain the HGNC ID, given an acronym.
+    # This is slow: the getAllHGNCID function is the preferred method.
 
     hgnc = ''
     urlHGNC = 'http://rest.genenames.org/search/symbol/' + HGNCacronym
@@ -146,18 +148,18 @@ zip_path = os.path.join(owl_dir, 'UNIPROT.GZ')
 tsv_path = os.path.join(owl_dir, 'UNIPROTKB.TSV')
 hgnc_path = os.path.join(owl_dir, 'HGNC.TXT')
 
-if args.skip_download:
+# ***********
+if args.skip_download == True:
     print_and_logger_info('Using previously downloaded UniProtKB data.')
 else:
     download_extract_UniProtKB(zip_path, tsv_path)
 
 dfUNIPROT = pd.read_csv(tsv_path, sep='\t')
-# Select only reviewed (SwissProt) proteins that can be associated with genes.
+# Select only manually curated (SwissProt) proteins.
 dfUNIPROT = dfUNIPROT[dfUNIPROT['Reviewed'] == 'reviewed'].dropna(subset=['Gene Names']).reset_index(drop=True)
 
-# Get latest list of HGNC IDs.
+# Get latest list of HGNC IDs from genenames.org
 dfHGNC = getAllHGNCID(hgnc_path)
-
 
 # Build OWLNETS text files.
 # The OWLNETS format represents ontology data in a TSV in format:
@@ -177,19 +179,21 @@ owlnets_path: str = os.path.join(args.owlnets_dir, owl_sab)
 os.system(f'mkdir -p {owlnets_path}')
 
 edgelist_path: str = os.path.join(owlnets_path, 'OWLNETS_edgelist.txt')
-predicate = 'http://purl.obolibrary.org/obo/RO_0002204'  # gene product of
+predicate = 'gene product of' #http://purl.obolibrary.org/obo/RO_0002204
 print_and_logger_info('Building: ' + os.path.abspath(edgelist_path))
 
 with open(edgelist_path, 'w') as out:
     out.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
     for index, row in dfUNIPROT.iterrows():
-        subject = row['Entry']
-        # Obtain the latest HGNC name.
+        subject = 'UNIPROTKB_' + row['Entry']
+        # Obtain the latest HGNC ID, using the gene name.
+        # Ignore synonyms or obsolete gene names.
         hgnc_name = row['Gene Names'].split(" ")[0]
+        # Map to the corresponding entry in the genenames.org data.
         dfobject=dfHGNC[dfHGNC['Approved symbol'].values == hgnc_name]
         if dfobject.shape[0] > 0:
-            object = dfobject['HGNC ID'].iloc[0]
-            out.write(subject + '\t' + predicate + '\t' + 'HGNC ' + object + '\n')
+            object = 'HGNC '+ dfobject['HGNC ID'].iloc[0]
+            out.write(subject + '\t' + predicate + '\t' + object + '\n')
 
 # NODE METADATA
 # Write a row for each unique concept in the 'code' column.
@@ -202,7 +206,7 @@ with open(node_metadata_path, 'w') as out:
     out.write(
         'node_id' + '\t' + 'node_namespace' + '\t' + 'node_label' + '\t' + 'node_definition' + '\t' + 'node_synonyms' + '\t' + 'node_dbxrefs' + '\n')
     for index, row in dfUNIPROT.iterrows():
-        node_id = row['Entry']
+        node_id = 'UNIPROTKB_' + row['Entry']
         node_namespace = 'UNIPROTKB'
         node_label = row['Entry Name']
         node_definition = row['Protein names']
@@ -221,5 +225,5 @@ with open(relation_path, 'w') as out:
     # header
     out.write(
         'relation_id' + '\t' + 'relation_namespace' + '\t' + 'relation_label' + '\t' + 'relation_definition' + '\n')
-    # The only relationship is a subClassOf, which the OWLNETS-UMLS-GRAPH script will convert to an isa.
+    # The only relationship is # gene product of. The OWLNETS-UMLS-GRAPH script will find the inverse.
     out.write(predicate + '\t' + 'UNIPROTKB' + '\t' + predicate + '\t' + '' + '\n')

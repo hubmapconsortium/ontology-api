@@ -101,8 +101,8 @@
   },
   "UNIPROTKB": {
     "home_url": "https://www.uniprot.org/uniprot/?query=*&fil=organism%3A%22Homo+sapiens+%28Human%29+%5B9606%5D%22",
-    "comment": "Choose columns: Entry, Organism=Home sapiens, Gene names (primary), Protein names, and ownload all uncompressed as a format should be Tab-separated file.",
-    "execute": "./uniprotkb/__main__.py uniprotkb/uniprot.tab"
+    "comment": "Data from UniProtKB exported to OWLNETS format",
+    "execute": "./uniprotkb/uniprotkb_owlnets.py"
   },
   "VARIO": {
     "owl_url": "http://www.variationontology.org/vario_download/vario.owl",

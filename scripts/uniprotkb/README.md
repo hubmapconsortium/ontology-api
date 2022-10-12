@@ -20,3 +20,6 @@ The URL to pull the relevant information for HuBMAP is:
 https://rest.uniprot.org/uniprotkb/stream?compressed=true&fields=accession%2Cid%2Cprotein_name%2Cgene_names&format=tsv&query=%28%2A%29%20AND%20%28model_organism%3A9606%29
 
 This results in a fairly large (4 GB) compressed file.
+
+The script obtains HGNC IDs directly from genenames.org via 
+a call to a CGI script.

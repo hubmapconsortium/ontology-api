@@ -41,9 +41,9 @@ UMLS_GRAPH_SCRIPT: str = './Jonathan/OWLNETS-UMLS-GRAPH-12.py'
 # Approximate run time 26 hrs on a MacBook Pro 2.6 GHz 6-core I7 /w 32 GB 2667 MHz memory
 # NOTE: VARIO, and CCO still have problems and so are omitted for now.
 
-# October 3, 2022 - Alan Simmons
-# Added ontologies for UO, HUSAT, and HUBMAP, so
-# $ ./build_csv.sh -v PATO UBERON CL DOID CCFASCTB OBI EDAM HSAPDV SBO MI CHEBI MP ORDO PR UNIPROTKB UO HUSAT HUBMAP
+# October 13, 2022 - Alan Simmons
+# Added ontologies for UO, HUSAT, HUBMAP, and UNIPROTKB so:
+# $ ./build_csv.sh -v PATO UBERON CL DOID CCFASCTB OBI EDAM HSAPDV SBO MI CHEBI MP ORDO PR UO HUSAT HUBMAP UNIPROTKB
 
 # TODO https://douroucouli.wordpress.com/2019/03/14/biological-knowledge-graph-modeling-design-patterns/
 

@@ -348,11 +348,17 @@ for index, rows in node_metadata.iterrows():
             nmCUI.append(x)
             node_idCUIs.append(x)
             addedone = True
+    # JAS 17 oct 2022
+    # For the edge case in which multiple nodes have the same cross-reference AND the
+    # cross-reference maps to a single CUI (the case for around 20 nodes in MP--e.g., all
+    # those that share CL 0000959 as a cross-reference), only one of the nodes will be
+    # assigned the CUI of the cross-reference. The rest of the nodes will lose the
+    # cross-reference.
+    # The following block keeps the nmCUI list the same size as node_metadata['CUI'].
     if addedone == False:
-        print('CUIs for node not added: ',rows[['node_id','cuis']])
+        nmCUI.append('')
+        node_idCUIs.append('')
 
-print('size of nmCUI:',len(nmCUI))
-print('size of node_metadata:', node_metadata.shape[0])
 node_metadata['CUI'] = nmCUI
 
 # ### Join CUI from node_metadata to each edgelist subject and object

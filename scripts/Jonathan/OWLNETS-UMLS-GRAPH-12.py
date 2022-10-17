@@ -101,7 +101,7 @@ edgelist['subject'] = \
 edgelist['subject'].str.replace(':', ' ').str.replace('#', ' ').str.replace('_', ' ').str.split('/').str[-1]
 edgelist['subject'] = codeReplacements(edgelist['subject'])
 
-# JAS 12 OCT 2022
+# JAS 13 OCT 2022
 # Enhancement to handle special case of HGNC object nodes.
 
 # HGNC nodes are a special case.
@@ -111,11 +111,23 @@ edgelist['subject'] = codeReplacements(edgelist['subject'])
 # Instead of trying to game the general string formatting, simply assume that HGNC codes are properly
 # formatted and do not convert them.
 
-# (The if condition new; the remainder of the block is the original code.)
-if not edgelist['object'].str.contains('HGNC').any:
-    edgelist['object'] = \
-    edgelist['object'].str.replace(':', ' ').str.replace('#', ' ').str.replace('_', ' ').str.split('/').str[-1]
-    edgelist['object'] = codeReplacements(edgelist['object'])
+# In general, a set of object nodes can be a mixture of nodes from HGNC and other vocabularies.
+
+# original code:
+# edgelist['object'] = \
+# edgelist['object'].str.replace(':', ' ').str.replace('#', ' ').str.replace('_', ' ').str.split('/').str[-1]
+# edgelist['object'] = codeReplacements(edgelist['object'])
+
+# new code:
+
+# If the nodes are not from HGNC, replace delimiters with space.
+edgelist['object'] = np.where(edgelist['object'].str.contains('HGNC')==True,\
+                              edgelist['object'],\
+                              edgelist['object'].str.replace(':', ' ').str.replace('#', ' ').str.replace('_', ' ').str.split('/').str[-1])
+# If the nodes are not from HGNC, align code SABs with UMLS.
+edgelist['object'] = np.where(edgelist['object'].str.contains('HGNC')==True,\
+                              edgelist['object'],\
+                              codeReplacements(edgelist['object']))
 
 # ### Add inverse_ edges
 
@@ -336,6 +348,11 @@ for index, rows in node_metadata.iterrows():
             nmCUI.append(x)
             node_idCUIs.append(x)
             addedone = True
+    if addedone == False:
+        print('CUIs for node not added: ',rows[['node_id','cuis']])
+
+print('size of nmCUI:',len(nmCUI))
+print('size of node_metadata:', node_metadata.shape[0])
 node_metadata['CUI'] = nmCUI
 
 # ### Join CUI from node_metadata to each edgelist subject and object

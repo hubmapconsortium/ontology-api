@@ -43,8 +43,8 @@ UMLS_GRAPH_SCRIPT: str = './Jonathan/OWLNETS-UMLS-GRAPH-12.py'
 
 # October 13, 2022 - Alan Simmons
 # Added ontologies for UO, HUSAT, HUBMAP, and UNIPROTKB so:
-# $ ./build_csv.sh -v PATO UBERON CL DOID CCFASCTB OBI EDAM HSAPDV SBO MI CHEBI MP ORDO PR UO HUSAT HUBMAP UNIPROTKB
-
+# October 15 - PR cross-references UNIPROTKB, so run UNIPROTKB before PR
+# $ ./build_csv.sh -v PATO UBERON CL DOID CCFASCTB OBI EDAM HSAPDV SBO MI CHEBI MP ORDO UNIPROTKB PR UO HUSAT HUBMAP
 # TODO https://douroucouli.wordpress.com/2019/03/14/biological-knowledge-graph-modeling-design-patterns/
 
 
@@ -240,8 +240,12 @@ for ontology_name in ontology_names:
         script: str = ontology_record['execute']
         print_and_logger_info(f"Running: {script}")
         os.system(script)
+    # JAS 13 OCT 2022 - allows skipping of PheKnowLator processing
     else:
-        print_and_logger_info(f"ERROR: There is no processing available for Ontology: {ontology_name}?!")
+        print_and_logger_info(f"Skipping PheKnowLator processing for Ontology: {ontology_name}.")
+        print_and_logger_info("Assuming that current OWLNETS files are available for PheKnowLator.")
+    # else:
+        # print_and_logger_info(f"ERROR: There is no processing available for Ontology: {ontology_name}?!")
 
     # if args.skipValidation is not True:
     #     validation_script: str = f"{VALIDATION_SCRIPT} -o {args.umls_csvs_dir} -l {bargs.owlnets_dir}"

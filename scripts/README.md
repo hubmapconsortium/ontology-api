@@ -96,12 +96,17 @@ to obtain source data for ontologies that do not update often.
 A number of parameters in the
 build_csv.**py** script (called by the build_csv.**sh** shell script) control processing.
 
-### Generation order
-Ontologies can refer to other ontologies in two ways:
+### Order of ontology integration
+Nodes in an ontologies can refer to nodes in other ontologies in two ways:
 1. Via **relationships**--e.g., a node for a protein in UNIPROTKB has a _gene product of_ relationship with a gene node in HGNC.
 2. Via **equivalence classes** (cross-references)--e.g., a node in HUBMAP may be equivalent to a node in OBI.
 
-If an ontology refers to nodes in another ontology, the referred ontology must be present in the set of CSV files. 
+If an ontology refers to nodes in another ontology, the referred ontology nodes should be defined 
+one of two places:
+#### 
+1. The OWLNETS_node_metadata.txt file of the ontology. (For example, the PATO ontology refers to nodes in ontologies like CHEBI, but defines them with distinct IRIs in the node metadata.)
+2. The ontology CSV files--in particular, CUI-CODES.CSV.
+
 In other words, relationships between ontologies determines the order in which they are integrated.
 
 The recommended order of generation follows. 
@@ -123,6 +128,8 @@ The recommended order of generation follows.
 * HUSAT 
 * HUBMAP 
 * UNIPROTKB
+
+The order appears to be of particular importance for custom ontologies such as HUBMAP and UNIPROTKB.
 
 ### ontology.json
 

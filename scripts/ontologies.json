@@ -1,11 +1,16 @@
 {
-  "CCF": {
+  "CCFOLD": {
     "owl_url": "https://ccf-ontology.hubmapconsortium.org/ccf.owl",
     "comment": "Currently has just AS (using ccf_part_of as the relationship)"
   },
   "CCFASCTB": {
     "owl_url": "https://ccf-ontology.hubmapconsortium.org/ccf-asctb.owl",
     "comment": "From Indiana: First version of the ASCT+B tables as OWL",
+    "sab": "CCFV1"
+  },
+  "CCF": {
+    "owl_url": "https://data.bioontology.org/ontologies/CCF/submissions/11/download?apikey=8b5b7825-538d-40e0-9e9e-5ab9274a9aeb",
+    "comment": "HuBMAP Common Coordinate Framework",
     "sab": "CCF"
   },
   "CCO": {
@@ -81,7 +86,7 @@
   "PR": {
     "owl_url": "http://purl.obolibrary.org/obo/pr.owl",
     "home_url": "http://www.obofoundry.org/ontology/pr.html",
-    "comment": "BREAKS: PRotein Ontology"
+    "comment": "Protein Ontology. Specify an organism (e.g., human) via the optional -p argument to filter the nodes to a manageable size."
   },
   "RO": {
     "owl_url": "http://purl.obolibrary.org/obo/ro.owl",

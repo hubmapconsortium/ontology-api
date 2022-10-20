@@ -1,6 +1,16 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# OCTOBER 2022
+# JAS
+# THIS VERSION OF THE SCRIPT (OWLNETS-UMLS-GRAPH-12.py) IS THE SCRIPT OF RECORD.
+# ENHANCEMENTS OR BUG FIXES SHOULD BE MADE DIRECTLY TO THIS SCRIPT.
+
+# In other words, the method of updating a Jupyter notebook to a new version and then
+# running the transform script to convert the notebook to a pure Python script has been deprecated.
+# "Version 12" of the script is the source of coding truth.
+# -----------------------------------------------------
+
 # # OWLNETS-UMLS-GRAPH
 
 # ## Adds OWLNETS output files content to existing UMLS-Graph-Extracts
@@ -29,19 +39,23 @@ def csv_path(file: str) -> str:
 # Asssignnment of SAB for CUI-CUI relationships (edgelist) - typically use file name before .owl in CAPS
 OWL_SAB = sys.argv[3].upper()
 
+# JAS 19 OCT 2022
+# Organism argument
+ORGANISM = sys.argv[4].lower()
+
 pd.set_option('display.max_colwidth', None)
 
 # ### Ingest OWLNETS output files, remove NaN and duplicate (keys) if they were to exist
 
 # In[2]:
 
+print ('Reading OWLNETS files for ontology...')
 
 node_metadata = pd.read_csv(owlnets_path("OWLNETS_node_metadata.txt"), sep='\t')
 node_metadata = node_metadata.replace({'None': np.nan})
 node_metadata = node_metadata.dropna(subset=['node_id']).drop_duplicates(subset='node_id').reset_index(drop=True)
 
 # In[3]:
-
 
 relations = pd.read_csv(owlnets_path("OWLNETS_relations.txt"), sep='\t')
 relations = relations.replace({'None': np.nan})
@@ -51,7 +65,6 @@ relations.loc[relations['relation_label'].isnull(), 'relation_label'] = relation
 
 # In[4]:
 
-
 edgelist = pd.read_csv(owlnets_path("OWLNETS_edgelist.txt"), sep='\t')
 edgelist = edgelist.replace({'None': np.nan})
 edgelist = edgelist.dropna().drop_duplicates().reset_index(drop=True)
@@ -60,8 +73,38 @@ edgelist = edgelist.dropna().drop_duplicates().reset_index(drop=True)
 
 # In[5]:
 
-
 edgelist = edgelist[edgelist['subject'] != edgelist['object']].reset_index(drop=True)
+
+# JAS 20 OCT 2022
+# The OWLNETS files for PR are large enough to cause the script to run out of memory in the CUI assignments.
+# So, a hack and a logging solution:
+# 1. For PR, only select those nodes for the specified organism (e.g., human, mouse).
+#    This will require text searching, and so is a hack that depends on the node description
+#    containing a key word.
+# 2. Show counts of rows and warn for large files.
+
+edgecount = len(edgelist.index)
+nodecount = len(node_metadata.index)
+
+print('Number of edges in edgelist.txt:', edgecount)
+print('Number of nodes in node_metadata.txt', nodecount)
+
+if edgecount > 500000 or nodecount > 500000:
+    print('WARNING: Large OWLNETS files may cause the script to terminate from memory issues.')
+
+    if OWL_SAB == 'PR':
+        if ORGANISM == '':
+            raise SystemExit('Because of the size of the PR ontology, it is necessary to specify a species. Use the '
+                             '-p parameter in the call to the generation script.')
+        print(
+            f'For the PR ontology, this script will select a subset of nodes that correspond to proteins that are '
+            f'unambiguously for the organism: {ORGANISM}.')
+
+        # Case-insensitive search of the node definition, ignoring null values.
+        node_metadata = node_metadata[
+            node_metadata['node_definition'].fillna(value='').str.lower().str.contains(ORGANISM.lower())]
+        nodecount = len(node_metadata.index)
+        print(f'Node count for {ORGANISM}:{nodecount}')
 
 
 # ### Define codeReplacements function - modifies known code and xref formats to CodeID format
@@ -88,7 +131,7 @@ def codeReplacements(x):
 # ### Join relation_label in edgelist, convert subClassOf to isa and space to _, CodeID formatting
 
 # In[7]:
-
+print ('Establishing edges and inverse edges...')
 
 edgelist = edgelist.merge(relations, how='left', left_on='predicate', right_on='relation_id')
 edgelist = edgelist[['subject', 'relation_label', 'object']]
@@ -206,13 +249,13 @@ del df
 
 # In[10]:
 
-
 edgelist.loc[edgelist['inverse'].isnull(), 'inverse'] = 'inverse_' + edgelist['relation_label']
 
 # ### Clean up node_metadata
 
 # In[11]:
 
+print('Cleaning up node metadata...')
 
 # CodeID
 node_metadata['node_id'] = \
@@ -243,7 +286,7 @@ del node_metadata['node_namespace']
 # ### Get the UMLS CUIs for each node_id as nodeCUIs
 
 # In[12]:
-
+print('ASSIGNING CUIs TO NODES, including for nodes that are cross-references...')
 
 explode_dbxrefs['nodeXrefCodes'] = explode_dbxrefs['node_dbxrefs'].str.split(' ').str[-1]
 
@@ -258,7 +301,7 @@ del explode_dbxrefs['nodeXrefCodes']
 
 # In[13]:
 
-
+print('--reading CUI-CODES.csv...')
 CUI_CODEs = pd.read_csv(csv_path("CUI-CODEs.csv"))
 CUI_CODEs = CUI_CODEs.dropna().drop_duplicates().reset_index(drop=True)
 
@@ -277,8 +320,10 @@ CUI_CODEs = CUI_CODEs.dropna().drop_duplicates().reset_index(drop=True)
 
 # In[14]:
 
+print('--flattening data from CUI_CODEs...')
 CODE_CUIs = CUI_CODEs.groupby(':END_ID', sort=False)[':START_ID'].apply(list).reset_index(name='CUI_CODEs')
 # JAS the call to upper is new.
+print('--merging data from CUI_CODEs to node metadata...')
 node_metadata = node_metadata.merge(CODE_CUIs, how='left', left_on='node_id', right_on=CODE_CUIs[':END_ID'].str.upper())
 del CODE_CUIs
 del node_metadata[':END_ID']
@@ -322,7 +367,7 @@ node_metadata['base64cui'] = node_metadata['node_id'].apply(base64it)
 
 # In[17]:
 
-
+print('--assigning CUIs to nodes...')
 # create correct length lists
 node_metadata['cuis'] = node_metadata['base64cui']
 node_metadata['CUI'] = ''
@@ -364,15 +409,30 @@ node_metadata['CUI'] = nmCUI
 # ### Join CUI from node_metadata to each edgelist subject and object
 
 # #### Assemble CUI-CUIs
-
+print('Assembling CUI-CUI relationships...')
 # In[18]:
-# merge subject and object with their CUIs and drop the codes and add the SAB
+# Merge subject and object nodes with their CUIs; drop the codes; and add the SAB.
 
-# Merge subject and object nodes with their CUI; drop the codes; and add the SAB.
-# Subject node CUIs
-edgelist = edgelist.merge(node_metadata, how='left', left_on='subject', right_on='node_id')
+# The product will be a DataFrame in the format
+# CUI1 relation CUI2 inverse
+# e.g.,
+# CUI1 isa CUI2 inverse_isa
+
+# JAS 20 OCT 2022 Trim objnode1 and objnode2 DataFrames to reduce memory demand. (This is an issue for large ontologies, such as PR.)
+if OWL_SAB == 'PR':
+    # The node_metadata DataFrame has been filtered to proteins from a specified organism.
+    # The edgelist DataFrame also needs to be filtered via merging.
+    mergehow = 'inner'
+else:
+    # The node_metadata has not been filtered.
+    mergehow = 'left'
+
+# Assign CUIs to subject nodes.
+edgelist = edgelist.merge(node_metadata, how=mergehow, left_on='subject', right_on='node_id')
 edgelist = edgelist[['CUI', 'relation_label', 'object', 'inverse']]
 edgelist.columns = ['CUI1', 'relation_label', 'object', 'inverse']
+
+# Assign CUIs to object nodes.
 
 # Original code for object node CUIs
 # edgelist = edgelist.merge(node_metadata, how='left', left_on='object', right_on='node_id')
@@ -398,33 +458,41 @@ edgelist.columns = ['CUI1', 'relation_label', 'object', 'inverse']
 # concepts--i.e., that some object nodes are defined in node_metadata and others in CUI-CODEs. It is necessary
 # to check both possibilities for each subject node in the edge list.
 
-# Check for object nodes in node_metadata--i.e., object nodes of the first type.
-objnode1 = edgelist.merge(node_metadata, how='left', left_on='object', right_on='node_id')
+# Check first for object nodes in node_metadata--i.e., of type 1.
+# Matching CUIs will be in a field named 'CUI'.
+objnode1 = edgelist.merge(node_metadata, how=mergehow, left_on='object', right_on='node_id')
+objnode1 = objnode1[['object','CUI1','relation_label','inverse','CUI']]
 
-# Check for object nodes in CUI_CODEs--i.e., object nodes of the second type.
-objnode2 = edgelist.merge(CUI_CODEs, how='left', left_on='object', right_on=':END_ID')
 
-# Merge and conditionally select value of CUI.
-# If the CUI (from node metadata) is na, then the node is likely of the second type, and is external.
-objnode = objnode1.merge(objnode2, how='inner', left_on='object', right_on='object')
+# Check for object nodes in CUI_CODEs--i.e., of type 2. Matching CUIs will be in a field named ':END_ID'.
+objnode2 = edgelist.merge(CUI_CODEs, how=mergehow, left_on='object', right_on=':END_ID')
+objnode2 = objnode2[['object','CUI1','relation_label','inverse',':START_ID']]
 
+# Union (pd.concat with drop_duplicates) objNode1 and objNode2 to allow for conditional
+# selection of CUI.
+# The union will result in a DataFrame with columns for each node:
+# object CUI1 relation_label inverse CUI :START_ID
+objnode = pd.concat([objnode1,objnode2]).drop_duplicates()
+
+# If CUI is non-null, then the node is of the first type; otherwise, it is likely of the second type.
 objnode['CUIMatch'] = objnode[':START_ID'].where(objnode['CUI'].isna(), objnode['CUI'])
 
 # original code
 # edgelist = edgelist.merge(node_metadata, how='left', left_on='object', right_on='node_id')
 
-# The "_x" columns come from the merge of objnode1 and objnode2, which are both copies of edgelist.
-edgelist = objnode[['CUI1_x', 'relation_label_x', 'CUIMatch', 'inverse_x']]
+edgelist = objnode[['CUI1', 'relation_label', 'CUIMatch', 'inverse']]
+
+# Merge object nodes with subject nodes.
 
 # original code
 # edgelist = edgelist.dropna().drop_duplicates().reset_index(drop=True)
 # edgelist = edgelist[['CUI1','relation_label','CUI','inverse']]
 
 edgelist.columns = ['CUI1', 'relation_label', 'CUI2', 'inverse']
-
 edgelist = edgelist.dropna().drop_duplicates().reset_index(drop=True)
 
 edgelist['SAB'] = OWL_SAB
+
 
 # ## Write out files
 
@@ -433,7 +501,7 @@ edgelist['SAB'] = OWL_SAB
 # #### Write CUI-CUIs (':START_ID', ':END_ID', ':TYPE', 'SAB') (no prior-existance-check because want them in this SAB)
 
 # In[19]:
-
+print('Appending to CUI-CUIs.csv...')
 
 # TWO WRITES comment out during development
 
@@ -451,7 +519,7 @@ del edgelist
 
 # In[20]:
 
-
+print('Appending to CODEs.csv...')
 newCODEs = node_metadata[['node_id', 'SAB', 'CODE', 'CUI_CODEs']]
 newCODEs = newCODEs[newCODEs['CUI_CODEs'].isnull()]
 newCODEs = newCODEs.drop(columns=['CUI_CODEs'])
@@ -467,7 +535,7 @@ del newCODEs
 
 # In[21]:
 
-
+print('Appending to CUIs.csv...')
 CUIs = CUI_CODEs[[':START_ID']].dropna().drop_duplicates().reset_index(drop=True)
 CUIs.columns = ['CUI:ID']
 
@@ -490,7 +558,7 @@ newCUIs.to_csv(csv_path('CUIs.csv'), mode='a', header=False, index=False)
 # #### Write CUI-CODEs (:START_ID,:END_ID) - with existence check against CUI-CODE.csv
 
 # In[22]:
-
+print('Appending to CUI_CODES.csv...')
 
 # The last CUI in cuis is always base64 of node_id - here we grab those only if they are the selected CUI (and all CUIs)
 newCUI_CODEsCUI = node_metadata[['CUI', 'node_id']]
@@ -521,7 +589,6 @@ del newCUI_CODEs
 
 # In[23]:
 
-
 SUIs = pd.read_csv(csv_path("SUIs.csv"))
 # SUIs supposedly unique but...discovered 5 NaN names in SUIs.csv and drop them here
 # ?? from ASCII converstion for Oracle to Pandas conversion on original UMLS-Graph-Extracts ??
@@ -530,7 +597,7 @@ SUIs = SUIs.dropna().drop_duplicates().reset_index(drop=True)
 # #### Write SUIs (SUI:ID,name) part 1, from label - with existence check
 
 # In[24]:
-
+print('Appending to SUIs.csv...')
 
 newSUIs = node_metadata.merge(SUIs, how='left', left_on='node_label', right_on='name')[
     ['node_id', 'node_label', 'CUI', 'SUI:ID', 'name']]
@@ -555,9 +622,8 @@ newSUIs.to_csv(csv_path('SUIs.csv'), mode='a', header=False, index=False)
 
 
 # #### Write CUI-SUIs (:START_ID,:END_ID)
-
+print('Appending to CUI-SUIs.csv...')
 # In[25]:
-
 
 # get the newCUIs associated metadata (CUIs are unique in node_metadata)
 newCUI_SUIs = newCUIs.merge(node_metadata, how='inner', left_on='CUI:ID', right_on='CUI')
@@ -579,7 +645,7 @@ newCUI_SUIs.to_csv(csv_path('CUI-SUIs.csv'), mode='a', header=False, index=False
 
 # In[26]:
 
-
+print('Appending to CODE-SUIs.csv...')
 CODE_SUIs = pd.read_csv(csv_path("CODE-SUIs.csv"))
 CODE_SUIs = CODE_SUIs[((CODE_SUIs[':TYPE'] == 'PT') | (CODE_SUIs[':TYPE'] == 'SY'))]
 CODE_SUIs = CODE_SUIs.dropna().drop_duplicates().reset_index(drop=True)
@@ -665,7 +731,7 @@ del newCODE_SUIs
 # #### Write DEFs (ATUI:ID, SAB, DEF) and DEFrel (:END_ID, :START_ID) - with check for any DEFs and existence check
 
 # In[30]:
-
+print('Appending to DEFs.csv and DEFrel.csv...')
 
 if node_metadata['node_definition'].notna().values.any():
     DEFs = pd.read_csv(csv_path("DEFs.csv"))

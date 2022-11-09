@@ -179,7 +179,8 @@ owlnets_path: str = os.path.join(args.owlnets_dir, owl_sab)
 os.system(f'mkdir -p {owlnets_path}')
 
 edgelist_path: str = os.path.join(owlnets_path, 'OWLNETS_edgelist.txt')
-predicate = 'gene product of' #http://purl.obolibrary.org/obo/RO_0002204
+#JAS 8 NOV 2022 switched predicate to use RO IRI instead of label.
+predicate = '#http://purl.obolibrary.org/obo/RO_0002204'  # gene product of
 print_and_logger_info('Building: ' + os.path.abspath(edgelist_path))
 
 with open(edgelist_path, 'w') as out:

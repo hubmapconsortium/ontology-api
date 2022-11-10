@@ -9,6 +9,11 @@
 # In other words, the method of updating a Jupyter notebook to a new version and then
 # running the transform script to convert the notebook to a pure Python script has been deprecated.
 # "Version 12" of the script is the source of coding truth.
+#
+# Potential enhancements:
+# 1. Rename the script.
+# 2. Add Python logging.
+
 # -----------------------------------------------------
 
 # # OWLNETS-UMLS-GRAPH
@@ -40,7 +45,7 @@ def csv_path(file: str) -> str:
 OWL_SAB = sys.argv[3].upper()
 
 # JAS 19 OCT 2022
-# Organism argument
+# Organism argument, which factors for ingestion of the PR ontology.
 ORGANISM = sys.argv[4].lower()
 
 pd.set_option('display.max_colwidth', None)
@@ -49,7 +54,11 @@ pd.set_option('display.max_colwidth', None)
 
 # In[2]:
 
-print ('Reading OWLNETS files for ontology...')
+print('Reading OWLNETS files for ontology...')
+
+# JAS 9 NOV 2022 TO DO: Parameterize file names to allow for both OWLNETS-based ingestion and
+# Data Distillery ingestion. This would likely entail change to the upstream PheKnowLator-based
+# OWL-to-OWLNETS conversion script.
 
 node_metadata = pd.read_csv(owlnets_path("OWLNETS_node_metadata.txt"), sep='\t')
 node_metadata = node_metadata.replace({'None': np.nan})
@@ -57,11 +66,35 @@ node_metadata = node_metadata.dropna(subset=['node_id']).drop_duplicates(subset=
 
 # In[3]:
 
-relations = pd.read_csv(owlnets_path("OWLNETS_relations.txt"), sep='\t')
-relations = relations.replace({'None': np.nan})
-relations = relations.dropna(subset=['relation_id']).drop_duplicates(subset='relation_id').reset_index(drop=True)
-# handle relations with no label by inserting part after # - may warrant more robust solution or a hard stop
-relations.loc[relations['relation_label'].isnull(), 'relation_label'] = relations['relation_id'].str.split('#').str[-1]
+# JAS 8 Nov 2022
+# The OWLNETS_relations.txt file is no longer required; however, if it is available, it will contain information for
+# relation properties that are defined outside the Relations Ontology.
+#
+# Obtain relationship information as follows:
+# 1. If a relations file is available (e.g., as output from PheKnowLator), obtain
+# relationship label information from it.
+# 2. If no relations file is available, obtain relationship information from the
+# OWLNETS_edgelist.txt.
+#
+# An edge in edgelist is one of the following types:
+# 1. an IRI that corresponds to the IRI of a relationship property from the Relations Ontology (RO)
+# 2. a subClassOf relationship, that will be translated to isa
+# 3. a text string that matches a relationship label in RO--i.e., a weaker link to RO than by IRI.
+# 4. a text string that does not match a relationship label in RO.
+#    This can either be a relationship that is defined with an IRI not in RO or a
+#    custom string.
+# Possible enhancement: identify relationship properties outside of RO. This would entail finding
+# equivalents of ro.json, or perhaps some form of API call.
+
+relations_file_exists = os.path.exists(owlnets_path('OWLNETS_relations.txt'))
+
+if relations_file_exists:
+    relations = pd.read_csv(owlnets_path("OWLNETS_relations.txt"), sep='\t')
+    relations = relations.replace({'None': np.nan})
+    relations = relations.dropna(subset=['relation_id']).drop_duplicates(subset='relation_id').reset_index(drop=True)
+    # handle relations with no label by inserting part after # - may warrant more robust solution or a hard stop
+    relations.loc[relations['relation_label'].isnull(), 'relation_label'] = relations['relation_id'].str.split('#').str[
+        -1]
 
 # In[4]:
 
@@ -78,8 +111,9 @@ edgelist = edgelist[edgelist['subject'] != edgelist['object']].reset_index(drop=
 # JAS 20 OCT 2022
 # The OWLNETS files for PR are large enough to cause the script to run out of memory in the CUI assignments.
 # So, a hack and a logging solution:
-# 1. For PR, only select those nodes for the specified organism (e.g., human, mouse).
-#    This will require text searching, and so is a hack that depends on the node description
+# 1. For PR, only select those nodes for the ORGANISM specified in the optional argument
+#    (e.g., human, mouse).
+#    This will require text searching, and so is a hack that depends on the node description field
 #    containing a key word.
 # 2. Show counts of rows and warn for large files.
 
@@ -131,20 +165,36 @@ def codeReplacements(x):
 # ### Join relation_label in edgelist, convert subClassOf to isa and space to _, CodeID formatting
 
 # In[7]:
-print ('Establishing edges and inverse edges...')
+print('Establishing edges and inverse edges...')
 
-edgelist = edgelist.merge(relations, how='left', left_on='predicate', right_on='relation_id')
-edgelist = edgelist[['subject', 'relation_label', 'object']]
-del relations
+# JAS 8 Nov 2022
+# The OWLNETS_relations.txt file is no longer required; however, if it is available, it will contain information for
+# relation properties that are defined outside the Relations Ontology.
 
-edgelist.loc[(edgelist.relation_label == 'subClassOf'), 'relation_label'] = 'isa'
-edgelist['relation_label'] = edgelist['relation_label'].str.replace(' ', '_')
+if relations_file_exists:
+    # Obtain the relation label from the relations file.
+    # This can correspond to:
+    # 1. The label for a relationship property in RO.
+    # 2. The label for a relationship not defined in RO, including relationships defined in
+    #    other ontologies.
+    edgelist = edgelist.merge(relations, how='left', left_on='predicate', right_on='relation_id')
+    edgelist = edgelist[['subject', 'predicate', 'object', 'relation_label']].rename(
+        columns={"relation_label": "relation_label_from_file"})
+else:
+    edgelist['relation_label_from_file'] = np.NaN
+# del relations
 
+# JAS 8 November 2022 - now handled downstream
+# edgelist.loc[(edgelist.relation_label == 'subClassOf'), 'relation_label'] = 'isa'
+# edgelist['relation_label'] = edgelist['relation_label'].str.replace(' ', '_')
+
+# Format subject node information.
 edgelist['subject'] = \
-edgelist['subject'].str.replace(':', ' ').str.replace('#', ' ').str.replace('_', ' ').str.split('/').str[-1]
+    edgelist['subject'].str.replace(':', ' ').str.replace('#', ' ').str.replace('_', ' ').str.split('/').str[-1]
 edgelist['subject'] = codeReplacements(edgelist['subject'])
 
 # JAS 13 OCT 2022
+# Format object node information.
 # Enhancement to handle special case of HGNC object nodes.
 
 # HGNC nodes are a special case.
@@ -164,88 +214,217 @@ edgelist['subject'] = codeReplacements(edgelist['subject'])
 # new code:
 
 # If the nodes are not from HGNC, replace delimiters with space.
-edgelist['object'] = np.where(edgelist['object'].str.contains('HGNC')==True,\
-                              edgelist['object'],\
-                              edgelist['object'].str.replace(':', ' ').str.replace('#', ' ').str.replace('_', ' ').str.split('/').str[-1])
+edgelist['object'] = np.where(edgelist['object'].str.contains('HGNC') == True, \
+                              edgelist['object'], \
+                              edgelist['object'].str.replace(':', ' ').str.replace('#', ' ').str.replace('_',
+                                                                                                         ' ').str.split(
+                                  '/').str[-1])
 # If the nodes are not from HGNC, align code SABs with UMLS.
-edgelist['object'] = np.where(edgelist['object'].str.contains('HGNC')==True,\
-                              edgelist['object'],\
+edgelist['object'] = np.where(edgelist['object'].str.contains('HGNC') == True, \
+                              edgelist['object'], \
                               codeReplacements(edgelist['object']))
 
-# ### Add inverse_ edges
 
-# #### Obtain inverse relations from Relations Ontology json file - address absent part_of and has_part - into 'df'
+print('DEBUG:')
+print(edgelist)
+# JAS 8 NOV 2022
+# Obtain relations and their inverses from Relations Ontology JSON.
 
-# In[8]:
+# The Relations Ontology (RO) is an ontology of relationships, in which the nodes are
+# relationship properties and the edges (predicates) are relationships *between*
+# relationship properties.
+# For example, relationship property A (node) inverseOf (edge) relationship property B (node).
 
-
-df = pd.read_json("https://raw.githubusercontent.com/oborel/obo-relations/master/ro.json")
-# df = pd.read_json("ro.json")
-
-# JAS 10 OCT 2022
-# Enhancement/bug fix to find all available inverse relationships in RO.
-# The original code assumed that inverse relationships
-# between nodes in ro.json are identified in the *nodes* list by the presence of an "inverse of" key--
-# i.e., that one must derive an inverse relationship lexically.
-# In fact, inverse relations are defined explicitly in the *edges* list with the key/value pair
-# "pred" : "inverseOf" --e.g.
-# {
-#      "sub" : "http://purl.obolibrary.org/obo/RO_0002200",
-#      "pred" : "inverseOf",
-#     "obj" : "http://purl.obolibrary.org/obo/RO_0002201"
-#   }
-
-# original code
-# df = pd.DataFrame(df.graphs[0]['nodes'])
-# df = df[list(df['meta'].apply(lambda x: json.dumps(x)).str.contains('inverse of '))]
-# df['inverse'] = df['meta'].apply(lambda x: str(x).split(sep='inverse of ')[1].split(sep='\'')[0])
-# df = df[['lbl','inverse']]
-# inverse_df = df.copy()
-# inverse_df.columns = ['inverse','lbl']
-# df = pd.concat([df,inverse_df], axis=0).dropna().drop_duplicates().reset_index(drop=True)
-# del inverse_df
-# df['lbl'] = df['lbl'].str.replace(' ', '_').str.split('/').str[-1]
-# df['inverse'] = df['inverse'].str.replace(' ', '_').str.split('/').str[-1]
-# if len(df[(df['inverse'] == 'part_of') | (df['lbl'] == 'part_of')]) == 0:
-# df.loc[len(df.index)] = ['has_part', 'part_of']
-# df.loc[len(df.index)] = ['part_of', 'has_part']
-
-# fixed code
 dfro = pd.read_json("https://raw.githubusercontent.com/oborel/obo-relations/master/ro.json")
+
+# Information on relationship properties (i.e., relationship property nodes) is in the node array.
 dfnodes = pd.DataFrame(dfro.graphs[0]['nodes'])
+# Information on edges (i.e., relationships between relationship properties) is in the edges array.
 dfedges = pd.DataFrame(dfro.graphs[0]['edges'])
 
-# Build subject-predicate-object triples for property nodes. Edges are defined explicitly in the edges list of ro.json.
-dfne = dfnodes.merge(dfedges, how='inner', left_on='id', right_on='sub')
-# Find labels for object nodes.
-dfne = dfne.merge(dfnodes, how='inner', left_on='obj', right_on='id')
-# Filter to inverse edges.
-dfne = dfne[['lbl_x', 'pred', 'lbl_y']].rename(columns={'lbl_x': 'lbl', 'lbl_y': 'inverse'})
-dfne = dfne[dfne['pred'] == 'inverseOf']
-dfne = dfne.drop(columns=['pred'])
+# Information on the relationships between relationship properties *should be* in the edges array.
+# Example of edge element:
+# {
+#      "sub" : "http://purl.obolibrary.org/obo/RO_0002101",
+#      "pred" : "inverseOf",
+#      "obj" : "http://purl.obolibrary.org/obo/RO_0002132"
+#    }
+#
+# The ontology graph requires that every relationship have an inverse.
+# Not all relationships in RO are defined with inverses, so the script will create
+# "pseudo-inverse" relationships.
 
-# Explicitly add 'has_part'/'part_of' triples.
-dfne['lbl'] = dfne['lbl'].str.replace(' ', '_').str.split('/').str[-1]
-dfne['inverse'] = dfne['inverse'].str.replace(' ', '_').str.split('/').str[-1]
-if len(dfne[(dfne['inverse'] == 'part_of') | (dfne['lbl'] == 'part_of')]) == 0:
-    dfne.loc[len(dfne.index)] = ['has_part', 'part_of']
-    dfne.loc[len(dfne.index)] = ['part_of', 'has_part']
+# Cases that require pseudo-inverses include:
+# 1. A property is incompletely specified in terms of both sides of an inverse relationship--e.g.,
+#    RO_0002206 is listed as the inverse of RO_0002292, but RO_0002292 is not listed as the
+#    corresponding inverse of RO_0002206. For these properties, the available relationship
+#    will be inverted when joining relationship information to the edgelist.
+#    (This is really a case in which both parts of the inverse relationship should have been
+#    defined in the edges node, but were not.)
+# 2. A property  does not have inverse relationships defined in RO.
+#    The relationship will be added to the list with a null inverse. The script will later create a
+#    pseudo-inverse by appending "inverse_" to the relationship label.
 
-# Downward compatibility
-df = dfne
-del dfne
+# ---------------------------------
 
-# #### Join the inverse_ relations to edge list (results in some unknowns)
+# Obtain triple information for relationship properties--i.e.,
+# 1. IRIs for "subject" nodes and "object" nodes (relationship properties)
+# 2. relationship predicates (relationships between relationship properties)
+# The assumption is that each relationship property node has at least one edge (predicate).
+
+# (Possible enhancement: find relationship properties that do not have an edge. This really
+# would be shaking the RO tree pretty hard, though.)
+
+# Get subject node, edge
+dfrelationtriples = dfnodes.merge(dfedges, how='inner', left_on='id', right_on='sub')
+# Get object node
+dfrelationtriples = dfrelationtriples.merge(dfnodes, how='inner', left_on='obj', right_on='id')
+
+# ---------------------------------
+# Identify relationship properties that do not have inverses.
+# 1. Group relationship properties by predicate, using count.
+#    ('Predicate' here is the relationship between relationship properties.)
+dfpred = dfrelationtriples.groupby(['id_x', 'pred']).count().reset_index()
+
+# 2. Identify the relationships for which the set of predicates does not include "inverseOf".
+listinv = dfpred[dfpred['pred'] == 'inverseOf']['id_x'].to_list()
+listnoinv = dfpred[~dfpred['id_x'].isin(listinv)]['id_x'].to_list()
+dfnoinv = dfrelationtriples.copy()
+dfnoinv = dfnoinv[dfnoinv['id_x'].isin(listnoinv)]
+
+# 3. Rename column names to match the relationtriples frame. (Column names are described
+#    farther down.)
+dfnoinv = dfnoinv[['id_x', 'lbl_x', 'id_y', 'lbl_y']].rename(
+    columns={'id_x': 'IRI', 'lbl_x': 'relation_label_RO', 'id_y': 'inverse_IRI', 'lbl_y': 'inverse_RO'})
+# The inverses are undefined.
+dfnoinv['inverse_IRI'] = np.nan
+dfnoinv['inverse_RO'] = np.nan
+
+# ---------------------------------
+# Look for members of incomplete inverse pairs--i.e., relationship properties that are
+# the *object* of an inverseOf edge, but not the corresponding *subject* of an inverseOf edge.
+#
+# 1. Filter edges to inverseOf.
+dfedgeinv = dfedges[dfedges['pred'] == 'inverseOf']
+
+# 2. Find all relation properties that are objects of inverseOf edges.
+dfnoinv = dfnoinv.merge(dfedgeinv, how='left', left_on='IRI', right_on='obj')
+
+# 3. Get the label for the relation properties that are subjects of inverseOf edges.
+dfnoinv = dfnoinv.merge(dfnodes, how='left', left_on='sub', right_on='id')
+dfnoinv['inverse_IRI'] = np.where(dfnoinv['lbl'].isnull(), dfnoinv['inverse_IRI'], dfnoinv['id'])
+dfnoinv['inverse_RO'] = np.where(dfnoinv['lbl'].isnull(), dfnoinv['inverse_RO'], dfnoinv['lbl'])
+dfnoinv = dfnoinv[['IRI', 'relation_label_RO', 'inverse_IRI', 'inverse_RO']]
+
+# ---------------------------------
+# Filter the triples frame to just those relationship properties that have inverses. This step eliminates relationship
+# properties related by relationships such as "subPropertyOf".
+dfrelationtriples = dfrelationtriples[dfrelationtriples['pred'] == 'inverseOf']
+
+# Rename column names.
+# Column names will be:
+# IRI - the IRI for the relationship property
+# relation_label_RO - the label for the relationship property
+# inverse_RO - the label of the inverse relationship property
+# inverse_IRI - IRI for the inverse relationship (will be dropped)
+dfrelationtriples = dfrelationtriples[['id_x', 'lbl_x', 'id_y', 'lbl_y']].rename(
+    columns={'id_x': 'IRI', 'lbl_x': 'relation_label_RO', 'id_y': 'inverse_IRI', 'lbl_y': 'inverse_RO'})
+
+# Add triples for relationship properties without inverses.
+dfrelationtriples = pd.concat([dfrelationtriples, dfnoinv], ignore_index=True).drop_duplicates(subset=['IRI'])
+
+# Convert stings for labels for relationships to expected delimiting.
+dfrelationtriples['relation_label_RO'] = \
+    dfrelationtriples['relation_label_RO'].str.replace(' ', '_').str.split('/').str[-1]
+dfrelationtriples['inverse_RO'] = dfrelationtriples['inverse_RO'].str.replace(' ', '_').str.split('/').str[-1]
+
+dfrelationtriples = dfrelationtriples.drop(columns='inverse_IRI')
+
+# #################################################
+# JAS 8 NOV 2022
+# JOIN RELATIONS WITH EDGES
+# Rewrite of join logic to account for:
+# 1. Optional use of OWLNETS_relations.txt file.
+# 2. Identification of all relations in Relations Ontology, not just inverses.
+
+# Perform a series of joins and rename resulting columns to keep track of the source of
+# relationship labels and inverse relationship labels.
+
+# Check for relationships in RO, considering the edgelist predicate as a *full IRI*.
+edgelist = edgelist.merge(dfrelationtriples, how='left', left_on='predicate',
+                          right_on='IRI').drop_duplicates().reset_index(drop=True)
+edgelist = edgelist[
+    ['subject', 'predicate', 'object', 'relation_label_from_file', 'relation_label_RO', 'inverse_RO']].rename(
+    columns={'relation_label_RO': 'relation_label_RO_fromIRIjoin', 'inverse_RO': 'inverse_RO_fromIRIjoin'})
+
+# Check for relationships in RO by label, considering the edgelist predicate as *a label*--i.e.,
+# as a simplified version of an IRI.
+# First, format the predicate string to match potential relationship strings from RO.
+# Parsing note: relationship IRIs may be in format url...#relation--e.g., ccf.owl#ct_is_a.
+edgelist['predicate'] = edgelist['predicate'].str.replace(' ', '_').str.replace('#', '/').str.split('/').str[-1]
+edgelist = edgelist.merge(dfrelationtriples, how='left', left_on='predicate',
+                          right_on='relation_label_RO').drop_duplicates().reset_index(drop=True)
+edgelist = edgelist[['subject', 'predicate', 'object', 'relation_label_from_file', 'relation_label_RO_fromIRIjoin',
+                     'inverse_RO_fromIRIjoin', 'relation_label_RO', 'inverse_RO']].rename(
+    columns={'relation_label_RO': 'relation_label_RO_frompredicatejoinlabel',
+             'inverse_RO': 'inverse_RO_frompredicatejoinlabel'})
+
+# Check for relationships in RO by label, considering the relationship label from the
+# OWLNETS_relations.txt file that corresponds to the predicate (if available).
+if relations_file_exists:
+    edgelist['relation_label_from_file'] = \
+    edgelist['relation_label_from_file'].str.replace(' ', '_').str.replace('#', '/').str.split('/').str[-1]
+    edgelist = edgelist.merge(dfrelationtriples, how='left', left_on='relation_label_from_file',
+                              right_on='relation_label_RO').drop_duplicates().reset_index(drop=True)
+    edgelist = edgelist[['subject', 'predicate', 'object', 'relation_label_from_file', 'relation_label_RO_fromIRIjoin',
+                         'inverse_RO_fromIRIjoin', 'relation_label_RO_frompredicatejoinlabel',
+                         'inverse_RO_frompredicatejoinlabel', 'relation_label_RO', 'inverse_RO']].rename(
+        columns={'relation_label_RO': 'relation_label_RO_fromfilelabeljoinlabel',
+                 'inverse_RO': 'inverse_RO_fromfilelabeljoinlabel'})
+
+# We now have labels for relations and inverses for the following scenarios:
+# 1. relation_label_RO_fromIRIjoin/inverse_fromIRIjoin - predicate was a full IRI that was in RO
+# 2. relation_label_RO_fromlabeljoin/inverse_fromlabeljoin - predicate corresponded to the label
+#    of a relation in RO
+# 3. relation_label_from_file/(null inverse) - relation label from the OWLNETS_relations.txt.
+#    The label is either the label of a relationship with IRI not in RO or a custom relationship label.
+# 4. predicate - a custom relationship label
+
+# Order of precedence for relationship/inverse relationship data:
+# 1. label from the edgelist predicate joined to RO by IRI
+# 2. label from the edgelist predicate joined to RO by label
+# 3. label from OWLNETS_relations.txt, joined against RO
+# 4. label from OWLNETS_relations.txt, not joined against RO
+# 5. predicate from edgelist
+# 6. 'subClassOf' predicates converted to 'isa'
+
+edgelist['relation_label'] = edgelist['relation_label_RO_fromIRIjoin']
+edgelist['relation_label'] = np.where(edgelist['relation_label'].isnull(),edgelist['relation_label_RO_frompredicatejoinlabel'],edgelist['relation_label'])
+if relations_file_exists:
+    edgelist['relation_label'] = np.where(edgelist['relation_label'].isnull(),edgelist['relation_label_RO_fromfilelabeljoinlabel'],edgelist['relation_label'])
+    edgelist['relation_label'] = np.where(edgelist['relation_label'].isnull(),edgelist['relation_label_from_file'],edgelist['relation_label'])
+edgelist['relation_label'] = np.where(edgelist['relation_label'].isnull(),edgelist['predicate'],edgelist['relation_label'])
+edgelist['relation_label'] = np.where(edgelist['predicate'].str.contains('subClassOf'),'isa', edgelist['relation_label'])
+
+# The algorithm for inverses is simpler: if one was derived from RO, use it; else leave empty, and
+# the script will create a pseudo-inverse.
+edgelist['inverse'] = edgelist['inverse_RO_fromIRIjoin']
+edgelist['inverse'] = np.where(edgelist['inverse'].isnull(), edgelist['inverse_RO_frompredicatejoinlabel'],
+                               edgelist['inverse'])
+if relations_file_exists:
+    edgelist['inverse'] = np.where(edgelist['inverse'].isnull(), edgelist['inverse_RO_fromfilelabeljoinlabel'],
+                                   edgelist['inverse'])
 
 # In[9]:
 
+# JAS 8 NOV 2022 -
+# Original code that assumed that joins were only to inverse relations.
+# edgelist = edgelist.merge(df, how='left', left_on='relation_label', right_on='lbl').drop_duplicates().reset_index(
+# drop=True)
+# edgelist.drop(columns=['lbl'], inplace=True)
+# del df
 
-edgelist = edgelist.merge(df, how='left', left_on='relation_label', right_on='lbl').drop_duplicates().reset_index(
-    drop=True)
-edgelist.drop(columns=['lbl'], inplace=True)
-del df
-
-# #### Add unknown inverse_ edges
+# #### Add unknown inverse_ edges (i.e., pseudo-inverses)
 
 # In[10]:
 
@@ -259,18 +438,18 @@ print('Cleaning up node metadata...')
 
 # CodeID
 node_metadata['node_id'] = \
-node_metadata['node_id'].str.replace(':', ' ').str.replace('#', ' ').str.replace('_', ' ').str.split('/').str[-1]
+    node_metadata['node_id'].str.replace(':', ' ').str.replace('#', ' ').str.replace('_', ' ').str.split('/').str[-1]
 node_metadata['node_id'] = codeReplacements(node_metadata['node_id'])
 
 # synonyms .loc of notna to control for owl with no syns
 node_metadata.loc[node_metadata['node_synonyms'].notna(), 'node_synonyms'] = \
-node_metadata[node_metadata['node_synonyms'].notna()]['node_synonyms'].astype('str').str.split('|')
+    node_metadata[node_metadata['node_synonyms'].notna()]['node_synonyms'].astype('str').str.split('|')
 
 # dbxref .loc of notna to control for owl with no dbxref
 # 5 OCT 2022 - JAS: notice the conversion to uppercase. This requires a corresponding
 #                   conversion when merging with CUI-CODEs data.
 node_metadata.loc[node_metadata['node_dbxrefs'].notna(), 'node_dbxrefs'] = \
-node_metadata[node_metadata['node_dbxrefs'].notna()]['node_dbxrefs'].astype('str').str.upper().str.replace(':', ' ')
+    node_metadata[node_metadata['node_dbxrefs'].notna()]['node_dbxrefs'].astype('str').str.upper().str.replace(':', ' ')
 node_metadata['node_dbxrefs'] = node_metadata['node_dbxrefs'].str.split('|')
 explode_dbxrefs = node_metadata.explode('node_dbxrefs')[['node_id', 'node_dbxrefs']].dropna().astype(
     str).drop_duplicates().reset_index(drop=True)
@@ -291,8 +470,8 @@ print('ASSIGNING CUIs TO NODES, including for nodes that are cross-references...
 explode_dbxrefs['nodeXrefCodes'] = explode_dbxrefs['node_dbxrefs'].str.split(' ').str[-1]
 
 explode_dbxrefs_UMLS = \
-explode_dbxrefs[explode_dbxrefs['node_dbxrefs'].str.contains('UMLS C') == True].groupby('node_id', sort=False)[
-    'nodeXrefCodes'].apply(list).reset_index(name='nodeCUIs')
+    explode_dbxrefs[explode_dbxrefs['node_dbxrefs'].str.contains('UMLS C') == True].groupby('node_id', sort=False)[
+        'nodeXrefCodes'].apply(list).reset_index(name='nodeCUIs')
 node_metadata = node_metadata.merge(explode_dbxrefs_UMLS, how='left', on='node_id')
 del explode_dbxrefs_UMLS
 del explode_dbxrefs['nodeXrefCodes']
@@ -461,18 +640,17 @@ edgelist.columns = ['CUI1', 'relation_label', 'object', 'inverse']
 # Check first for object nodes in node_metadata--i.e., of type 1.
 # Matching CUIs will be in a field named 'CUI'.
 objnode1 = edgelist.merge(node_metadata, how=mergehow, left_on='object', right_on='node_id')
-objnode1 = objnode1[['object','CUI1','relation_label','inverse','CUI']]
-
+objnode1 = objnode1[['object', 'CUI1', 'relation_label', 'inverse', 'CUI']]
 
 # Check for object nodes in CUI_CODEs--i.e., of type 2. Matching CUIs will be in a field named ':END_ID'.
 objnode2 = edgelist.merge(CUI_CODEs, how=mergehow, left_on='object', right_on=':END_ID')
-objnode2 = objnode2[['object','CUI1','relation_label','inverse',':START_ID']]
+objnode2 = objnode2[['object', 'CUI1', 'relation_label', 'inverse', ':START_ID']]
 
 # Union (pd.concat with drop_duplicates) objNode1 and objNode2 to allow for conditional
 # selection of CUI.
 # The union will result in a DataFrame with columns for each node:
 # object CUI1 relation_label inverse CUI :START_ID
-objnode = pd.concat([objnode1,objnode2]).drop_duplicates()
+objnode = pd.concat([objnode1, objnode2]).drop_duplicates()
 
 # If CUI is non-null, then the node is of the first type; otherwise, it is likely of the second type.
 objnode['CUIMatch'] = objnode[':START_ID'].where(objnode['CUI'].isna(), objnode['CUI'])
@@ -492,7 +670,6 @@ edgelist.columns = ['CUI1', 'relation_label', 'CUI2', 'inverse']
 edgelist = edgelist.dropna().drop_duplicates().reset_index(drop=True)
 
 edgelist['SAB'] = OWL_SAB
-
 
 # ## Write out files
 
@@ -604,7 +781,7 @@ newSUIs = node_metadata.merge(SUIs, how='left', left_on='node_label', right_on='
 
 # for Term.name that don't join with node_label update the SUI:ID with base64 of node_label
 newSUIs.loc[(newSUIs['name'] != newSUIs['node_label']), 'SUI:ID'] = \
-newSUIs[newSUIs['name'] != newSUIs['node_label']]['node_label'].apply(base64it).str[0]
+    newSUIs[newSUIs['name'] != newSUIs['node_label']]['node_label'].apply(base64it).str[0]
 
 # change field names and isolate non-matched ones (don't exist in SUIs file)
 newSUIs.columns = ['node_id', 'name', 'CUI', 'SUI:ID', 'OLDname']
@@ -688,7 +865,7 @@ newSUIs = explode_syns.merge(SUIs, how='left', left_on='node_synonyms', right_on
 
 # for Term.name that don't join with node_synonyms update the SUI:ID with base64 of node_synonyms
 newSUIs.loc[(newSUIs['name'] != newSUIs['node_synonyms']), 'SUI:ID'] = \
-newSUIs[newSUIs['name'] != newSUIs['node_synonyms']]['node_synonyms'].apply(base64it).str[0]
+    newSUIs[newSUIs['name'] != newSUIs['node_synonyms']]['node_synonyms'].apply(base64it).str[0]
 
 # change field names and isolate non-matched ones (don't exist in SUIs file)
 newSUIs.columns = ['node_id', 'name', 'CUI', 'SUI:ID', 'OLDname']

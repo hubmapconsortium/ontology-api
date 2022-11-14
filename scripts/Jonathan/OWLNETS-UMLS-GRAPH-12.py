@@ -48,6 +48,8 @@ OWL_SAB = sys.argv[3].upper()
 # Organism argument, which factors for ingestion of the PR ontology.
 ORGANISM = sys.argv[4].lower()
 
+# TO DO: Use argparse instead of sys.argv
+
 pd.set_option('display.max_colwidth', None)
 
 # ### Ingest OWLNETS output files, remove NaN and duplicate (keys) if they were to exist
@@ -89,12 +91,15 @@ node_metadata = node_metadata.dropna(subset=['node_id']).drop_duplicates(subset=
 relations_file_exists = os.path.exists(owlnets_path('OWLNETS_relations.txt'))
 
 if relations_file_exists:
+    print('Obtaining relations data from relations metadata file.')
     relations = pd.read_csv(owlnets_path("OWLNETS_relations.txt"), sep='\t')
     relations = relations.replace({'None': np.nan})
     relations = relations.dropna(subset=['relation_id']).drop_duplicates(subset='relation_id').reset_index(drop=True)
     # handle relations with no label by inserting part after # - may warrant more robust solution or a hard stop
     relations.loc[relations['relation_label'].isnull(), 'relation_label'] = relations['relation_id'].str.split('#').str[
         -1]
+else:
+    print('No relations metadata found, so obtaining relations data from edgelist file.')
 
 # In[4]:
 
@@ -128,6 +133,7 @@ if edgecount > 500000 or nodecount > 500000:
 
     if OWL_SAB == 'PR':
         if ORGANISM == '':
+            # The script will fail. Exit gracefully.
             raise SystemExit('Because of the size of the PR ontology, it is necessary to specify a species. Use the '
                              '-p parameter in the call to the generation script.')
         print(
@@ -225,15 +231,17 @@ edgelist['object'] = np.where(edgelist['object'].str.contains('HGNC') == True, \
                               codeReplacements(edgelist['object']))
 
 
-print('DEBUG:')
-print(edgelist)
+# #################################################
 # JAS 8 NOV 2022
-# Obtain relations and their inverses from Relations Ontology JSON.
+# Obtain descriptions of relationships and their inverses from Relations Ontology JSON.
 
 # The Relations Ontology (RO) is an ontology of relationships, in which the nodes are
 # relationship properties and the edges (predicates) are relationships *between*
 # relationship properties.
-# For example, relationship property A (node) inverseOf (edge) relationship property B (node).
+# For example,
+# relationship property RO_0002292 (node) inverseOf (edge) relationship property RO_0002206 (node)
+# or
+# "expresses" inverseOf "expressed in"
 
 dfro = pd.read_json("https://raw.githubusercontent.com/oborel/obo-relations/master/ro.json")
 
@@ -252,16 +260,17 @@ dfedges = pd.DataFrame(dfro.graphs[0]['edges'])
 #
 # The ontology graph requires that every relationship have an inverse.
 # Not all relationships in RO are defined with inverses, so the script will create
-# "pseudo-inverse" relationships.
+# "pseudo-inverse" relationships--e.g., if the only information available is the label "eats", then
+# the pseudo-inverse will be "inverse_eats" (instead of, say, "eaten_by").
 
 # Cases that require pseudo-inverses include:
 # 1. A property is incompletely specified in terms of both sides of an inverse relationship--e.g.,
 #    RO_0002206 is listed as the inverse of RO_0002292, but RO_0002292 is not listed as the
 #    corresponding inverse of RO_0002206. For these properties, the available relationship
 #    will be inverted when joining relationship information to the edgelist.
-#    (This is really a case in which both parts of the inverse relationship should have been
+#    (This is really a case in which both directions of the inverse relationship should have been
 #    defined in the edges node, but were not.)
-# 2. A property  does not have inverse relationships defined in RO.
+# 2. A property does not have inverse relationships defined in RO.
 #    The relationship will be added to the list with a null inverse. The script will later create a
 #    pseudo-inverse by appending "inverse_" to the relationship label.
 
@@ -272,7 +281,7 @@ dfedges = pd.DataFrame(dfro.graphs[0]['edges'])
 # 2. relationship predicates (relationships between relationship properties)
 # The assumption is that each relationship property node has at least one edge (predicate).
 
-# (Possible enhancement: find relationship properties that do not have an edge. This really
+# (Possible enhancement: find relationship properties in RO that do not have an edge. This really
 # would be shaking the RO tree pretty hard, though.)
 
 # Get subject node, edge
@@ -283,7 +292,7 @@ dfrelationtriples = dfrelationtriples.merge(dfnodes, how='inner', left_on='obj',
 # ---------------------------------
 # Identify relationship properties that do not have inverses.
 # 1. Group relationship properties by predicate, using count.
-#    ('Predicate' here is the relationship between relationship properties.)
+#    ('pred' here describes the relationship between relationship properties.)
 dfpred = dfrelationtriples.groupby(['id_x', 'pred']).count().reset_index()
 
 # 2. Identify the relationships for which the set of predicates does not include "inverseOf".
@@ -317,8 +326,8 @@ dfnoinv['inverse_RO'] = np.where(dfnoinv['lbl'].isnull(), dfnoinv['inverse_RO'],
 dfnoinv = dfnoinv[['IRI', 'relation_label_RO', 'inverse_IRI', 'inverse_RO']]
 
 # ---------------------------------
-# Filter the triples frame to just those relationship properties that have inverses. This step eliminates relationship
-# properties related by relationships such as "subPropertyOf".
+# Filter the base triples frame to just those relationship properties that have inverses.
+# This step eliminates relationship properties related by relationships such as "subPropertyOf".
 dfrelationtriples = dfrelationtriples[dfrelationtriples['pred'] == 'inverseOf']
 
 # Rename column names.
@@ -326,11 +335,11 @@ dfrelationtriples = dfrelationtriples[dfrelationtriples['pred'] == 'inverseOf']
 # IRI - the IRI for the relationship property
 # relation_label_RO - the label for the relationship property
 # inverse_RO - the label of the inverse relationship property
-# inverse_IRI - IRI for the inverse relationship (will be dropped)
+# inverse_IRI - IRI for the inverse relationship (This will be dropped.)
 dfrelationtriples = dfrelationtriples[['id_x', 'lbl_x', 'id_y', 'lbl_y']].rename(
     columns={'id_x': 'IRI', 'lbl_x': 'relation_label_RO', 'id_y': 'inverse_IRI', 'lbl_y': 'inverse_RO'})
 
-# Add triples for relationship properties without inverses.
+# Add triples for problematic relationship properties--i.e., without inverses or from incomplete pairs.
 dfrelationtriples = pd.concat([dfrelationtriples, dfnoinv], ignore_index=True).drop_duplicates(subset=['IRI'])
 
 # Convert stings for labels for relationships to expected delimiting.
@@ -357,10 +366,11 @@ edgelist = edgelist[
     ['subject', 'predicate', 'object', 'relation_label_from_file', 'relation_label_RO', 'inverse_RO']].rename(
     columns={'relation_label_RO': 'relation_label_RO_fromIRIjoin', 'inverse_RO': 'inverse_RO_fromIRIjoin'})
 
-# Check for relationships in RO by label, considering the edgelist predicate as *a label*--i.e.,
+# Check for relationships in RO by label, considering the edgelist predicate as *a label*--e.g.,
 # as a simplified version of an IRI.
 # First, format the predicate string to match potential relationship strings from RO.
-# Parsing note: relationship IRIs may be in format url...#relation--e.g., ccf.owl#ct_is_a.
+# Parsing note: relationship IRIs often include the '#' character as a terminal delimiter, and
+# be in format url...#relation--e.g., ccf.owl#ct_is_a.
 edgelist['predicate'] = edgelist['predicate'].str.replace(' ', '_').str.replace('#', '/').str.split('/').str[-1]
 edgelist = edgelist.merge(dfrelationtriples, how='left', left_on='predicate',
                           right_on='relation_label_RO').drop_duplicates().reset_index(drop=True)
@@ -384,11 +394,11 @@ if relations_file_exists:
 
 # We now have labels for relations and inverses for the following scenarios:
 # 1. relation_label_RO_fromIRIjoin/inverse_fromIRIjoin - predicate was a full IRI that was in RO
-# 2. relation_label_RO_fromlabeljoin/inverse_fromlabeljoin - predicate corresponded to the label
-#    of a relation in RO
+# 2. relation_label_RO_fromlabeljoin/inverse_fromlabeljoin - predicate corresponds to the label
+#    of a relation property in RO
 # 3. relation_label_from_file/(null inverse) - relation label from the OWLNETS_relations.txt.
 #    The label is either the label of a relationship with IRI not in RO or a custom relationship label.
-# 4. predicate - a custom relationship label
+# 4. predicate/(null inverse) - a custom relationship label
 
 # Order of precedence for relationship/inverse relationship data:
 # 1. label from the edgelist predicate joined to RO by IRI

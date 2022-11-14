@@ -122,7 +122,9 @@ with open(edgelist_path, 'w') as out:
         if index >= 0:  # non-header
             subject = str(row['code'])
 
-            for col in range(4, len(row)):
+            # JAS 8 NOV 2022: Changed start of range from 4 to 5 the "dbxref" column.
+            # dbxref is not a custom relationship, but an equivalence class.
+            for col in range(5, len(row)):
                 # Obtain relationship (predicate)
                 if col == 5:
                     # The OWLNETS-UMLS-GRAPH script converts subClassOf into isa and inverse_isa relationships.

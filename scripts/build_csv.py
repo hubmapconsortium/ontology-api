@@ -49,6 +49,11 @@ UMLS_GRAPH_SCRIPT: str = './Jonathan/OWLNETS-UMLS-GRAPH-12.py'
 # October 19, 2022 - Alan Simmons
 # Added 'organism' argument, primarily for PR.
 
+# November 15, 2022 - Alan simmons
+# Drop PR; remove organism argument; add new release of CCF, MONDO
+# $ ./build_csv.sh -v PATO UBERON CL DOID OBI EDAM HSAPDV SBO MI CHEBI MP ORDO UNIPROTKB UO HUSAT HUBMAP CCF MONDO
+
+
 # TODO https://douroucouli.wordpress.com/2019/03/14/biological-knowledge-graph-modeling-design-patterns/
 
 
@@ -89,9 +94,10 @@ parser.add_argument("-S", "--skipValidation", action="store_true",
                     help='skip all validation')
 parser.add_argument("-v", "--verbose", action="store_true",
                     help='increase output verbosity')
+# JAS 15 NOV 2022 - organism argument no longer needed, because PR is no longer ingested.
 # JAS 19 October 2022
-parser.add_argument("-p", '--organism', type=str, default='human',
-                    help='organism (e.g., human, mouse)')
+# parser.add_argument("-p", '--organism', type=str, default='human',
+                    #help='organism (e.g., human, mouse)')
 
 args = parser.parse_args()
 
@@ -193,8 +199,9 @@ if args.verbose is True:
         print(f" * Process only one OWL file: {args.oneOwl}")
     if args.skipValidation is True:
         print(' * Skipping all validation')
+    # JAS 15 NOV 2022 - The organism argument is no longer needed.
     # JAS 19 OCT 2022
-    print(f' * Organism: {args.organism}')
+    # print(f' * Organism: {args.organism}')
     print('')
 
 ontologies = json.load(open(args.ontologies_json, 'r'))
@@ -262,8 +269,9 @@ for ontology_name in ontology_names:
     #     os.system(validation_script)
     save_csv_dir = copy_csv_files_to_save_dir(args.umls_csvs_dir, 'save')
 
+    # JAS 15 nov 2022 - removed organism argument
     # JAS 19 OCT 2022 added organism argument
-    umls_graph_script: str = f"{UMLS_GRAPH_SCRIPT} {working_owlnets_dir} {args.umls_csvs_dir} {owl_sab} {args.organism}"
+    umls_graph_script: str = f"{UMLS_GRAPH_SCRIPT} {working_owlnets_dir} {args.umls_csvs_dir} {owl_sab}"
     print_and_logger_info(f"Running: {umls_graph_script}")
     os.system(umls_graph_script)
 

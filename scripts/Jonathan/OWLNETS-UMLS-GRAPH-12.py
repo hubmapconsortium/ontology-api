@@ -44,9 +44,10 @@ def csv_path(file: str) -> str:
 # Asssignnment of SAB for CUI-CUI relationships (edgelist) - typically use file name before .owl in CAPS
 OWL_SAB = sys.argv[3].upper()
 
+# JAS 15 NOV 2022 - removed organism argument, because we are not ingesting PR.
 # JAS 19 OCT 2022
 # Organism argument, which factors for ingestion of the PR ontology.
-ORGANISM = sys.argv[4].lower()
+# ORGANISM = sys.argv[4].lower()
 
 # TO DO: Use argparse instead of sys.argv
 
@@ -131,21 +132,24 @@ print('Number of nodes in node_metadata.txt', nodecount)
 if edgecount > 500000 or nodecount > 500000:
     print('WARNING: Large OWLNETS files may cause the script to terminate from memory issues.')
 
-    if OWL_SAB == 'PR':
-        if ORGANISM == '':
+# JAS 15 NOV 2022
+# Deprecating checks related to PR.
+# --------
+    # if OWL_SAB == 'PR':
+        # if ORGANISM == '':
             # The script will fail. Exit gracefully.
-            raise SystemExit('Because of the size of the PR ontology, it is necessary to specify a species. Use the '
-                             '-p parameter in the call to the generation script.')
-        print(
-            f'For the PR ontology, this script will select a subset of nodes that correspond to proteins that are '
-            f'unambiguously for the organism: {ORGANISM}.')
+            # raise SystemExit('Because of the size of the PR ontology, it is necessary to specify a species. Use the '
+                            # '-p parameter in the call to the generation script.')
+        # print(
+            # f'For the PR ontology, this script will select a subset of nodes that correspond to proteins that are '
+            # f'unambiguously for the organism: {ORGANISM}.')
 
         # Case-insensitive search of the node definition, ignoring null values.
-        node_metadata = node_metadata[
-            node_metadata['node_definition'].fillna(value='').str.lower().str.contains(ORGANISM.lower())]
-        nodecount = len(node_metadata.index)
-        print(f'Node count for {ORGANISM}:{nodecount}')
-
+        # node_metadata = node_metadata[
+            # node_metadata['node_definition'].fillna(value='').str.lower().str.contains(ORGANISM.lower())]
+        # nodecount = len(node_metadata.index)
+        # print(f'Node count for {ORGANISM}:{nodecount}')
+# ---------
 
 # ### Define codeReplacements function - modifies known code and xref formats to CodeID format
 
@@ -153,16 +157,86 @@ if edgecount > 500000 or nodecount > 500000:
 
 
 def codeReplacements(x):
-    return x.str.replace('NCIT ', 'NCI ', regex=False).str.replace('MESH ', 'MSH ', regex=False) \
-        .str.replace('GO ', 'GO GO:', regex=False) \
-        .str.replace('NCBITaxon ', 'NCBI ', regex=False) \
-        .str.replace('.*UMLS.*\s', 'UMLS ', regex=True) \
-        .str.replace('.*SNOMED.*\s', 'SNOMEDCT_US ', regex=True) \
-        .str.replace('HP ', 'HPO HP:', regex=False) \
-        .str.replace('^fma', 'FMA ', regex=True) \
-        .str.replace('Hugo.owl HGNC ', 'HGNC ', regex=False) \
-        .str.replace('HGNC ', 'HGNC HGNC:', regex=False) \
-        .str.replace('gene symbol report?hgnc id=', 'HGNC HGNC:', regex=False)
+
+    # JAS 15 Nov 2022 - Refactor
+
+    # This function converts strings that correspond to either codes or CUIs for concepts to a format
+    # recognized by the knowledge graph.
+    #
+    # For most concepts this format is:
+    # <SAB><space><code>
+    # There are a number of special cases, which are handled below.
+
+    # The argument x is a Pandas Series object containing information on either:
+    #  a node (subject or object)
+    #  a dbxref
+
+    # 1. Account for special cases of
+    #   a. MONDO
+    #   b. EDAM
+    # 2. Consolidate some string handling.
+    # 3. Break up the original string replacement for ease of debugging.
+
+    # Convert the code string to the CodeID format.
+    # This is sufficient for all cases except EDAM, for which underscores will be restored.
+    ret = x.str.replace(':', ' ').str.replace('#', ' ').str.replace('_', ' ').str.split('/').str[-1]
+
+    # Convert SABs to expected values.
+    # NCI
+    ret = ret.str.replace('NCIT ', 'NCI ', regex=False)
+    # MSH
+    ret = ret.str.replace('MESH ', 'MSH ', regex=False)
+    # GO
+    ret = ret.str.replace('GO ', 'GO GO:', regex=False)
+    # NCBI
+    ret = ret.str.replace('NCBITaxon ', 'NCBI ', regex=False)
+    # UMLS
+    ret = ret.str.replace('.*UMLS.*\s', 'UMLS ', regex=True)
+    # SNOMED
+    ret = ret.str.replace('.*SNOMED.*\s', 'SNOMEDCT_US ', regex=True)
+    # HP
+    ret = ret.str.replace('HP ', 'HPO HP:', regex=False)
+    # FMA
+    ret = ret.str.replace('^fma', 'FMA ', regex=True)
+    # HGNC
+    ret = ret.str.replace('Hugo.owl HGNC ', 'HGNC ', regex=False)
+    ret = ret.str.replace('HGNC ', 'HGNC HGNC:', regex=False)
+    ret = ret.str.replace('gene symbol report?hgnc id=', 'HGNC HGNC:', regex=False)
+
+    # Special case:
+    # MONDO identifies genes with IRIs in format
+    # http://identifiers.org/hgnc/<id>
+    # Convert to HGNC HGNC:<id>
+    ret = np.where((OWL_SAB == 'MONDO' and x.str.contains('http://identifiers.org/hgnc')),
+                   'HGNC HGNC:' + x.str.split('/').str[-1], ret)
+
+    # Special case:
+    # EDAM IRIs are in the format
+    # http://edamontology.org/<domain>_<id>
+    # e.g., http://edamontology.org/format_3750
+    # Force the SAB to be EDAM and restore the underscore delimiter between domain and id.
+    ret = np.where((OWL_SAB == 'EDAM' and x.str.contains('http://edamontology.org')),
+                   'EDAM ' + x.str.replace(':', ' ').str.replace('#', ' ').str.split('/').str[-1]
+                   , ret)
+
+    # Special case:
+    # HGNC codes in expected format--i.e., that did not need to be converted above.
+    # This is currently the case for UNIPROTKB.
+    ret = np.where(x.str.contains('HGNC HGNC:'), x, ret)
+
+    return ret
+
+    # original code
+    # return x.str.replace('NCIT ', 'NCI ', regex=False).str.replace('MESH ', 'MSH ', regex=False) \
+        # .str.replace('GO ', 'GO GO:', regex=False) \
+        #.str.replace('NCBITaxon ', 'NCBI ', regex=False) \
+        # .str.replace('.*UMLS.*\s', 'UMLS ', regex=True) \
+        # .str.replace('.*SNOMED.*\s', 'SNOMEDCT_US ', regex=True) \
+        # .str.replace('HP ', 'HPO HP:', regex=False) \
+        # .str.replace('^fma', 'FMA ', regex=True) \
+        # .str.replace('Hugo.owl HGNC ', 'HGNC ', regex=False) \
+        # .str.replace('HGNC ', 'HGNC HGNC:', regex=False) \
+        # .str.replace('gene symbol report?hgnc id=', 'HGNC HGNC:', regex=False)
 
 
 # return x.str.replace('NCIT ', 'NCI ', regex=False).str.replace('MESH ', 'MSH ', regex=False).str.replace('GO ', 'GO GO:', regex=False).str.replace('NCBITaxon ', 'NCBI ', regex=False).str.replace('.*UMLS.*\s', 'UMLS ', regex=True).str.replace('.*SNOMED.*\s', 'SNOMEDCT_US ', regex=True).str.replace('HP ', 'HPO HP:', regex=False).str.replace('^fma','FMA ', regex=True)
@@ -195,10 +269,17 @@ else:
 # edgelist['relation_label'] = edgelist['relation_label'].str.replace(' ', '_')
 
 # Format subject node information.
-edgelist['subject'] = \
-    edgelist['subject'].str.replace(':', ' ').str.replace('#', ' ').str.replace('_', ' ').str.split('/').str[-1]
+# JAS string replacements moved to codeReplacements function.
+# edgelist['subject'] = \
+    #edgelist['subject'].str.replace(':', ' ').str.replace('#', ' ').str.replace('_', ' ').str.split('/').str[-1]
 edgelist['subject'] = codeReplacements(edgelist['subject'])
 
+# JAS 15 NOV 2022
+# Deprecate all prior code that handled object nodes, including from October 2022, in favor of the
+# improved codeReplacements function.
+edgelist['object'] = codeReplacements(edgelist['object'])
+
+# ------------- DEPRECATED
 # JAS 13 OCT 2022
 # Format object node information.
 # Enhancement to handle special case of HGNC object nodes.
@@ -220,15 +301,16 @@ edgelist['subject'] = codeReplacements(edgelist['subject'])
 # new code:
 
 # If the nodes are not from HGNC, replace delimiters with space.
-edgelist['object'] = np.where(edgelist['object'].str.contains('HGNC') == True, \
-                              edgelist['object'], \
-                              edgelist['object'].str.replace(':', ' ').str.replace('#', ' ').str.replace('_',
-                                                                                                         ' ').str.split(
-                                  '/').str[-1])
+#edgelist['object'] = np.where(edgelist['object'].str.contains('HGNC') == True, \
+                              #edgelist['object'], \
+                              #edgelist['object'].str.replace(':', ' ').str.replace('#', ' ').str.replace('_',
+                                                                                                         #' ').str.split(
+                                  #'/').str[-1])
 # If the nodes are not from HGNC, align code SABs with UMLS.
-edgelist['object'] = np.where(edgelist['object'].str.contains('HGNC') == True, \
-                              edgelist['object'], \
-                              codeReplacements(edgelist['object']))
+#edgelist['object'] = np.where(edgelist['object'].str.contains('HGNC') == True, \
+                              #edgelist['object'], \
+                              #codeReplacements(edgelist['object']))
+# ------------- DEPRECATED
 
 
 # #################################################
@@ -447,8 +529,10 @@ edgelist.loc[edgelist['inverse'].isnull(), 'inverse'] = 'inverse_' + edgelist['r
 print('Cleaning up node metadata...')
 
 # CodeID
-node_metadata['node_id'] = \
-    node_metadata['node_id'].str.replace(':', ' ').str.replace('#', ' ').str.replace('_', ' ').str.split('/').str[-1]
+# CodeID
+# JAS 15 November string replacements moved to codeReplacements function.
+#node_metadata['node_id'] = \
+    #node_metadata['node_id'].str.replace(':', ' ').str.replace('#', ' ').str.replace('_', ' ').str.split('/').str[-1]
 node_metadata['node_id'] = codeReplacements(node_metadata['node_id'])
 
 # synonyms .loc of notna to control for owl with no syns

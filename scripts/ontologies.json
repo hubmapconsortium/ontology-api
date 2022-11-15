@@ -141,5 +141,9 @@
     "comment": "HuBMAP Samples Added Terms",
     "owl_url":"https://data.bioontology.org/ontologies/HUSAT/download?apikey=4983e1fe-1f54-412e-99bb-74764d659cb0&download_format=csv",
     "execute": "./husat/husat_owlnets.py 'https://data.bioontology.org/ontologies/HUSAT/download?apikey=4983e1fe-1f54-412e-99bb-74764d659cb0&download_format=csv' HUSAT"
+  },"MONDO": {
+    "owl_url": "http://purl.obolibrary.org/obo/mondo.owl",
+    "home_url": "https://obofoundry.org/ontology/mondo.html",
+    "comment": "The Mondo Disease Ontology (MONDO): a global community effort to harmonize multiple disease resources to yield a coherent merged ontology"
   }
 }
